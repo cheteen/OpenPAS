@@ -1,3 +1,12 @@
+OpenPAS:
+========================================
+Welcome to OpenPAS.
+
+See the project site for an overview of PAS and OpenPAS:
+
+http://openpas.steweche.co.uk/
+
+
 Building OpenPAS:
 ========================================
 
