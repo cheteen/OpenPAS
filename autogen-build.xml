@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="OPAS">
+    <property environment="env"/>
+    <property name="junit.output.dir" value="junit"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.8"/>
+    <property name="source" value="1.8"/>
+    <path id="OPAS.classpath">
+        <pathelement location="bin"/>
+        <pathelement location="lib/org.hamcrest.core_1.3.0.v201303031735.jar"/>
+        <pathelement location="lib/org.junit_4.12.0.jar"/>
+        <pathelement location="lib/guava.jar"/>
+        <pathelement location="lib/javabdd-1.0b2.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="OPAS.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target name="SimpleExample">
+        <java classname="examples.SimpleExample" failonerror="true" fork="yes">
+            <classpath refid="OPAS.classpath"/>
+        </java>
+    </target>
+    <target name="PokerHandsNaive">
+        <java classname="examples.PokerHandsNaive" failonerror="true" fork="yes">
+            <classpath refid="OPAS.classpath"/>
+        </java>
+    </target>
+    <target name="PASCTester.getPASCNotify">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="pasc.PASCTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="ProbabilityComputerTester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.ProbabilityComputerTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="LBImpls_Operations_Tester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.LBImpls_Operations_Tester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="openpas (1)">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.ImplicateResolverTester" todir="${junit.output.dir}"/>
+            <test name="openpas.LBImpls_Expressions_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.LBImpls_Operations_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.LBImpls_Primitives_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.LBImpls_Sentences_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.NumericResolverImplicateRWithBDDPrTester" todir="${junit.output.dir}"/>
+            <test name="openpas.NumericResolverImplicateRWithSPPrTester" todir="${junit.output.dir}"/>
+            <test name="openpas.PASImplTester" todir="${junit.output.dir}"/>
+            <test name="openpas.ProbabilityComputerTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="LBImpls_Primitives_Tester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.LBImpls_Primitives_Tester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="PASImplTester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.PASImplTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="PASCTester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="pasc.PASCTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="PASC">
+        <java classname="pasc.PASC" failonerror="true" fork="yes">
+            <arg line="docs/example_3services.ops"/>
+            <classpath refid="OPAS.classpath"/>
+        </java>
+    </target>
+    <target name="OPAS">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.ImplicateResolverTester" todir="${junit.output.dir}"/>
+            <test name="openpas.LBImpls_Expressions_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.LBImpls_Operations_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.LBImpls_Primitives_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.LBImpls_Sentences_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.NumericResolverImplicateRWithBDDPrTester" todir="${junit.output.dir}"/>
+            <test name="openpas.NumericResolverImplicateRWithSPPrTester" todir="${junit.output.dir}"/>
+            <test name="openpas.PASImplTester" todir="${junit.output.dir}"/>
+            <test name="openpas.ProbabilityComputerTester" todir="${junit.output.dir}"/>
+            <test name="pasc.PASCTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="LBImpls_Expressions_Tester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.LBImpls_Expressions_Tester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="ImplicateResolverTester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.ImplicateResolverTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="NumericResolverImpResAbstractTester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.NumericResolverImpResAbstractTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="NumericResolverImplicateRWithBDDPrTester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.NumericResolverImplicateRWithBDDPrTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="LBImpls_Sentences_Tester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.LBImpls_Sentences_Tester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="PokerHandsCompact">
+        <java classname="examples.PokerHandsCompact" failonerror="true" fork="yes">
+            <classpath refid="OPAS.classpath"/>
+        </java>
+    </target>
+    <target name="NumericResolverImplicateRWithSPPrTester">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="openpas.NumericResolverImplicateRWithSPPrTester" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea"/>
+            <classpath refid="OPAS.classpath"/>
+        </junit>
+    </target>
+    <target name="junitreport">
+        <junitreport todir="${junit.output.dir}">
+            <fileset dir="${junit.output.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${junit.output.dir}"/>
+        </junitreport>
+    </target>
+</project>

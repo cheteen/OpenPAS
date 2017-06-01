@@ -1,0 +1,10 @@
+init
+
+create_assumption: A, 0.5
+create_assumption: B, 0.5
+
+create_proposition: x
+
+add_horn: A -> x
+add_horn: B -> ¬x
+

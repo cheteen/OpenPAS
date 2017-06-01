@@ -1,0 +1,13 @@
+init
+
+create_assumption: Person_sick_on_train, 0.05
+create_assumption: Heavy_rain, 0.1
+create_assumption: Rain_causes_train_problem, 0.2
+
+create_proposition: train_delay
+
+add_horn: Heavy_rain Rain_causes_train_problem -> train_delay
+add_horn: Person_sick_on_train -> train_delay
+
+qs: train_delay
+scenarios: [Heavy_rain Rain_causes_train_problem + Person_sick_on_train]
