@@ -20,7 +20,7 @@ $ java -jar OpenPAS-1.0.jar
 
 You can also execute an OPS file like this by passing the file as the first parameter, e.g.:
 
-$ java -jar OpenPAS-1.0.jar docs/heavy_rain.ops
+$ java -jar OpenPAS-1.0.jar scripts/heavy_rain.ops
 
 
 Building OpenPAS:
