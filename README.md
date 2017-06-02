@@ -7,10 +7,26 @@ See the project site for an overview of PAS and OpenPAS:
 http://openpas.steweche.co.uk/
 
 
+Running OpenPAS:
+========================================
+
+OpenPAS needs Java 1.8 or higher installed. You can either obtain OpenPAS from a release or build it yourself (see below).
+
+Download current release: https://github.com/cheteen/OpenPAS/releases/download/1.0/OpenPAS-1.0.jar
+
+You can run OpenPAS in interactive mode as follows:
+
+$ java -jar OpenPAS-1.0.jar
+
+You can also execute an OPS file like this by passing the file as the first parameter, e.g.:
+
+$ java -jar OpenPAS-1.0.jar docs/heavy_rain.ops
+
+
 Building OpenPAS:
 ========================================
 
-Build and runtime dependencies:
+Build dependencies:
 - Java runtime 1.8 (or higher)
 - Ant 1.9 (or likely earlier is also fine)
 
@@ -29,15 +45,3 @@ $ ant autobuild.build
 
 I personally develop OpenPAS in Eclipse so it contains Eclipsisms such as warning suppressions, and includes build files auto-generated using
 Eclipse, but you shouldn't need to use Eclipse to build/run/develop in OpenPAS.
-
-
-Running OpenPAS:
-========================================
-
-OpenPAS needs Java 1.8 or higher installed. You can run OpenPAS in interactive mode as follows:
-
-$ java -jar ./build/jar/OpenPAS-1.0.jar
-
-You can also execute an OPS file like this by passing the file as the first parameter, e.g.:
-
-$ java -jar ./build/jar/OpenPAS-1.0.jar docs/heavy_rain.ops
