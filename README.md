@@ -43,3 +43,13 @@ If all you want is to build the project (but not a jar file) then the following 
 
 $ ant autobuild.build
 
+Documentation
+========================================
+
+The project web site is a good reference to start with.
+
+The Javadoc for the code is in the project tree under /docs (currently manually updated).
+
+A version of the Javadoc is also hosted here (also manually updated):
+
+http://openpas.steweche.co.uk/docs/
