@@ -30,15 +30,17 @@ import openpas.basics.Assumption;
 import openpas.basics.Literal.LiteralType;
 import openpas.basics.PropFactory;
 
-public class LBImpls_Primitives_Tester {
+public abstract class ImplsPrimitivesTester_Abstract {
 
 	final static double DOUBLE_COMPARE_DELTA = 1e-6;
 
 	PropFactory mFac;
 
+	abstract PropFactory createFactory();
+	
 	@Before
 	public void setUp() throws Exception {
-		mFac = new LBImpls.LBImplFactory();
+		mFac = createFactory();
 	}
 	
 	@Test

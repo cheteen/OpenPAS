@@ -41,7 +41,7 @@ import openpas.basics.PropFactory;
 import openpas.basics.Proposition;
 import openpas.utils.ArrayIterable;
 
-public class LBImpls_Sentences_Tester{
+public abstract class ImplsSentencesTester_Abstract{
 	
 	PropFactory mFac;	
 	
@@ -60,9 +60,11 @@ public class LBImpls_Sentences_Tester{
 	Literal mLg;
 	Literal mLng;
 	
+	abstract PropFactory createFactory();
+	
 	@Before
 	public void setUp() throws Exception {
-		mFac = new LBImpls.LBImplFactory();
+		mFac = createFactory();
 	}
 
 	@After

@@ -33,7 +33,7 @@ import openpas.basics.LogicalOps.LogicalAnd;
 import openpas.basics.PropFactory;
 import openpas.utils.ArrayIterable;
 
-public class LBImpls_Operations_Tester {	
+public abstract class ImplsOperationsTester_Abstract {	
 	PropFactory mFac;	
 	
 	Literal mLa;
@@ -51,9 +51,11 @@ public class LBImpls_Operations_Tester {
 	Literal mLg;
 	Literal mLng;
 
+	abstract PropFactory createFactory();
+	
 	@Before
 	public void setUp() throws Exception {
-		mFac = new LBImpls.LBImplFactory();
+		mFac = createFactory();
 	}
 
 	@After
