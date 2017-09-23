@@ -41,44 +41,31 @@ import openpas.basics.LogicalOps.OperatorException;
  */
 public interface PropFactory 
 {
-	// Operations
+	// StringOps - these are here because there can be factory specific stringising requirements,
+	// e.g. the ordering of the literals when stringising expressions.
 	/**
-	 * Returns the "and" operator.
+	 * Returns the default symboliser. A symboliser is used to convert to string logical concepts such as the operators.
 	 * @return
 	 */
-	LogicalAnd getAnd();
 	
+	StringOps.LogicalSmyboliser getDefaultSymboliser();
 	/**
-	 * Returns the "or" operator.
+	 * Returns the default stringer. A stringer is a class that creates a string representation of logical expressions and sentences.
 	 * @return
 	 */
-	LogicalOr getOr();
+	StringOps.LogicalStringer getDefaultStringer();
 	
 	/**
-	 * Returns the "negation" operator.
+	 * Returns a stringer that's guaranteed to return horn clause representations of a clause or a CNF. This will only work on 
+	 * a clause or a CNF. The stringer may return null when given an expression that's not a clause, or a sentence that's not a CNF.
 	 * @return
 	 */
-	Negation getNegation();
-	
-	/**
-	 * Returns a comparator that sorts the literals in their natural sorting order
-	 * which is their unique index value.
-	 * @return
-	 */
-	Comparator<Literal> getLiteralSorter();
-	
-	/**
-	 * Returns an operator that implements the required class.
-	 * @param cls The class of the operator required.
-	 * @return An instance of the operator with the specified class.
-	 * @throws OperatorException May throw this exception if the operator is not supported.
-	 */
-	<Op extends LogicalOp> Op getOp(Class<Op> cls) throws OperatorException;
-	
+	StringOps.LogicalStringer getHornStringer();
+
 	// Literals
 	/**
 	 * Creates the named proposition. An index number is allocated for each new proposition. The way
-	 * to access the negated version of an existing proposition is to {@link Literal#cloneNegated()} it.
+	 * to access the negated version of an existing proposition is to {@link Literal#getNegated()} it.
 	 * @param name A name to identify this proposition. There's no uniqueness constraint during the creation of literals, but when
 	 * they're used inside a {@link PAS} instance. The name specified must conform to the regular expression as specified
 	 * in {@link #getValidName()}.
@@ -89,7 +76,7 @@ public interface PropFactory
 	
 	/**
 	 * Creates the named assumption. An index number is allocated for each new assumption. The way
-	 * to access the negated version of an existing assumption is to {@link Literal#cloneNegated()} it.
+	 * to access the negated version of an existing assumption is to {@link Literal#getNegated()} it.
 	 * @param name A name to identify this proposition. There's no uniqueness constraint during the creation of literals, but when
 	 * they're used inside a {@link PAS} instance. The name specified must conform to the regular expression as specified
 	 * in {@link #getValidName()}.
@@ -99,6 +86,13 @@ public interface PropFactory
 	 */
 	Assumption createAssumption(String name, boolean neg, double probability);
 	
+	/**
+	 * Returns a comparator that sorts the literals in their natural sorting order
+	 * which is their unique index value.
+	 * @return
+	 */
+	Comparator<Literal> getLiteralSorter();
+
 	/**
 	 * Get the special literal for falsity.
 	 * @return
@@ -132,6 +126,33 @@ public interface PropFactory
 	 * @return
 	 */
 	Pattern getValidName();
+	
+	// Operations
+	/**
+	 * Returns the "and" operator.
+	 * @return
+	 */
+	LogicalAnd getAnd();
+	
+	/**
+	 * Returns the "or" operator.
+	 * @return
+	 */
+	LogicalOr getOr();
+	
+	/**
+	 * Returns the "negation" operator.
+	 * @return
+	 */
+	Negation getNegation();
+	
+	/**
+	 * Returns an operator that implements the required class.
+	 * @param cls The class of the operator required.
+	 * @return An instance of the operator with the specified class.
+	 * @throws OperatorException May throw this exception if the operator is not supported.
+	 */
+	<Op extends LogicalOp> Op getOp(Class<Op> cls) throws OperatorException;
 	
 	// Expressions
 	/**
@@ -265,27 +286,6 @@ public interface PropFactory
 	 * Returns an interface that's capable to performing some logical conversions such as converting a DNF -> CNF, or CNF -> DNF.
 	 * @return
 	 */
-	LogicalConverter getConverter();
-	
-	// StringOps - these are here because there can be factory specific stringising requirements,
-	// e.g. the ordering of the literals when stringising expressions.
-	/**
-	 * Returns the default symboliser. A symboliser is used to convert to string logical concepts such as the operators.
-	 * @return
-	 */
-	
-	StringOps.LogicalSmyboliser getDefaultSymboliser();
-	/**
-	 * Returns the default stringer. A stringer is a class that creates a string representation of logical expressions and sentences.
-	 * @return
-	 */
-	StringOps.LogicalStringer getDefaultStringer();
-	
-	/**
-	 * Returns a stringer that's guaranteed to return horn clause representations of a clause or a CNF. This will only work on 
-	 * a clause or a CNF. The stringer may return null when given an expression that's not a clause, or a sentence that's not a CNF.
-	 * @return
-	 */
-	StringOps.LogicalStringer getHornStringer();
+	LogicalConverter getConverter();	
 }
 

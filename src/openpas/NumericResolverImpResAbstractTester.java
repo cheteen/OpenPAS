@@ -78,25 +78,25 @@ public abstract class NumericResolverImpResAbstractTester {
 	{
 		mPra = 0.1;
 		mAa = mFac.createAssumption("a", false, mPra);
-		mAna = (Assumption) mAa.cloneNegated();
+		mAna = (Assumption) mAa.getNegated();
 		mPrb = 0.2;
 		mAb = mFac.createAssumption("b", false, mPrb);
-		mAnb = (Assumption) mAb.cloneNegated();
+		mAnb = (Assumption) mAb.getNegated();
 		mPrc = 0.3;
 		mAc = mFac.createAssumption("c", false, mPrc);
-		mAnc = (Assumption) mAc.cloneNegated();
+		mAnc = (Assumption) mAc.getNegated();
 		mPrd = 0.4;
 		mAd = mFac.createAssumption("d", false, mPrd);
-		mAnd = (Assumption) mAd.cloneNegated();
+		mAnd = (Assumption) mAd.getNegated();
 		
 		mPv = mFac.createProposition("v", false);
-		mPnv = (Proposition) mPv.cloneNegated();		
+		mPnv = (Proposition) mPv.getNegated();		
 		mPx = mFac.createProposition("x", false);
-		mPnx = (Proposition) mPx.cloneNegated();		
+		mPnx = (Proposition) mPx.getNegated();		
 		mPy = mFac.createProposition("y", false);
-		mPny = (Proposition) mPy.cloneNegated();		
+		mPny = (Proposition) mPy.getNegated();		
 		mPw = mFac.createProposition("w", false);
-		mPnw = (Proposition) mPw.cloneNegated();		
+		mPnw = (Proposition) mPw.getNegated();		
 	}
 	
 	@Before
@@ -259,12 +259,12 @@ public abstract class NumericResolverImpResAbstractTester {
 		//        = {0.6 - 0.12} / {1 - 0.12}
 		//		  = 0.48 / 0.88 = 0.545
 		Assumption aA = mFac.createAssumption("A", false, 0.6);
-		Assumption anA = (Assumption) aA.cloneNegated();
+		Assumption anA = (Assumption) aA.getNegated();
 		Assumption aB = mFac.createAssumption("B", false, 0.2);
-		Assumption anB = (Assumption) aB.cloneNegated();
+		Assumption anB = (Assumption) aB.getNegated();
 
 		Proposition pX = mFac.createProposition("x", false);
-		Proposition pnX = (Proposition) pX.cloneNegated();
+		Proposition pnX = (Proposition) pX.getNegated();
 		
 		Expression<LogicalOr> clause1 = mFac.createClause(new ArrayIterable<Literal>(new Literal[]{anA, pX}));
 		Expression<LogicalOr> clause2 = mFac.createClause(new ArrayIterable<Literal>(new Literal[]{anB, pnX}));
@@ -326,25 +326,25 @@ public abstract class NumericResolverImpResAbstractTester {
 		// where nodes U and D are introduced where they weren't defined before.
 		// The sym resolver walks through the links and works out the paths itself.
 		Assumption a_a = mFac.createAssumption("a", false, 0.9);
-		Assumption a_na = (Assumption) a_a.cloneNegated();		
+		Assumption a_na = (Assumption) a_a.getNegated();		
 		Assumption a_b = mFac.createAssumption("b", false, 0.9);
-		Assumption a_nb = (Assumption) a_b.cloneNegated();		
+		Assumption a_nb = (Assumption) a_b.getNegated();		
 		Assumption a_c = mFac.createAssumption("c", false, 0.9);
-		Assumption a_nc = (Assumption) a_c.cloneNegated();		
+		Assumption a_nc = (Assumption) a_c.getNegated();		
 		Assumption a_d = mFac.createAssumption("d", false, 0.9);
-		Assumption a_nd = (Assumption) a_d.cloneNegated();		
+		Assumption a_nd = (Assumption) a_d.getNegated();		
 		Assumption a_e = mFac.createAssumption("e", false, 0.9);
-		Assumption a_ne = (Assumption) a_e.cloneNegated();
+		Assumption a_ne = (Assumption) a_e.getNegated();
 		
 		Proposition p_S = mFac.createProposition("S", false);
-		Proposition p_nS = (Proposition) p_S.cloneNegated();
+		Proposition p_nS = (Proposition) p_S.getNegated();
 		Proposition p_T = mFac.createProposition("T", false);
 		@SuppressWarnings("unused")
-		Proposition p_nT = (Proposition) p_T.cloneNegated();
+		Proposition p_nT = (Proposition) p_T.getNegated();
 		Proposition p_U = mFac.createProposition("U", false);
-		Proposition p_nU = (Proposition) p_U.cloneNegated();
+		Proposition p_nU = (Proposition) p_U.getNegated();
 		Proposition p_D = mFac.createProposition("D", false);
-		Proposition p_nD = (Proposition) p_D.cloneNegated();
+		Proposition p_nD = (Proposition) p_D.getNegated();
 		
 		SimpleSentence<LogicalAnd, LogicalOr> cnf = mFac.createCNFSentence();
 		// S a -> U = ~S + ~a + U

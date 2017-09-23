@@ -27,8 +27,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import openpas.basics.Assumption;
+import openpas.basics.Literal;
 import openpas.basics.Literal.LiteralType;
 import openpas.basics.PropFactory;
+import openpas.basics.Proposition;
 
 public abstract class ImplsPrimitivesTester_Abstract {
 
@@ -60,27 +62,65 @@ public abstract class ImplsPrimitivesTester_Abstract {
 	}
 
 	@Test
-	public void testAssumptionClone() {
-		Assumption a = mFac.createAssumption("Testo", false, 0.3);
-		Assumption aNeg = (Assumption) a.cloneLiteral();
+	public void testAssumptionCloneNegated() {
+		Assumption lit = mFac.createAssumption("Testo", false, 0.5);
+		Assumption litNeg = (Assumption) lit.getNegated();
 		
-		Assert.assertEquals(a.getIndex(), aNeg.getIndex());
-		Assert.assertEquals(a.getName(), aNeg.getName());
-		Assert.assertEquals(a.getProbability(), aNeg.getProbability(), DOUBLE_COMPARE_DELTA);
-		Assert.assertEquals(a.getNeg(), aNeg.getNeg());
+		Assert.assertEquals(lit.getIndex(), litNeg.getIndex());
+		Assert.assertEquals(lit.getName(), litNeg.getName());
+		Assert.assertEquals(lit.getProbability(), 1 - litNeg.getProbability(), DOUBLE_COMPARE_DELTA);
+		Assert.assertEquals(lit.getNeg(), !litNeg.getNeg());
 	}
 
 	@Test
-	public void testAssumptionCloneNegated() {
-		Assumption a = mFac.createAssumption("Testo", false, 0.5);
-		Assumption aNeg = (Assumption) a.cloneNegated();
+	public void testPropositionCreation() {
+		String name = "Zitto";
+		Proposition lit = mFac.createProposition(name, false);
+		Proposition litB = mFac.createProposition("Kesto", true);
 		
-		Assert.assertEquals(a.getIndex(), aNeg.getIndex());
-		Assert.assertEquals(a.getName(), aNeg.getName());
-		Assert.assertEquals(a.getProbability(), 1 - aNeg.getProbability(), DOUBLE_COMPARE_DELTA);
-		Assert.assertEquals(a.getNeg(), !aNeg.getNeg());
+		Assert.assertEquals(name, lit.getName());
+		Assert.assertEquals(false, lit.getNeg());
+		Assert.assertEquals(LiteralType.Proposition, lit.getType());
+		
+		Assert.assertNotEquals(litB.getIndex(), lit.getIndex());
+		Assert.assertEquals(true, litB.getNeg());
+	}
+	
+	@Test
+	public void testPropositionCloneNegated() {
+		Proposition lit = mFac.createProposition("Testo", false);
+		Proposition litNeg = (Proposition) lit.getNegated();
+		
+		Assert.assertEquals(lit.getIndex(), litNeg.getIndex());
+		Assert.assertEquals(lit.getName(), litNeg.getName());
+		Assert.assertEquals(lit.getNeg(), !litNeg.getNeg());
 	}
 
-	//TODO: We need to do more testing on Propositions and Special literals.
+	@Test
+	public void testSpecials() {
+		Literal litTrue = mFac.getTrue();
+		Assert.assertTrue(!litTrue.getNeg());
+		Assert.assertEquals(litTrue.getName(), mFac.getDefaultSymboliser().getTrue());
+	
+		Literal litFalse = mFac.getFalse();
+		Assert.assertTrue(litFalse.getNeg());
+		Assert.assertEquals(litFalse.getName(), mFac.getDefaultSymboliser().getFalse());
+		
+		Assert.assertEquals(litTrue.getIndex(), litFalse.getIndex());
+	}
+
+	@Test
+	public void testSpecialsNegation() {
+		Literal litNotFalse = mFac.getFalse().getNegated();
+		Assert.assertTrue(!litNotFalse.getNeg());
+		Assert.assertEquals(litNotFalse.getName(), mFac.getDefaultSymboliser().getTrue());
+	
+		Literal litNotTrue = mFac.getTrue().getNegated();
+		Assert.assertTrue(litNotTrue.getNeg());
+		Assert.assertEquals(litNotTrue.getName(), mFac.getDefaultSymboliser().getFalse());
+		
+		Assert.assertEquals(litNotFalse.getIndex(), mFac.getTrue().getIndex());
+		Assert.assertEquals(litNotTrue.getIndex(), mFac.getFalse().getIndex());
+	}
 }
 

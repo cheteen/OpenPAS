@@ -65,19 +65,19 @@ public abstract class ImplsOperationsTester_Abstract {
 	void setLiterals()
 	{
 		mLa = mFac.createProposition("a", false);
-		mLna = mLa.cloneNegated();
+		mLna = mLa.getNegated();
 		mLb = mFac.createProposition("b", false);
-		mLnb = mLb.cloneNegated();
+		mLnb = mLb.getNegated();
 		mLc = mFac.createProposition("c", false);
-		mLnc = mLc.cloneNegated();
+		mLnc = mLc.getNegated();
 		mLd = mFac.createProposition("d", false);
-		mLnd = mLd.cloneNegated();		
+		mLnd = mLd.getNegated();		
 		mLe = mFac.createProposition("e", false);
-		mLne = mLe.cloneNegated();		
+		mLne = mLe.getNegated();		
 		mLf = mFac.createProposition("f", false);
-		mLnf = mLf.cloneNegated();		
+		mLnf = mLf.getNegated();		
 		mLg = mFac.createProposition("g", false);
-		mLng = mLf.cloneNegated();		
+		mLng = mLf.getNegated();		
 	}
 	
 	// TODO: Need the whole bonanza here obviously.

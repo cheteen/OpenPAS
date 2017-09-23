@@ -103,7 +103,7 @@ public class Scenarios
 				boolean positive = (scen >> ixAsm) % 2 == 1;
 				out.print(positive ? " T |" : " F |");
 				--ixAsm; // this makes the first assumption the most significant digit
-				Assumption sa = positive ? a : (Assumption) a.cloneNegated();
+				Assumption sa = positive ? a : (Assumption) a.getNegated();
 				andWith(dnfEval, sa);
 				probScen *= sa.getProbability();
 				andWith(contraEval, sa);

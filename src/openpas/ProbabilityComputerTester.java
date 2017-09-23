@@ -147,13 +147,13 @@ public class ProbabilityComputerTester {
 	public void testDNFWithNegatedTerms()
 	{
 		Assumption aA = mFac.createAssumption("A", false, 0.1);
-		Assumption aNA = (Assumption) aA.cloneNegated();
+		Assumption aNA = (Assumption) aA.getNegated();
 
 		Assumption aB = mFac.createAssumption("B", false, 0.2);
-		Assumption aNB = (Assumption) aB.cloneNegated();
+		Assumption aNB = (Assumption) aB.getNegated();
 		
 		Assumption aC = mFac.createAssumption("C", false, 0.3);
-		Assumption aNC = (Assumption) aC.cloneNegated();
+		Assumption aNC = (Assumption) aC.getNegated();
 
 		// Simple case: A + ¬A = True
 		{
@@ -273,7 +273,7 @@ public class ProbabilityComputerTester {
 				// If using inversion negate every other literal in every other term
 				if(doNegation && i % 2 == 1)
 					term.addLiteral(j % 2 == 0 ? 	assumptions[j % assumptions.length] 
-												  :	assumptions[j % assumptions.length].cloneNegated());
+												  :	assumptions[j % assumptions.length].getNegated());
 				else
 					term.addLiteral(assumptions[j % assumptions.length]);
 			}

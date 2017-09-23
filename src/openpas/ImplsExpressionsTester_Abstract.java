@@ -198,7 +198,7 @@ public abstract class ImplsExpressionsTester_Abstract{
 		Expression<LogicalAnd> trm = mFac.createTerm();
 		
 		Literal la = mFac.createProposition("a", false);
-		Literal lna = la.cloneNegated();
+		Literal lna = la.getNegated();
 		
 		trm.addLiteral(la);
 		trm.addLiteral(mFac.createProposition("b", true));
@@ -370,7 +370,7 @@ public abstract class ImplsExpressionsTester_Abstract{
 		Expression<LogicalOr> cla = mFac.createClause();
 		
 		Literal la = mFac.createProposition("a", false);
-		Literal lna = la.cloneNegated();
+		Literal lna = la.getNegated();
 		
 		cla.addLiteral(la);
 		cla.addLiteral(mFac.createProposition("b", true));
@@ -386,7 +386,7 @@ public abstract class ImplsExpressionsTester_Abstract{
 		Expression<LogicalOr> cla = mFac.createClause();
 		
 		Literal la = mFac.createProposition("a", false);
-		Literal lna = la.cloneNegated();
+		Literal lna = la.getNegated();
 		
 		cla.addLiteral(la);
 		cla.addLiteral(mFac.createProposition("b", true));

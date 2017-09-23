@@ -74,19 +74,19 @@ public abstract class ImplsSentencesTester_Abstract{
 	void setLiterals()
 	{
 		mLa = mFac.createProposition("a", false);
-		mLna = mLa.cloneNegated();
+		mLna = mLa.getNegated();
 		mLb = mFac.createProposition("b", false);
-		mLnb = mLb.cloneNegated();
+		mLnb = mLb.getNegated();
 		mLc = mFac.createProposition("c", false);
-		mLnc = mLc.cloneNegated();
+		mLnc = mLc.getNegated();
 		mLd = mFac.createProposition("d", false);
-		mLnd = mLd.cloneNegated();		
+		mLnd = mLd.getNegated();		
 		mLe = mFac.createProposition("e", false);
-		mLne = mLe.cloneNegated();		
+		mLne = mLe.getNegated();		
 		mLf = mFac.createProposition("f", false);
-		mLnf = mLf.cloneNegated();		
+		mLnf = mLf.getNegated();		
 		mLg = mFac.createProposition("g", false);
-		mLng = mLf.cloneNegated();		
+		mLng = mLf.getNegated();		
 	}
 	
 	@Test
@@ -697,18 +697,18 @@ public abstract class ImplsSentencesTester_Abstract{
 	public void testCreateMixedClause()
 	{
 		Literal aa = mFac.createAssumption("a", false, 0.1);
-		Literal ana = (Assumption) aa.cloneNegated();
+		Literal ana = (Assumption) aa.getNegated();
 		Literal ab = mFac.createAssumption("b", false, 0.2);
-		Literal anb = (Assumption) ab.cloneNegated();
+		Literal anb = (Assumption) ab.getNegated();
 		Literal ac = mFac.createAssumption("c", false, 0.3);
-		Literal anc = (Assumption) ac.cloneNegated();
+		Literal anc = (Assumption) ac.getNegated();
 		
 		Literal px = mFac.createProposition("x", false);
-		Literal pnx = (Proposition) px.cloneNegated();		
+		Literal pnx = (Proposition) px.getNegated();		
 		Literal py = mFac.createProposition("y", false);
-		Literal pny = (Proposition) py.cloneNegated();		
+		Literal pny = (Proposition) py.getNegated();		
 		Literal pz = mFac.createProposition("z", false);
-		Literal pnz = (Proposition) pz.cloneNegated();		
+		Literal pnz = (Proposition) pz.getNegated();		
 		
 		Expression<LogicalOr> cla1 = mFac.createClause(new ArrayIterable<Literal>(new Literal[]{ana, pnx, py}));
 		Expression<LogicalOr> cla2 = mFac.createClause(new ArrayIterable<Literal>(new Literal[]{anb, pz}));

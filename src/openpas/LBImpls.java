@@ -111,8 +111,8 @@ class LBImpls {
     	Map<Integer, Literal> mFalseLiterals;
     	Map<Integer, Literal> mTrueLiterals;
     	
-    	private Literal lTrue = new SpecialLBImpl("True", false, -1);
-    	private Literal lFalse = new SpecialLBImpl("False", false, -2);
+    	private Literal mLitTrue;
+    	private Literal mLitFalse;
 
     	private List<Expression<LogicalAnd>> mTrueTerms;
     	private List<Expression<LogicalOr>> mFalseClauses;
@@ -135,6 +135,13 @@ class LBImpls {
 
     	public LBImplFactory()
     	{
+        	mLogSymboliser = StringOps.createLogicalSymboliser();
+        	mLogStringiser = StringOps.createStringer(mLogSymboliser, getOrderLiterals(), DEFAULT_STRINGING_SIZE);
+        	mHornStringer = StringOps.createHornStringer(mLogSymboliser, getOrderLiterals(), DEFAULT_STRINGING_SIZE);
+
+        	mLitTrue = new SpecialLBImpl(this, mLogSymboliser.getTrue(), false, -1);
+        	mLitFalse = new SpecialLBImpl(this, mLogSymboliser.getFalse(), true, -1);
+
         	{
             	Map<Integer, Literal> mapFalseLiterals = new HashMap<Integer, Literal>(1);
             	mapFalseLiterals.put(getFalse().getIndex(), getFalse());
@@ -162,11 +169,7 @@ class LBImpls {
 
         	// mFalseCNF is not created as unmodifiable because the underlying mFalseClauses is already unmodifiable.
         	mFalseCNF = new CNFImpl(mAnd, mFalseClauses, this, false);
-        	mTrueCNF = new CNFImpl(mAnd, new ArrayList<Expression<LogicalOr>>(), this, true);
-        	
-        	mLogSymboliser = StringOps.createLogicalSymboliser();
-        	mLogStringiser = StringOps.createStringer(mLogSymboliser, getOrderLiterals(), DEFAULT_STRINGING_SIZE);
-        	mHornStringer = StringOps.createHornStringer(mLogSymboliser, getOrderLiterals(), DEFAULT_STRINGING_SIZE);
+        	mTrueCNF = new CNFImpl(mAnd, new ArrayList<Expression<LogicalOr>>(), this, true);        	
     	}
 
     	@Override
@@ -205,12 +208,12 @@ class LBImpls {
 
 		@Override
 		public Literal getFalse() {
-			return lFalse;
+			return mLitFalse;
 		}
 
 		@Override
 		public Literal getTrue() {
-			return lTrue;
+			return mLitTrue;
 		}
 		
 		@Override
@@ -766,12 +769,12 @@ class LBImpls {
 
 		@Override
 		public Literal operate(Literal lit) {
-			return lit.cloneNegated();
+			return lit.getNegated();
 		}
 
 		@Override
 		public Literal operateWith(Literal lit) {
-			return lit.cloneNegated();
+			return lit.getNegated();
 		}
 
 		@SuppressWarnings("unchecked")
@@ -843,7 +846,7 @@ class LBImpls {
 		public Expression<LogicalAnd> negateClause(Expression<LogicalOr> exp) {
 			Expression<LogicalAnd> trm = mFac.createTerm();
 			for(Literal lit : exp.getLiterals())
-				trm.addLiteral(lit.cloneNegated());
+				trm.addLiteral(lit.getNegated());
 			return trm;				
 		}
 
@@ -856,7 +859,7 @@ class LBImpls {
 		public Expression<LogicalOr> negateTerm(Expression<LogicalAnd> exp) {
 			Expression<LogicalOr> cla = mFac.createClause();
 			for(Literal lit : exp.getLiterals())
-				cla.addLiteral(lit.cloneNegated());
+				cla.addLiteral(lit.getNegated());
 			return cla;
 		}
 
@@ -956,22 +959,19 @@ class LBImpls {
 	
 	private static class SpecialLBImpl extends LiteralLBImpl
 	{
-		protected SpecialLBImpl(String name, boolean neg, int index)
+		LBImplFactory mFac; // Specials needs access to the factory to compare against singletons.
+		protected SpecialLBImpl(LBImplFactory fac, String name, boolean neg, int index)
 		{
 			super(name, neg, index);
+			mFac = fac;
 		}
 
 		@Override
-		public Literal cloneLiteral() {
-			return this; // can't clone
-		}
-
-		@Override
-		public Literal cloneNegated() {
-			if(this == getFactory().getTrue())
-				return getFactory().getFalse();
-			if(this == getFactory().getFalse())
-				return getFactory().getTrue();
+		public Literal getNegated() {
+			if(this == mFac.getTrue())
+				return mFac.getFalse();
+			if(this == mFac.getFalse())
+				return mFac.getTrue();
 			return null;// should probably throw runtime error, should never happen.
 		}
 
@@ -999,13 +999,9 @@ class LBImpls {
 		@Override
 		public double getProbability() { return mProbability; }
 		
-		@Override
-		public Literal cloneLiteral() {
-			return new AssumptionLBImpl(mName, mNeg, mIndex, mProbability);
-		}
 		// TODO: Need to test 1-p stuff below
 		@Override
-		public Literal cloneNegated() {
+		public Literal getNegated() {
 			return new AssumptionLBImpl(mName, !mNeg, mIndex, 1 - mProbability);
 		} 		
 	}
@@ -1023,12 +1019,7 @@ class LBImpls {
 		}
 		
 		@Override
-		public Literal cloneLiteral() {
-			return new PropositionLBImpl(mName, mNeg, mIndex);
-		}
-
-		@Override
-		public Literal cloneNegated() {
+		public Literal getNegated() {
 			return new PropositionLBImpl(mName, !mNeg, mIndex);
 		}
 	}

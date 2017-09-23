@@ -174,7 +174,7 @@ public class ImplicateResolver implements SymbolicResolver, Notifying
 		for(Literal lit : hclause.getLiterals())
 		{
 			Expression<LogicalOr> cl = mFac.createClause();
-			cl.addLiteral(lit.cloneNegated());
+			cl.addLiteral(lit.getNegated());
 			sigmaH.addElement(cl);
 		}
 		return sigmaH;	
@@ -247,7 +247,7 @@ public class ImplicateResolver implements SymbolicResolver, Notifying
 		sigmaXNeg = new ArrayList<Expression<LogicalOr>>(sigma.getLength());
 		sigmaXDot = new ArrayList<Expression<LogicalOr>>(sigma.getLength());
 
-		Literal neglit = lit.cloneNegated();
+		Literal neglit = lit.getNegated();
 		for(Expression<LogicalOr> sclause : sigma.getElements())
 		{
 			if(sclause.isContained(lit))
@@ -303,7 +303,7 @@ public class ImplicateResolver implements SymbolicResolver, Notifying
 		sigmaXPlu = new ArrayList<Expression<LogicalOr>>();
 		sigmaXNeg = new ArrayList<Expression<LogicalOr>>();
 
-		Literal neglit = lit.cloneNegated();
+		Literal neglit = lit.getNegated();
 		for(Expression<LogicalOr> sclause : sigmaPrime.getElements())
 		{
 			if(sclause.isContained(lit))
@@ -384,7 +384,7 @@ public class ImplicateResolver implements SymbolicResolver, Notifying
 			for(Literal lit : trm.getLiterals())
 			{
 				Expression<LogicalAnd> intrm = fac.createTerm();
-				intrm.addLiteral(lit.cloneNegated());
+				intrm.addLiteral(lit.getNegated());
 				negtermsen.addElement(intrm);
 			}
 			

@@ -154,8 +154,8 @@ class PASImpl implements PAS {
 			Literal inLit = mAsmts.get(lit.getName());
 			if(inLit == null)
 			{
-				Literal posLit = lit.getNeg() ? lit.cloneNegated() : lit;
-				Literal negLit = lit.getNeg() ? lit : lit.cloneNegated();
+				Literal posLit = lit.getNeg() ? lit.getNegated() : lit;
+				Literal negLit = lit.getNeg() ? lit : lit.getNegated();
 				mAsmts.put(lit.getName(), (Assumption) posLit);
 				mAsmts.put(getNegation() + lit.getName(), (Assumption) negLit);
 			}
@@ -176,8 +176,8 @@ class PASImpl implements PAS {
 		Literal inLit = mProps.get(lit.getName());
 		if(inLit == null)
 		{
-			Literal posLit = lit.getNeg() ? lit.cloneNegated() : lit;
-			Literal negLit = lit.getNeg() ? lit : lit.cloneNegated();
+			Literal posLit = lit.getNeg() ? lit.getNegated() : lit;
+			Literal negLit = lit.getNeg() ? lit : lit.getNegated();
 			mProps.put(lit.getName(), (Proposition) posLit);
 			mProps.put(getNegation() + lit.getName(), (Proposition) negLit);
 		}
@@ -264,7 +264,7 @@ class PASImpl implements PAS {
 		
 		Expression<LogicalOr> cla = mFac.createClause(true);
 		for(Literal l : body)
-			cla.addLiteral(l.cloneNegated());
+			cla.addLiteral(l.getNegated());
 		cla.addLiteral(head);
 		
 		return mCNF.addElement(cla);
