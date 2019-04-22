@@ -63,18 +63,18 @@ public class ImplicateResolverTester {
 	void setLiterals()
 	{
 		mAa = mFac.createAssumption("a", false, 0.1);
-		mAna = (Assumption) mAa.cloneNegated();
+		mAna = (Assumption) mAa.getNegated();
 		mAb = mFac.createAssumption("b", false, 0.2);
-		mAnb = (Assumption) mAb.cloneNegated();
+		mAnb = (Assumption) mAb.getNegated();
 		mAc = mFac.createAssumption("c", false, 0.3);
-		mAnc = (Assumption) mAc.cloneNegated();
+		mAnc = (Assumption) mAc.getNegated();
 		
 		mPx = mFac.createProposition("x", false);
-		mPnx = (Proposition) mPx.cloneNegated();		
+		mPnx = (Proposition) mPx.getNegated();		
 		mPy = mFac.createProposition("y", false);
-		mPny = (Proposition) mPy.cloneNegated();		
+		mPny = (Proposition) mPy.getNegated();		
 		mPz = mFac.createProposition("z", false);
-		mPnz = (Proposition) mPz.cloneNegated();		
+		mPnz = (Proposition) mPz.getNegated();		
 	}
 	
 	SimpleSentence<LogicalAnd, LogicalOr> getKB1()

@@ -71,7 +71,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="openpas.LBImpls_Operations_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsOperationsTester_Abstract" todir="${junit.output.dir}"/>
             <jvmarg line="-ea"/>
             <classpath refid="OPAS.classpath"/>
         </junit>
@@ -81,10 +81,10 @@
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
             <test name="openpas.ImplicateResolverTester" todir="${junit.output.dir}"/>
-            <test name="openpas.LBImpls_Expressions_Tester" todir="${junit.output.dir}"/>
-            <test name="openpas.LBImpls_Operations_Tester" todir="${junit.output.dir}"/>
-            <test name="openpas.LBImpls_Primitives_Tester" todir="${junit.output.dir}"/>
-            <test name="openpas.LBImpls_Sentences_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsExpressionsTester_Abstract" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsOperationsTester_Abstract" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsPrimitivesTester_Abstract" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsSentencesTester_Abstract" todir="${junit.output.dir}"/>
             <test name="openpas.NumericResolverImplicateRWithBDDPrTester" todir="${junit.output.dir}"/>
             <test name="openpas.NumericResolverImplicateRWithSPPrTester" todir="${junit.output.dir}"/>
             <test name="openpas.PASImplTester" todir="${junit.output.dir}"/>
@@ -97,7 +97,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="openpas.LBImpls_Primitives_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsPrimitivesTester_Abstract" todir="${junit.output.dir}"/>
             <jvmarg line="-ea"/>
             <classpath refid="OPAS.classpath"/>
         </junit>
@@ -131,10 +131,10 @@
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
             <test name="openpas.ImplicateResolverTester" todir="${junit.output.dir}"/>
-            <test name="openpas.LBImpls_Expressions_Tester" todir="${junit.output.dir}"/>
-            <test name="openpas.LBImpls_Operations_Tester" todir="${junit.output.dir}"/>
-            <test name="openpas.LBImpls_Primitives_Tester" todir="${junit.output.dir}"/>
-            <test name="openpas.LBImpls_Sentences_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsExpressionsTester_Abstract" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsOperationsTester_Abstract" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsPrimitivesTester_Abstract" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsSentencesTester_Abstract" todir="${junit.output.dir}"/>
             <test name="openpas.NumericResolverImplicateRWithBDDPrTester" todir="${junit.output.dir}"/>
             <test name="openpas.NumericResolverImplicateRWithSPPrTester" todir="${junit.output.dir}"/>
             <test name="openpas.PASImplTester" todir="${junit.output.dir}"/>
@@ -148,7 +148,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="openpas.LBImpls_Expressions_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsExpressionsTester_Abstract" todir="${junit.output.dir}"/>
             <jvmarg line="-ea"/>
             <classpath refid="OPAS.classpath"/>
         </junit>
@@ -184,7 +184,7 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="xml"/>
-            <test name="openpas.LBImpls_Sentences_Tester" todir="${junit.output.dir}"/>
+            <test name="openpas.ImplsSentencesTester_Abstract" todir="${junit.output.dir}"/>
             <jvmarg line="-ea"/>
             <classpath refid="OPAS.classpath"/>
         </junit>

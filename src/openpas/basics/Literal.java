@@ -100,15 +100,8 @@ public interface Literal {
 	public boolean isSpecial();
 
 	/**
-	 * Clones this literal.
+	 * Return the same literal but negated.
 	 * @return
 	 */
-	public Literal cloneLiteral();
-	
-	/**
-	 * Clones this literal but flips the negation flag such that a previously positive literal is negated,
-	 * and a previously negated literal loses negation and becomes positive.
-	 * @return
-	 */
-	public Literal cloneNegated();
+	public Literal getNegated();
 }

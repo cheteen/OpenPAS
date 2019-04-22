@@ -45,7 +45,7 @@ public class SentenceUtils {
 					return null;
 				Assumption asm = (Assumption) lit;
 				if(setAssumptions.add(asm.getIndex()))
-					asms.add(asm.getNeg() ? (Assumption) asm.cloneNegated() : asm);
+					asms.add(asm.getNeg() ? (Assumption) asm.getNegated() : asm);
 			}
 		
 		return asms;
