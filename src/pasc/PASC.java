@@ -77,6 +77,7 @@ public class PASC {
 	static BufferedReader reader;
 	static PAS pas;
 	static NumericResolver numResolver;
+	static String sepParameters = ",";
 	static int numBddNodes = 1024 * 1024;
 	static String bddDotFile = "dotfile.dot";
 	static int numMaxAssumptionsForDot = 20; // TODO: Make this configurable.
@@ -103,9 +104,22 @@ public class PASC {
 	protected static void setNotifier(PrintStream notifier) {
 		PASC.notifier = notifier;
 	}
+	
+	protected static String[] splitParams(String param) {
+		String[] params = param.trim().split(String.format("[ ]*%s[ ]*", sepParameters));
+		return params;
+	}
 
 	static interface CLICommand
 	{
+		/**
+		 * Executes a command. If the return value from the command is not True, execution is halted.
+		 * @param param
+		 * @return True to continue execution, False to exit (with success).
+		 * @throws CommandException
+		 * @throws KBException
+		 * @throws IOException
+		 */
 		boolean execute(String param) throws CommandException, KBException, IOException;
 		String help();
 	}
@@ -138,7 +152,7 @@ public class PASC {
 			public boolean execute(String param) throws CommandException, KBException, IOException {
 				if(param != null)
 				{
-					String[] params = param.trim().split("[ ]*,[ ]*");
+					String[] params = splitParams(param);
 					switch(params[0])
 					{
 						case "bdd":
@@ -159,7 +173,7 @@ public class PASC {
 				}
 				return clear.execute(param);
 			}
-
+			
 			@Override
 			public String help() {
 				return 	"Initialise the PAS system by specfying the desired parameters for the system.\n" +
@@ -190,7 +204,7 @@ public class PASC {
 				if(param == null)
 					throw new CommandException("create_proposition needs name parameter(s)");
 				clearNumResolver();
-				String[] names = param.split("[ ]*,[ ]*");
+				String[] names = splitParams(param);
 				for(String name : names)
 					pas.createProposition(name, false);
 				return true;
@@ -212,7 +226,7 @@ public class PASC {
 				if(param == null)
 					throw new CommandException("create_assumption needs name and probability parameter");
 				clearNumResolver();
-				String[] params = param.split("[ ]*,[ ]*");
+				String[] params = splitParams(param);
 				if(params.length != 2)
 					throw new CommandException("create_assumption needs name and probability parameter seperate by comma");
 				double prob = Double.parseDouble(params[1]);
@@ -781,6 +795,28 @@ public class PASC {
 			}
 		};
 		commandsCLI.put("stats", stats);
+		
+		CLICommand setSep= new CLICommand() {			
+			@Override
+			public boolean execute(String param) throws CommandException, KBException {
+				verifyInitialised();
+				if(param == null)
+					throw new CommandException(
+							"set_parameter_seperator needs single character parameter to specify the new parameter separator. Current value: " + sepParameters);
+				if(param.length() != 1)
+					throw new CommandException("Separator needs to be a single character.");
+				sepParameters = param;
+				return true;
+			}
+			@Override
+			public String help() {
+				return 	"Changes the separator used by the parser to split parameters.\n" +
+						"Parameters: [sep_character]\n" + 
+						"	sep_character: A single character. Default value:,";
+			}
+		};
+		commandsCLI.put("set_parameter_seperator", setSep);
+		commandsCLI.put("sep", setSep);		
 	}
 
 	public static boolean executeStream(InputStream inStream) throws IOException, CommandException, KBException 
