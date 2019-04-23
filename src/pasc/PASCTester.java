@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -84,6 +85,18 @@ public class PASCTester {
 		}
 	}
 	
+	/**
+	 * Run a list of commands and expect them to execute with success.
+	 * @param commands
+	 * @throws KBException 
+	 * @throws CommandException 
+	 */
+	public void runCommands(Iterable<String> commands) throws CommandException, KBException
+	{
+		for(String command : commands)
+			Assert.assertTrue(PASC.executeLine(command));
+	}
+	
 	//TODO: Extend these tests - this is more or less a dummy test to validate setup.
 	@Test
 	public void testCreateAssumption() throws CommandException, KBException {
@@ -91,4 +104,15 @@ public class PASCTester {
 		Assert.assertTrue(bCont);
 	}
 
+	@Test
+	public void testParamSeparator() throws CommandException, KBException
+	{
+		runCommands(Arrays.asList(
+				"init", 
+				"sep: ;", 
+				"cp: proposition{with,comma}"
+				));
+		// Check that a proposition with a comma in it is processed correctly.
+		Assert.assertNotNull(PASC.pas.getProposition("proposition{with,comma}", true));
+	}
 }
