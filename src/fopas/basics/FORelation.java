@@ -1,5 +1,5 @@
 package fopas.basics;
 
-public interface FORelation {
+public interface FORelation <T extends FOElement> {
 
 }
