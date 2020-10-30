@@ -11,10 +11,10 @@ abstract class ElementImpl implements FOElement
 		mElt = elt;
 	}
 	
-	static class FOString implements FOElement
+	static class FOStringImpl implements FOString
 	{
 		String mElt;
-		FOString(String elt)
+		FOStringImpl(String elt)
 		{
 			mElt = elt;
 		}
@@ -25,11 +25,11 @@ abstract class ElementImpl implements FOElement
 		}
 	}
 
-	static class FOSymbol implements FOElement
+	static class FOSymbolImpl implements FOSymbol
 	{
 		String mElt;
 		// We get the name of the symbol as a parameter, of course it's only conceptually different to String.
-		FOSymbol(String elt)
+		FOSymbolImpl(String elt)
 		{
 			mElt = elt;
 		}
@@ -41,17 +41,17 @@ abstract class ElementImpl implements FOElement
 	}
 
 	// This is no different to Integer in that it boxes an int.
-	static class FOInt implements FOElement
+	static class FOIntImpl implements FOInteger
 	{
 		int mElt;
-		FOInt(int elt)
+		FOIntImpl(int elt)
 		{
 			mElt = elt;
 		}
 		
 		@Override
 		public Type getType() {
-			return Type.Int;
+			return Type.Integer;
 		}
 	}
 }

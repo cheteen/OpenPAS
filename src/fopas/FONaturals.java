@@ -2,15 +2,15 @@ package fopas;
 
 import java.util.Iterator;
 
-import fopas.ElementImpl.FOInt;
+import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FORelation;
 import fopas.basics.FOSet;
 
 // Infinite set for \mathbb{N}.
-public class FONaturals implements FOSet<FOInt> {
+public class FONaturals implements FOSet<FOInteger> {
 
 	@Override
-	public Iterator<FOInt> iterator() {
+	public Iterator<FOInteger> iterator() {
 		// TODO Do this with Guava? Even streams?
 		return null;
 	}
@@ -24,7 +24,7 @@ public class FONaturals implements FOSet<FOInt> {
 	}
 
 	@Override
-	public FOSet<FOInt> sacrificeForSubset(FORelation<FOInt> relation) {
+	public FOSet<FOInteger> sacrificeForSubset(FORelation<FOInteger> relation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
