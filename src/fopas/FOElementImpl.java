@@ -3,10 +3,10 @@ package fopas;
 import fopas.basics.FOElement;
 
 // Generic element - I don't think this is really ever useful for something, I may need to remove it.
-abstract class ElementImpl implements FOElement
+abstract class FOElementImpl implements FOElement
 {
 	Object mElt;
-	ElementImpl(Object elt)
+	FOElementImpl(Object elt)
 	{
 		mElt = elt;
 	}

@@ -1,5 +1,8 @@
 package fopas.basics;
 
-public interface FOFunction {
+import java.util.List;
 
+public interface FOFunction
+{
+	FOElement eval(FOStructure structure, List<FOElement> args);
 }
