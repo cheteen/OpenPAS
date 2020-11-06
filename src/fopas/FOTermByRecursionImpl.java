@@ -82,11 +82,12 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		{
 			boolean accepted = false;
 
-			List<FOElement> args = new ArrayList<FOElement>(mTerms.size());
-			for(FOTerm term : mTerms)
+			FOElement[] args = new FOElement[mTerms.size()];
+			for(int i = 0; i < mTerms.size(); i++)
 			{
+				FOTerm term = mTerms.get(i);
 				accepted |= term.assignVariables(structure, assignment);
-				args.add(term.getAssignment());
+				args[i] = term.getAssignment();
 			}
 			mAsg = mFunc.eval(structure, args);
 			

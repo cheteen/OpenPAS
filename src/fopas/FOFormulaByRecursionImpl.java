@@ -1,5 +1,6 @@
 package fopas;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -20,17 +21,17 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 	{
 		mNegated = isNegated;
 	}
-
+	
 	@Override
-	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public Iterator iterator() {
-		// TODO Auto-generated method stub
-		return null;
+	public boolean models(FOStructure structure)
+	{
+		// TODO: Find out all free variables and \forall them here.
+		// TODO: Find any variable collision (illegal) - can be during execution / nice to at the start.
+		// TODO: Deal with any unassigned constants - can be during execution / nice to at the start.
+		// TODO: Relations / functions wrong cardinality - can be during exeuction / nice to at the start.
+		
+		Map<FOVariable, FOElement> assignment = new HashMap<FOVariable, FOElement>();
+		return checkAssignment(structure, assignment);
 	}
 
 	static class FOFormulaBRRelation extends FOFormulaByRecursionImpl
@@ -45,14 +46,20 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		}
 		
 		@Override
-		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
 		{
-			boolean accepted = false;
+			FOElement[] args = new FOElement[mTerms.size()]; 
+			for(int i = 0; i < mTerms.size(); i++)
+			{
+				FOTerm term = mTerms.get(i);
+				term.assignVariables(structure, assignment);
+				FOElement asg = term.getAssignment();
+				assert asg != null; // All variables should be assigned by this point.
+				args[i] = asg;
+			}
 			
-			for(FOTerm term : mTerms)
-				accepted |= term.assignVariables(structure, assignment);
-			
-			return accepted;
+			boolean satisfied = mRel.satisfies(args);
+			return satisfied;
 		}
 	}
 
@@ -66,14 +73,13 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		}
 		
 		@Override
-		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
 		{
-			boolean accepted = false;
-			
 			for(FOFormula form : mFormulas)
-				accepted |= form.assignVariables(structure, assignment);
+				if(form.checkAssignment(structure, assignment))
+					return true; // If we find satisfaction at any point we can quit.
 			
-			return accepted;
+			return false;
 		}		
 	}
 	
@@ -89,22 +95,22 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		}
 		
 		@Override
-		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
 		{
-			boolean accepted = false;
 			assert !assignment.containsKey(mVar); // variable collision from earlier scope, this is illegal.
 			
+			boolean failed = false;
 			for(FOElement elt : structure.getUniverse())
 			{
 				assignment.put(mVar, elt);
-				accepted |= mScopeFormula.assignVariables(structure, assignment);
+				failed |= !mScopeFormula.checkAssignment(structure, assignment);
 				
-				if(!accepted)
-					break; // no point going further, the subformula doesn't use these variables.
+				if(failed)
+					break; // no point going further we know not all subformulas are satified.
 			}
-			assignment.remove(mVar);
+			assignment.remove(mVar); // we need to remove the variable assignment either way.
 			
-			return accepted;
+			return !failed;
 		}
 	}
 }

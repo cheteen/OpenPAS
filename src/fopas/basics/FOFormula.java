@@ -8,9 +8,10 @@ import openpas.basics.LogicalOps.LogicalAnd;
 import openpas.basics.LogicalOps.LogicalOr;
 import openpas.utils.SizedIterable;
 
-public interface FOFormula extends SizedIterable
+public interface FOFormula
 {
-	boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment);
+	boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment);
+	boolean models(FOStructure structure);
 //	Iterator<Expression<LogicalOr>> iterateAsCNF();
 //	Iterator<Expression<LogicalAnd>> iterateAsDNF();
 //	Iterator<FOElement> iterateAssumptions();
