@@ -10,8 +10,8 @@ import openpas.utils.SizedIterable;
 
 public interface FOFormula
 {
-	boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment);
-	boolean models(FOStructure structure);
+	boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment) throws FORuntimeException;
+	boolean models(FOStructure structure) throws FORuntimeException;
 //	Iterator<Expression<LogicalOr>> iterateAsCNF();
 //	Iterator<Expression<LogicalAnd>> iterateAsDNF();
 //	Iterator<FOElement> iterateAssumptions();

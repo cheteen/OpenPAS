@@ -11,6 +11,33 @@ abstract class FOElementImpl implements FOElement
 		mElt = elt;
 	}
 	
+	// Eclipse auto-generated
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((mElt == null) ? 0 : mElt.hashCode());
+		return result;
+	}
+
+	// Eclipse auto-generated
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FOElementImpl other = (FOElementImpl) obj;
+		if (mElt == null) {
+			if (other.mElt != null)
+				return false;
+		} else if (!mElt.equals(other.mElt))
+			return false;
+		return true;
+	}
+
 	static class FOStringImpl implements FOString
 	{
 		String mElt;

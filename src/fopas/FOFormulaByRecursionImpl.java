@@ -8,6 +8,7 @@ import java.util.Map;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
 import fopas.basics.FORelation;
+import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOTerm;
@@ -23,7 +24,7 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 	}
 	
 	@Override
-	public boolean models(FOStructure structure)
+	public boolean models(FOStructure structure) throws FORuntimeException
 	{
 		// TODO: Find out all free variables and \forall them here.
 		// TODO: Find any variable collision (illegal) - can be during execution / nice to at the start.
@@ -33,7 +34,7 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		Map<FOVariable, FOElement> assignment = new HashMap<FOVariable, FOElement>();
 		return checkAssignment(structure, assignment);
 	}
-
+	
 	static class FOFormulaBRRelation extends FOFormulaByRecursionImpl
 	{
 		final protected FORelation<FOElement> mRel;
@@ -46,7 +47,7 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		}
 		
 		@Override
-		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment) throws FORuntimeException
 		{
 			FOElement[] args = new FOElement[mTerms.size()]; 
 			for(int i = 0; i < mTerms.size(); i++)
@@ -73,7 +74,7 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		}
 		
 		@Override
-		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment) throws FORuntimeException
 		{
 			for(FOFormula form : mFormulas)
 				if(form.checkAssignment(structure, assignment))
@@ -95,7 +96,7 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		}
 		
 		@Override
-		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment) throws FORuntimeException
 		{
 			assert !assignment.containsKey(mVar); // variable collision from earlier scope, this is illegal.
 			
