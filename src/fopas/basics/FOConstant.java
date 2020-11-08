@@ -1,5 +1,6 @@
 package fopas.basics;
 
-public interface FOConstant {
-
+public interface FOConstant
+{
+	String getName();
 }

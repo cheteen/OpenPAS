@@ -6,8 +6,26 @@ import fopas.basics.FORuntimeException;
 
 abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 {
+	final String mName;
+	
+	FORelationImpl(String name)
+	{
+		mName = name;
+	}
+	
+	@Override
+	public String getName()
+	{
+		return mName;
+	}
+	
 	static class FORelationImplEquals extends FORelationImpl<FOElement>
 	{
+		FORelationImplEquals()
+		{
+			super("Equals");
+		}
+
 		@Override
 		public boolean satisfies(FOElement... args) throws FORuntimeException
 		{
@@ -18,6 +36,8 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 			
 			return args[0].equals(args[1]);
 		}
-		
+
+		@Override
+		public int getCardinality() { return 2; }
 	}
 }

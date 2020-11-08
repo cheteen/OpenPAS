@@ -37,6 +37,11 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		{
 			return mAsg;
 		}
+
+		@Override
+		public TermType getType() { return TermType.VARIABLE; }
+		
+		FOVariable getVariable() { return mVar; }
 	}
 	
 	static class FOTermConstant extends FOTermByRecursionImpl
@@ -64,6 +69,11 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		{
 			return mAsg;
 		}
+
+		@Override
+		public TermType getType() { return TermType.CONSTANT; }
+		
+		FOConstant getConstant() { return mConst; }
 	}
 	
 	static class FOTermFunction extends FOTermByRecursionImpl
@@ -99,5 +109,10 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		{
 			return mAsg;
 		}
+
+		@Override
+		public TermType getType() { return TermType.FUNCTION; }
+		
+		FOFunction getFunction() { return mFunc; }
 	}
 }

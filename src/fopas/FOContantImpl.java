@@ -10,4 +10,10 @@ class FOContantImpl implements FOConstant
 	{
 		mName = name;
 	}
+
+	@Override
+	public String getName()
+	{
+		return mName;
+	}
 }

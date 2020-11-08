@@ -12,4 +12,12 @@ public interface FOTerm {
 	boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment);
 	
 	FOElement getAssignment();
+	
+	enum TermType
+	{
+		VARIABLE,
+		CONSTANT,
+		FUNCTION
+	}
+	TermType getType();
 }

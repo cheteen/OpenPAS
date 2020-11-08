@@ -23,6 +23,14 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		mNegated = isNegated;
 	}
 	
+	enum FormulaType
+	{
+		RELATION,
+		OR,
+		FOR_ALL
+	}
+	abstract FormulaType getType(); 
+	
 	@Override
 	public boolean models(FOStructure structure) throws FORuntimeException
 	{
@@ -33,6 +41,12 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		
 		Map<FOVariable, FOElement> assignment = new HashMap<FOVariable, FOElement>();
 		return checkAssignment(structure, assignment);
+	}
+	
+	@Override
+	public boolean isNegated()
+	{
+		return mNegated;
 	}
 	
 	static class FOFormulaBRRelation extends FOFormulaByRecursionImpl
@@ -60,7 +74,20 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 			}
 			
 			boolean satisfied = mRel.satisfies(args);
-			return satisfied;
+			return mNegated ^ satisfied;
+		}
+
+		@Override
+		FormulaType getType() { return FormulaType.RELATION; }
+		
+		FORelation<FOElement> getRelation()
+		{
+			return mRel;
+		}
+		
+		Iterable<FOTerm> getTerms()
+		{
+			return mTerms;
 		}
 	}
 
@@ -78,10 +105,18 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		{
 			for(FOFormula form : mFormulas)
 				if(form.checkAssignment(structure, assignment))
-					return true; // If we find satisfaction at any point we can quit.
+					return !mNegated; // If we find satisfaction at any point we can quit.
 			
-			return false;
-		}		
+			return mNegated;
+		}
+		
+		Iterable<FOFormula> getFormulas()
+		{
+			return mFormulas;
+		}
+
+		@Override
+		FormulaType getType() { return FormulaType.OR; }
 	}
 	
 	static class FOFormulaBRForAll extends FOFormulaByRecursionImpl
@@ -111,7 +146,19 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 			}
 			assignment.remove(mVar); // we need to remove the variable assignment either way.
 			
-			return !failed;
+			return mNegated ^ !failed;
 		}
+		
+		FOVariable getVariable()
+		{
+			return mVar;
+		}
+		FOFormula getScopeFormula()
+		{
+			return mScopeFormula;
+		}
+		
+		@Override
+		FormulaType getType() { return FormulaType.FOR_ALL; }
 	}
 }

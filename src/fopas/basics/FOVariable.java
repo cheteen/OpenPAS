@@ -1,5 +1,6 @@
 package fopas.basics;
 
-public interface FOVariable {
-
+public interface FOVariable
+{
+	String getName();
 }
