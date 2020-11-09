@@ -5,7 +5,7 @@ import fopas.basics.FOElement;
 // Generic element - I don't think this is really ever useful for something, I may need to remove it.
 abstract class FOElementImpl implements FOElement
 {
-	Object mElt;
+	final Object mElt;
 	FOElementImpl(Object elt)
 	{
 		mElt = elt;
@@ -38,12 +38,13 @@ abstract class FOElementImpl implements FOElement
 		return true;
 	}
 
-	static class FOStringImpl implements FOString
+	static class FOStringImpl extends FOElementImpl implements FOString
 	{
-		String mElt;
+		final String mStrElt; // this is realy a short-hand reference to the same object but without needing to cast it.
 		FOStringImpl(String elt)
 		{
-			mElt = elt;
+			super(elt);
+			mStrElt = elt;
 		}
 		
 		@Override
@@ -52,13 +53,14 @@ abstract class FOElementImpl implements FOElement
 		}
 	}
 
-	static class FOSymbolImpl implements FOSymbol
+	static class FOSymbolImpl extends FOElementImpl implements FOSymbol
 	{
-		String mElt;
+		final String mSymElt;
 		// We get the name of the symbol as a parameter, of course it's only conceptually different to String.
 		FOSymbolImpl(String elt)
 		{
-			mElt = elt;
+			super(elt);
+			mSymElt = elt;
 		}
 
 		@Override
@@ -68,17 +70,24 @@ abstract class FOElementImpl implements FOElement
 	}
 
 	// This is no different to Integer in that it boxes an int.
-	static class FOIntImpl implements FOInteger
+	static class FOIntImpl extends FOElementImpl implements FOInteger
 	{
-		int mElt;
+		final Integer mIntElt;
 		FOIntImpl(int elt)
 		{
-			mElt = elt;
+			super(elt);
+			mIntElt = elt;
 		}
 		
 		@Override
 		public Type getType() {
 			return Type.Integer;
+		}
+
+		@Override
+		public int getInteger() 
+		{
+			return mIntElt;
 		}
 	}
 }

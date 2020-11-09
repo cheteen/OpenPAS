@@ -191,7 +191,7 @@ public class FOFormulaByRecursionImplTest {
 			
 			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1);
 			
-			Assert.assertEquals("(\\forall _v1)(((_v1 = c1) + (_v1 = c2) + (_v1 = c3)))", sgiser.stringiseFOFormula(form, 100));
+			Assert.assertEquals("(forall _v1)((_v1 = c1) + (_v1 = c2) + (_v1 = c3))", sgiser.stringiseFOFormula(form, 100));
 
 			Assert.assertTrue(structure.models(form));			
 		}
@@ -206,7 +206,7 @@ public class FOFormulaByRecursionImplTest {
 			
 			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1);
 			
-			Assert.assertEquals("(\\forall _v1)(((_v1 = c1) + (_v1 = c2)))", sgiser.stringiseFOFormula(form, 100));
+			Assert.assertEquals("(forall _v1)((_v1 = c1) + (_v1 = c2))", sgiser.stringiseFOFormula(form, 100));
 
 			Assert.assertFalse(structure.models(form));			
 		}
@@ -218,7 +218,7 @@ public class FOFormulaByRecursionImplTest {
 
 			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(true, v1, subform1);
 			
-			Assert.assertEquals("¬(\\forall _v1)(¬(_v1 = c3))", sgiser.stringiseFOFormula(form, 100));
+			Assert.assertEquals("¬(forall _v1)¬(_v1 = c3)", sgiser.stringiseFOFormula(form, 100));
 
 			Assert.assertTrue(structure.models(form));			
 		}		

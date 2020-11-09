@@ -7,6 +7,7 @@ import java.util.Map;
 import fopas.basics.FOConstant;
 import fopas.basics.FOElement;
 import fopas.basics.FOFunction;
+import fopas.basics.FORuntimeException;
 import fopas.basics.FOStructure;
 import fopas.basics.FOTerm;
 import fopas.basics.FOVariable;
@@ -88,7 +89,7 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		}
 		
 		@Override
-		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment) throws FORuntimeException
 		{
 			boolean accepted = false;
 

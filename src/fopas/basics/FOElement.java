@@ -10,6 +10,9 @@ public interface FOElement {
 	Type getType();
 	
 	public static interface FOString extends FOElement {}
-	public static interface FOInteger extends FOElement {}
+	public static interface FOInteger extends FOElement
+	{
+		int getInteger();
+	}
 	public static interface FOSymbol extends FOElement {}
 }

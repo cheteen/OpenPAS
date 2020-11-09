@@ -35,11 +35,10 @@ public class FOByRecursionStringiser
 		{
 		case FOR_ALL:
 			FOFormulaByRecursionImpl.FOFormulaBRForAll recformall = (FOFormulaByRecursionImpl.FOFormulaBRForAll) recform;
-			sb.append("(\\forall _");
+			sb.append("(forall _");
 			sb.append(recformall.getVariable().getName());
-			sb.append(")(");
-			stringiseFOFormula(recformall.getScopeFormula(), maxLen, sb);
 			sb.append(")");
+			stringiseFOFormula(recformall.getScopeFormula(), maxLen, sb);
 			break;
 		case OR:
 			FOFormulaByRecursionImpl.FOFormulaBROr recformor = (FOFormulaByRecursionImpl.FOFormulaBROr) recform;

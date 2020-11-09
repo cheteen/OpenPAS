@@ -4,7 +4,18 @@ import java.util.List;
 
 public interface FOFunction
 {
-	FOElement eval(FOStructure structure, FOElement ... args);
-	
+	FOElement eval(FOStructure structure, FOElement ... args) throws FORuntimeException;
 	String getName();
+
+	/**
+	 * Get cardinality of the relation.
+	 * @return -1 for any cardinality, >0 otherwise.
+	 */
+	int getCardinality();
+	
+	/**
+	 * Optional in-fix representation - can be left null.
+	 * @return
+	 */
+	String getInfix();
 }
