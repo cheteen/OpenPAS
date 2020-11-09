@@ -113,7 +113,27 @@ public class FOByRecursionStringiser
 			break;
 		case FUNCTION:
 			FOTermByRecursionImpl.FOTermFunction rectermfun = (FOTermByRecursionImpl.FOTermFunction) term;
-			sb.append(rectermfun.getFunction().getName()); //TODO: Do more later.
+			String infix = rectermfun.getFunction().getInfix();
+			Iterable<FOTerm> terms = rectermfun.getTerms();
+			Iterator<FOTerm> termit = terms.iterator();
+			if(infix == null)
+			{
+				sb.append(rectermfun.getFunction().getName());
+				infix = ","; // don't have an infix but an explicit function call, so "," acts like an infix.
+			}
+			sb.append("(");				
+			FOTerm interm = termit.next();
+			stringiseFOTerm(interm, maxLen, sb);
+			while(termit.hasNext())
+			{
+				sb.append(" ");
+				sb.append(infix);
+				sb.append(" ");
+				interm = termit.next();
+				stringiseFOTerm(interm, maxLen, sb);
+			}
+			sb.append(")");
+			
 			break;
 		default:
 			sb.append("ERROR!"); // should never happen.

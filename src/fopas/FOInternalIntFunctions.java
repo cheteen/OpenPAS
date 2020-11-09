@@ -23,12 +23,11 @@ abstract class FOInternalIntFunctions implements FOFunction
 		@Override
 		public FOElement eval(FOStructure structure, FOElement... args) throws FORuntimeException
 		{
-			if(args.getClass() != FOInteger[].class)
-				throw new FORuntimeException("Expected integer args.");
-			FOInteger[] sumArgs = (FOInteger[]) args;
 			int sum = 0;
-			for(FOInteger arg : sumArgs)
-				sum += arg.getInteger(); 
+			for(FOElement arg : args)
+			{
+				sum += ((FOInteger) arg).getInteger();
+			}
 			if(mModulus > 0)
 				sum %= mModulus;
 			return new FOElementImpl.FOIntImpl(sum);

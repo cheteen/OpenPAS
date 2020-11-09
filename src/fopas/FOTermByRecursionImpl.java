@@ -115,5 +115,7 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		public TermType getType() { return TermType.FUNCTION; }
 		
 		FOFunction getFunction() { return mFunc; }
+		
+		Iterable<FOTerm> getTerms() { return mTerms; }
 	}
 }

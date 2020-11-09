@@ -181,7 +181,7 @@ public class FOFormulaByRecursionImplTest {
 		FOTermByRecursionImpl.FOTermVariable term_var1 = new FOTermByRecursionImpl.FOTermVariable(v1);
 
 		// Test forall success
-		// (\forall _v1)(_v1 = c1 | _v1 = c2 | _v1 = c3)  
+		// (forall _v1)(_v1 = c1 | _v1 = c2 | _v1 = c3)  
 		{
 			FOFormula subsubform1 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant1));
 			FOFormula subsubform2 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant2));
@@ -197,7 +197,7 @@ public class FOFormulaByRecursionImplTest {
 		}
 		
 		// Test forall fail
-		// (\forall _v1)(_v1 = c1 | _v1 = c2)  
+		// (forall _v1)(_v1 = c1 | _v1 = c2)  
 		{
 			FOFormula subsubform1 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant1));
 			FOFormula subsubform2 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant2));
@@ -212,13 +212,79 @@ public class FOFormulaByRecursionImplTest {
 		}
 		
 		// Test "exists".
-		// (\exists _v1)(_v1 = c1)  
+		// (exists _v1)(_v1 = c1)  
 		{
 			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(true, foequals, Arrays.asList(term_var1, term_constant3));
 
 			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(true, v1, subform1);
 			
 			Assert.assertEquals("¬(forall _v1)¬(_v1 = c3)", sgiser.stringiseFOFormula(form, 100));
+
+			Assert.assertTrue(structure.models(form));			
+		}		
+	}
+	
+	@Test
+	public void testFunctions() throws FORuntimeException
+	{
+		FOConstant c0 = new FOConstantImpl("c0");
+		FOConstant c1 = new FOConstantImpl("c1");
+		FOConstant c2 = new FOConstantImpl("c2");
+		FOConstant c3 = new FOConstantImpl("c3");
+		
+		FOInteger zero = new FOElementImpl.FOIntImpl(0);
+		FOInteger one = new FOElementImpl.FOIntImpl(1);
+		FOInteger two = new FOElementImpl.FOIntImpl(2);
+		FOInteger three = new FOElementImpl.FOIntImpl(3);
+		
+		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(zero, one, two, three)));
+		
+		FOStructure structure = new FOStructureImpl(universe);
+		structure.setConstantMapping(c0, zero);
+		structure.setConstantMapping(c1, one);
+		structure.setConstantMapping(c2, two);
+		structure.setConstantMapping(c3, three);
+		
+		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		
+		FOTermByRecursionImpl.FOTermConstant term_constant0 = new FOTermByRecursionImpl.FOTermConstant(c0);
+		FOTermByRecursionImpl.FOTermConstant term_constant1 = new FOTermByRecursionImpl.FOTermConstant(c1);
+		FOTermByRecursionImpl.FOTermConstant term_constant2 = new FOTermByRecursionImpl.FOTermConstant(c2);
+		FOTermByRecursionImpl.FOTermConstant term_constant3 = new FOTermByRecursionImpl.FOTermConstant(c3);
+
+		FOByRecursionStringiser sgiser = new FOByRecursionStringiser();
+
+		// Test simple addition
+		// c3 = (c1 + c2)
+		{
+			// (1 + 2)
+			FOTermByRecursionImpl.FOTermFunction term_addition =
+					new FOTermByRecursionImpl.FOTermFunction(new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_constant1, term_constant2));
+
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_constant3, term_addition));
+			
+			Assert.assertEquals("(c3 = (c1 + c2))", sgiser.stringiseFOFormula(form, 100));
+
+			Assert.assertTrue(structure.models(form));			
+		}
+		
+		FOVariable v1 = new FOVariableImpl("v1");
+		FOTermByRecursionImpl.FOTermVariable term_var1 = new FOTermByRecursionImpl.FOTermVariable(v1);
+
+		// Now let's test something meatier:
+		// (forall _v1)((1 + _v1 + 1) = _v1 + 2)  
+		{
+			FOTermByRecursionImpl.FOTermFunction term_addition1 =
+					new FOTermByRecursionImpl.FOTermFunction(new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_constant1, term_var1, term_constant1));
+
+			FOTermByRecursionImpl.FOTermFunction term_addition2 =
+					new FOTermByRecursionImpl.FOTermFunction(new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_var1, term_constant2));
+			
+			FOFormula subform = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition1, term_addition2));
+
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform);
+			
+			Assert.assertEquals("(forall _v1)((c1 + _v1 + c1) = (_v1 + c2))", sgiser.stringiseFOFormula(form, 100));
 
 			Assert.assertTrue(structure.models(form));			
 		}		
