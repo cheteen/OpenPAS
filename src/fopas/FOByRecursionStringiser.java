@@ -54,7 +54,7 @@ public class FOByRecursionStringiser
 					return;
 
 				nextform = subforms.next();
-				sb.append(" + ");
+				sb.append(" | ");
 				stringiseFOFormula(nextform, maxLen, sb);
 			}
 			sb.append(")");
