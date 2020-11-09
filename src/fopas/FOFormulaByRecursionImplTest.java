@@ -45,8 +45,8 @@ public class FOFormulaByRecursionImplTest {
 	@Test
 	public void testConstants() throws FORuntimeException
 	{
-		FOConstant c1 = new FOContantImpl("c1");
-		FOConstant c2 = new FOContantImpl("c2");
+		FOConstant c1 = new FOConstantImpl("c1");
+		FOConstant c2 = new FOConstantImpl("c2");
 		
 		FOInteger one = new FOElementImpl.FOIntImpl(1);
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
@@ -81,7 +81,7 @@ public class FOFormulaByRecursionImplTest {
 		}
 		
 		// Check that a different constant with the same mapping succeeds in being equal.
-		FOConstant c3 = new FOContantImpl("c3");
+		FOConstant c3 = new FOConstantImpl("c3");
 		structure.setConstantMapping(c3, one);
 		FOTermByRecursionImpl.FOTermConstant term_constant3 = new FOTermByRecursionImpl.FOTermConstant(c3);
 		{
@@ -103,9 +103,9 @@ public class FOFormulaByRecursionImplTest {
 	@Test
 	public void testOrFormulas() throws FORuntimeException
 	{
-		FOConstant c1 = new FOContantImpl("c1");
-		FOConstant c2 = new FOContantImpl("c2");
-		FOConstant c3 = new FOContantImpl("c3");
+		FOConstant c1 = new FOConstantImpl("c1");
+		FOConstant c2 = new FOConstantImpl("c2");
+		FOConstant c3 = new FOConstantImpl("c3");
 		
 		FOInteger one = new FOElementImpl.FOIntImpl(1);
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
@@ -154,9 +154,9 @@ public class FOFormulaByRecursionImplTest {
 	@Test
 	public void testForAllFormulas() throws FORuntimeException
 	{
-		FOConstant c1 = new FOContantImpl("c1");
-		FOConstant c2 = new FOContantImpl("c2");
-		FOConstant c3 = new FOContantImpl("c3");
+		FOConstant c1 = new FOConstantImpl("c1");
+		FOConstant c2 = new FOConstantImpl("c2");
+		FOConstant c3 = new FOConstantImpl("c3");
 		
 		FOInteger one = new FOElementImpl.FOIntImpl(1);
 		FOInteger two = new FOElementImpl.FOIntImpl(2);

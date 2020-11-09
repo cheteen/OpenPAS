@@ -7,10 +7,12 @@ import fopas.basics.FOStructure;
 abstract public class FOFunctionByRecursionImpl implements FOFunction
 {
 	final protected String mName;
+	final protected FOFunction mFun;
 	
-	FOFunctionByRecursionImpl(String name)
+	FOFunctionByRecursionImpl(String name, FOFunction fun)
 	{
 		mName = name;
+		mFun = fun;
 	}
 
 	@Override

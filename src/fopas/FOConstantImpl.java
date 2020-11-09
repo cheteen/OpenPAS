@@ -2,11 +2,11 @@ package fopas;
 
 import fopas.basics.FOConstant;
 
-class FOContantImpl implements FOConstant
+class FOConstantImpl implements FOConstant
 {
 	final protected String mName;
 	
-	FOContantImpl(String name)
+	FOConstantImpl(String name)
 	{
 		mName = name;
 	}
