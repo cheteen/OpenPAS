@@ -1,10 +1,14 @@
 package fopas;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
 import fopas.basics.FORelation;
@@ -33,12 +37,7 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 	
 	@Override
 	public boolean models(FOStructure structure) throws FORuntimeException
-	{
-		// TODO: Find out all free variables and \forall them here.
-		// TODO: Find any variable collision (illegal) - can be during execution / nice to at the start.
-		// TODO: Deal with any unassigned constants - can be during execution / nice to at the start.
-		// TODO: Relations / functions wrong cardinality - can be during exeuction / nice to at the start.
-		
+	{	
 		Map<FOVariable, FOElement> assignment = new HashMap<FOVariable, FOElement>();
 		return checkAssignment(structure, assignment);
 	}
@@ -48,6 +47,9 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 	{
 		return mNegated;
 	}
+	
+	abstract void analyseVars(Set<FOVariable> setVarsInScope, Set<FOVariable> setVarsSeenInScope,
+			Set<FOVariable> setFreeVars, List<String> listWarnings) throws FOConstructionException;
 	
 	static class FOFormulaBRRelation extends FOFormulaByRecursionImpl
 	{
@@ -89,6 +91,14 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		{
 			return mTerms;
 		}
+
+		@Override
+		void analyseVars(Set<FOVariable> setVarsInScope, Set<FOVariable> setVarsSeenInScope,
+				Set<FOVariable> setFreeVars, List<String> listWarnings) 
+		{
+			for(FOTerm term : mTerms)
+				((FOTermByRecursionImpl) term).analyseScope(setVarsSeenInScope);
+		}
 	}
 
 	static class FOFormulaBROr extends FOFormulaByRecursionImpl
@@ -117,17 +127,27 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 
 		@Override
 		FormulaType getType() { return FormulaType.OR; }
+
+		@Override
+		void analyseVars(Set<FOVariable> setVarsInScope, Set<FOVariable> setVarsSeenInScope,
+				Set<FOVariable> setFreeVars, List<String> listWarnings) throws FOConstructionException
+		{
+			for(FOFormula form : mFormulas)
+				((FOFormulaByRecursionImpl) form).analyseVars(setVarsInScope, setVarsSeenInScope, setFreeVars, listWarnings);
+		}
 	}
 	
 	static class FOFormulaBRForAll extends FOFormulaByRecursionImpl
 	{
 		final protected FOVariable mVar;
 		final protected FOFormula mScopeFormula;
-		FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormula scopeFormula)
+		final protected boolean mIsFreeVariable;
+		FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormula scopeFormula, boolean isFreVariable)
 		{
 			super(isNegated);
 			mVar = var;
 			mScopeFormula = scopeFormula;
+			mIsFreeVariable = isFreVariable;
 		}
 		
 		@Override
@@ -160,5 +180,30 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		
 		@Override
 		FormulaType getType() { return FormulaType.FOR_ALL; }
+
+		@Override
+		void analyseVars(Set<FOVariable> setVarsForScope, Set<FOVariable> setVarsSeenInScope,
+				Set<FOVariable> setFreeVars, List<String> listWarnings) throws FOConstructionException
+		{
+			if(setVarsForScope.contains(mVar))
+				throw new FOConstructionException(String.format("Variable name collision with variable for scope: %s", mVar.getName()));
+			if(setVarsSeenInScope.contains(mVar))
+				throw new FOConstructionException(String.format("Variable name collision between variable seen vs variable for scope: %s", mVar.getName()));
+		
+			// Start of scope
+			setVarsForScope.add(mVar);
+			Set<FOVariable> setVarsInMyScope = new LinkedHashSet<>();
+			((FOFormulaByRecursionImpl) mScopeFormula).analyseVars(setVarsForScope, setVarsInMyScope, setFreeVars, listWarnings);
+			
+			if(!setVarsInMyScope.contains(mVar))
+				listWarnings.add(String.format("Scope variable not used in scope: %s", mVar.getName()));			
+			
+			// Anything that I saw in my scope but that wasn't part of my set for scope has to be a free variable.
+			setVarsInMyScope.removeAll(setVarsForScope);
+			setFreeVars.addAll(setVarsInMyScope);
+			
+			setVarsForScope.remove(mVar);
+			// End of scope
+		}
 	}
 }

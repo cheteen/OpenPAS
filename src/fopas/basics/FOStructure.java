@@ -11,6 +11,7 @@ public interface FOStructure
 	 * @param form
 	 * @return
 	 * @throws FORuntimeException 
+	 * @throws FOConstructionException 
 	 */
-	boolean models(FOFormula form) throws FORuntimeException;
+	boolean models(FOFormula form) throws FORuntimeException, FOConstructionException;
 }

@@ -3,6 +3,7 @@ package fopas;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import fopas.basics.FOConstant;
 import fopas.basics.FOElement;
@@ -43,7 +44,15 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		public TermType getType() { return TermType.VARIABLE; }
 		
 		FOVariable getVariable() { return mVar; }
+
+		@Override
+		void analyseScope(Set<FOVariable> setVarsSeenInScope)
+		{
+			setVarsSeenInScope.add(mVar);
+		}
 	}
+	
+	abstract void analyseScope(Set<FOVariable> setVarsSeenInScope);
 	
 	static class FOTermConstant extends FOTermByRecursionImpl
 	{
@@ -75,6 +84,9 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		public TermType getType() { return TermType.CONSTANT; }
 		
 		FOConstant getConstant() { return mConst; }
+
+		@Override
+		void analyseScope(Set<FOVariable> setVarsSeenInScope) {}
 	}
 	
 	static class FOTermFunction extends FOTermByRecursionImpl
@@ -117,5 +129,12 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		FOFunction getFunction() { return mFunc; }
 		
 		Iterable<FOTerm> getTerms() { return mTerms; }
+
+		@Override
+		void analyseScope(Set<FOVariable> setVarsSeenInScope)
+		{
+			for(FOTerm term : mTerms)
+				((FOTermByRecursionImpl) term).analyseScope(setVarsSeenInScope);
+		}
 	}
 }

@@ -15,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fopas.basics.FOConstant;
+import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOFormula;
@@ -43,7 +44,7 @@ public class FOFormulaByRecursionImplTest {
 	}
 
 	@Test
-	public void testConstants() throws FORuntimeException
+	public void testConstants() throws FORuntimeException, FOConstructionException
 	{
 		FOConstant c1 = new FOConstantImpl("c1");
 		FOConstant c2 = new FOConstantImpl("c2");
@@ -101,7 +102,7 @@ public class FOFormulaByRecursionImplTest {
 	}
 
 	@Test
-	public void testOrFormulas() throws FORuntimeException
+	public void testOrFormulas() throws FORuntimeException, FOConstructionException
 	{
 		FOConstant c1 = new FOConstantImpl("c1");
 		FOConstant c2 = new FOConstantImpl("c2");
@@ -152,7 +153,7 @@ public class FOFormulaByRecursionImplTest {
 	}
 
 	@Test
-	public void testForAllFormulas() throws FORuntimeException
+	public void testForAllFormulas() throws FORuntimeException, FOConstructionException
 	{
 		FOConstant c1 = new FOConstantImpl("c1");
 		FOConstant c2 = new FOConstantImpl("c2");
@@ -189,7 +190,7 @@ public class FOFormulaByRecursionImplTest {
 
 			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBROr(false, Arrays.asList(subsubform1, subsubform2, subsubform3));
 			
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1);
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1, false);
 			
 			Assert.assertEquals("(forall _v1)((_v1 = c1) | (_v1 = c2) | (_v1 = c3))", sgiser.stringiseFOFormula(form, 100));
 
@@ -204,7 +205,7 @@ public class FOFormulaByRecursionImplTest {
 
 			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBROr(false, Arrays.asList(subsubform1, subsubform2));
 			
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1);
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1, false);
 			
 			Assert.assertEquals("(forall _v1)((_v1 = c1) | (_v1 = c2))", sgiser.stringiseFOFormula(form, 100));
 
@@ -216,7 +217,7 @@ public class FOFormulaByRecursionImplTest {
 		{
 			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(true, foequals, Arrays.asList(term_var1, term_constant3));
 
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(true, v1, subform1);
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(true, v1, subform1, false);
 			
 			Assert.assertEquals("¬(forall _v1)¬(_v1 = c3)", sgiser.stringiseFOFormula(form, 100));
 
@@ -225,7 +226,7 @@ public class FOFormulaByRecursionImplTest {
 	}
 	
 	@Test
-	public void testFunctions() throws FORuntimeException
+	public void testFunctions() throws FORuntimeException, FOConstructionException
 	{
 		FOConstant c0 = new FOConstantImpl("c0");
 		FOConstant c1 = new FOConstantImpl("c1");
@@ -282,7 +283,7 @@ public class FOFormulaByRecursionImplTest {
 			
 			FOFormula subform = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition1, term_addition2));
 
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform);
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform, false);
 			
 			Assert.assertEquals("(forall _v1)((c1 + _v1 + c1) = (_v1 + c2))", sgiser.stringiseFOFormula(form, 100));
 
