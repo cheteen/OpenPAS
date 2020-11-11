@@ -45,6 +45,21 @@ class FOStructureImpl implements FOStructure
 		
 		// Now let's "compile" this formula to see if there are any problems, and what the free variables are.
 		
+		Set<FOVariable> setFreeVars = findFreeVars(form);
+
+		//TODO: Extract the above to be an internal function for free variable identifation.
+		//TODO: Implement the below using FluentIterables (streams?), and immediately here just call the iterables.
+		//TODO: Consider extracting the variable selection into the structure so the forall can use it from here using an Iterable again?
+		// Let's add forall's for all the free variables to the formula now.
+
+		// TODO: Need new interface here to iterate the free var assignments.
+		
+		return form.models(this, setFreeVars);
+	}
+
+	// TODO: Move this under FOFormulaByRecursionImpl
+	protected Set<FOVariable> findFreeVars(FOFormula form) throws FOConstructionException
+	{
 		Set<FOVariable> setVarsInScope = new LinkedHashSet<>(); // use linked hash set here so we get consistent results each time.
 		Set<FOVariable> setVarsSeenInScope = new LinkedHashSet<>();
 		Set<FOVariable> setFreeVars = new LinkedHashSet<>();
@@ -57,17 +72,14 @@ class FOStructureImpl implements FOStructure
 		assert setVarsInScope.isEmpty();
 		setVarsSeenInScope.addAll(setFreeVars); // use own scope variables first
 		setFreeVars = setVarsSeenInScope;
-		
-		List<FOVariable> listVars = new ArrayList<FOVariable>(setFreeVars.size());
-		listVars.addAll(setFreeVars);
+		return setFreeVars;
+	}
 
-		// Let's add forall's for all the free variables to the formula now.
-		FOFormula lastScopeForm = form;
-		for(FOVariable var : Lists.reverse(listVars))
-			lastScopeForm = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, var, lastScopeForm, true);
-		// TODO: Need new interface here to iterate the free var assignments.
-		
-		return lastScopeForm.models(this);
+	@Override
+	public Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOFormula form) throws FOConstructionException
+	{	
+		Set<FOVariable> setFreeVars = findFreeVars(form);
+		return form.getSatisfyingAssignments(this, setFreeVars);
 	}
 
 	@Override
@@ -88,5 +100,4 @@ class FOStructureImpl implements FOStructure
 	{
 		return mConstMapping.put(foconst, elt);
 	}
-
 }

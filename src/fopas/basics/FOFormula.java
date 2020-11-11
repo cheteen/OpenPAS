@@ -2,6 +2,7 @@ package fopas.basics;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import openpas.basics.Expressions.Expression;
 import openpas.basics.LogicalOps.LogicalAnd;
@@ -12,7 +13,13 @@ public interface FOFormula
 {
 	boolean isNegated();
 	boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment) throws FORuntimeException;
-	boolean models(FOStructure structure) throws FORuntimeException;	
+	boolean models(FOStructure structure, Set<FOVariable> setFreeVars) throws FORuntimeException;
+	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure, Set<FOVariable> setFreeVars) throws FOConstructionException;
+	
+	public static interface FOSatisfyer
+	{
+		boolean next(Map<FOVariable, FOElement> assignment);
+	}
 //	Iterator<Expression<LogicalOr>> iterateAsCNF();
 //	Iterator<Expression<LogicalAnd>> iterateAsDNF();
 //	Iterator<FOElement> iterateAssumptions();

@@ -1,5 +1,7 @@
 package fopas.basics;
 
+import java.util.Map;
+
 public interface FOStructure
 {
 	FOSet<FOElement> getUniverse();
@@ -14,4 +16,6 @@ public interface FOStructure
 	 * @throws FOConstructionException 
 	 */
 	boolean models(FOFormula form) throws FORuntimeException, FOConstructionException;
+	
+	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOFormula form) throws FOConstructionException;
 }

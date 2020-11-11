@@ -1,5 +1,7 @@
 package fopas;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -7,6 +9,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -36,10 +41,101 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 	abstract FormulaType getType(); 
 	
 	@Override
-	public boolean models(FOStructure structure) throws FORuntimeException
+	public boolean models(FOStructure structure, Set<FOVariable> setFreeVars) throws FORuntimeException
 	{	
-		Map<FOVariable, FOElement> assignment = new HashMap<FOVariable, FOElement>();
-		return checkAssignment(structure, assignment);
+		if(setFreeVars.size() > 0)
+		{
+			List<FOVariable> vars = new ArrayList<>(setFreeVars);
+			HashMap<FOVariable, FOElement> pickings = new HashMap<>();
+			List<FOSet<FOElement>> pickables = Collections.nCopies(setFreeVars.size(), structure.getUniverse());
+			List<Iterator<FOElement>> pickers = new ArrayList<>(setFreeVars.size());
+			for(int i = 0; i < pickables.size(); i++) // Initialise the first set of pickers.
+				pickers.add(pickables.get(i).iterator());
+
+			// The formula needs to hold for _all_ the possible assignments.
+			boolean failed = false;
+			while(!failed && pickElements(pickers, 0, vars, pickings, pickables))
+				failed |= !checkAssignment(structure, pickings);
+
+			return !failed;			
+		}
+		else
+		{
+			HashMap<FOVariable, FOElement> assignment = new HashMap<>();			
+			return checkAssignment(structure, assignment);
+		}
+	}
+	
+	@Override
+	public Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure, Set<FOVariable> setFreeVars)
+			throws FOConstructionException
+	{
+		final List<FOVariable> vars = new ArrayList<>(setFreeVars);
+		final HashMap<FOVariable, FOElement> pickings = new HashMap<>();
+		final List<FOSet<FOElement>> pickables = Collections.nCopies(setFreeVars.size(), structure.getUniverse());
+		final List<Iterator<FOElement>> pickers = new ArrayList<>(setFreeVars.size());
+		for(int i = 0; i < pickables.size(); i++) // Initialise the first set of pickers.
+			pickers.add(pickables.get(i).iterator());
+
+		return null; // TODO: Redesign this.
+	}
+	
+	/**
+	 * This picks M^N combinations of elements for M variables from a universe set with N elements.
+	 * @param <IterableFOElts>
+	 * @param pickers
+	 * @param ixPick
+	 * @param vars
+	 * @param pickings
+	 * @param pickables
+	 * @return true if there's another combination of variable to pick yet, false when done.
+	 */
+	<IterableFOElts extends Iterable<FOElement>> boolean pickElements(List<Iterator<FOElement>> pickers, int ixPick, 
+			List<FOVariable> vars, Map<FOVariable, FOElement> pickings, List<IterableFOElts> pickables)
+	{
+		FOVariable var = vars.get(ixPick);
+		Iterator<FOElement> it = pickers.get(ixPick);
+
+		// Middle node
+		if(ixPick + 1 < pickers.size())
+		{
+			if(!pickings.containsKey(var))
+			{
+				if(it.hasNext())
+					pickings.put(var, it.next());
+				else
+					return false; // empty pickable?
+			}
+
+			if(pickElements(pickers, ixPick + 1, vars, pickings, pickables))
+				return true;
+			
+			while(it.hasNext()) // this is "while" (and not "if") just in case we have an empty pickable at the next level
+			{
+				pickings.put(var, it.next());
+				
+				pickers.set(ixPick + 1, pickables.get(ixPick + 1).iterator());
+				if(pickElements(pickers, ixPick + 1, vars, pickings, pickables))
+					return true;
+			}
+			
+			// Can't pickElements, don't have next, time to fail.
+			pickings.remove(var);
+			return false;
+		}
+		else // Leaf node
+		{
+			if(it.hasNext())
+			{
+				pickings.put(var, it.next());
+				return true;
+			}
+			else
+			{
+				pickings.remove(var); // this is just nice to have for consistency really.
+				return false;
+			}
+		}
 	}
 	
 	@Override
@@ -155,6 +251,7 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 		{
 			assert !assignment.containsKey(mVar); // variable collision from earlier scope, this is illegal.
 			
+			//TODO: Call into the structure here to do variable value selection (which will use and iterable hopefully).
 			boolean failed = false;
 			for(FOElement elt : structure.getUniverse())
 			{
