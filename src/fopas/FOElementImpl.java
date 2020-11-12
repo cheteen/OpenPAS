@@ -11,6 +11,12 @@ abstract class FOElementImpl implements FOElement
 		mElt = elt;
 	}
 	
+	@Override
+	public Object getElement()
+	{
+		return mElt;
+	}
+
 	// Eclipse auto-generated
 	@Override
 	public int hashCode() {

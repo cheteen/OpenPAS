@@ -12,14 +12,10 @@ import openpas.utils.SizedIterable;
 public interface FOFormula
 {
 	boolean isNegated();
-	boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment) throws FORuntimeException;
-	boolean models(FOStructure structure, Set<FOVariable> setFreeVars) throws FORuntimeException;
+	boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment);
+	boolean models(FOStructure structure, Set<FOVariable> setFreeVars) throws FOConstructionException;
 	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure, Set<FOVariable> setFreeVars) throws FOConstructionException;
-	
-	public static interface FOSatisfyer
-	{
-		boolean next(Map<FOVariable, FOElement> assignment);
-	}
+
 //	Iterator<Expression<LogicalOr>> iterateAsCNF();
 //	Iterator<Expression<LogicalAnd>> iterateAsDNF();
 //	Iterator<FOElement> iterateAssumptions();

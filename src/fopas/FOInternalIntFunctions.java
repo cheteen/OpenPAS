@@ -21,7 +21,7 @@ abstract class FOInternalIntFunctions implements FOFunction
 		}
 		
 		@Override
-		public FOElement eval(FOStructure structure, FOElement... args) throws FORuntimeException
+		public FOElement eval(FOStructure structure, FOElement... args)
 		{
 			int sum = 0;
 			for(FOElement arg : args)

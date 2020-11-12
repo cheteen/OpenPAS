@@ -36,7 +36,7 @@ class FOStructureImpl implements FOStructure
 	}
 
 	@Override
-	public boolean models(FOFormula form) throws FORuntimeException, FOConstructionException
+	public boolean models(FOFormula form) throws FOConstructionException
 	{
 		// TODO: Find out all free variables and \forall them here.
 		// TODO: Find any variable collision (illegal) - can be during execution / nice to at the start.
@@ -78,6 +78,7 @@ class FOStructureImpl implements FOStructure
 	@Override
 	public Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOFormula form) throws FOConstructionException
 	{	
+		//TODO: But the formula shouldn't offer publicly interface to get assignments, that belongs in here in the structure.
 		Set<FOVariable> setFreeVars = findFreeVars(form);
 		return form.getSatisfyingAssignments(this, setFreeVars);
 	}
@@ -99,5 +100,13 @@ class FOStructureImpl implements FOStructure
 	public FOElement setConstantMapping(FOConstant foconst, FOElement elt)
 	{
 		return mConstMapping.put(foconst, elt);
+	}
+
+	@Override
+	public Iterable<Map<FOVariable, FOElement>> getAssignments(FOFormula form) throws FOConstructionException
+	{
+		//TODO: Need refactoring around here - finding free vars should be in the formula not passed around.
+		Set<FOVariable> setFreeVars = findFreeVars(form);
+		return ((FOFormulaByRecursionImpl) form).getAssignments(this, setFreeVars);
 	}
 }

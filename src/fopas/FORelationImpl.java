@@ -27,7 +27,7 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		}
 
 		@Override
-		public boolean satisfies(FOElement... args) throws FORuntimeException
+		public boolean satisfies(FOElement... args)
 		{
 			if(args.length != 2)
 				throw new FORuntimeException("Expected 2 args, got " + args.length + ".");

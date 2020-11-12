@@ -101,7 +101,7 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		}
 		
 		@Override
-		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment) throws FORuntimeException
+		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment)
 		{
 			boolean accepted = false;
 

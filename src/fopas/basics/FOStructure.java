@@ -12,10 +12,10 @@ public interface FOStructure
 	 * Answer whether this structure is a model of {@code form}.
 	 * @param form
 	 * @return
-	 * @throws FORuntimeException 
 	 * @throws FOConstructionException 
 	 */
-	boolean models(FOFormula form) throws FORuntimeException, FOConstructionException;
+	boolean models(FOFormula form) throws FOConstructionException;
 	
 	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOFormula form) throws FOConstructionException;
+	Iterable<Map<FOVariable, FOElement>> getAssignments(FOFormula form) throws FOConstructionException;
 }

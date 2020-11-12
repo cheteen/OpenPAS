@@ -8,6 +8,7 @@ public interface FOElement {
 	}
 	
 	Type getType();
+	Object getElement();
 	
 	public static interface FOString extends FOElement {}
 	public static interface FOInteger extends FOElement

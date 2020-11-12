@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -11,6 +13,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.google.common.collect.FluentIterable;
 
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
@@ -42,7 +46,7 @@ public class FOStructureImplTest {
 	}
 
 	@Test
-	public void testFreeVars() throws FORuntimeException, FOConstructionException
+	public void testFreeVars() throws FOConstructionException
 	{
 		FOConstant c1 = new FOConstantImpl("c1");
 		FOConstant c2 = new FOConstantImpl("c2");
@@ -99,7 +103,7 @@ public class FOStructureImplTest {
 	}
 	
 	@Test
-	public void testFreeVariablePickings() throws FORuntimeException, FOConstructionException
+	public void testFreeVariablePickings() throws FOConstructionException
 	{
 		FOConstant c0 = new FOConstantImpl("c0");
 		FOConstant c1 = new FOConstantImpl("c1");
@@ -111,7 +115,7 @@ public class FOStructureImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(zero, one, two, three)));
+		FOSet<FOElement> universe = new FOBridgeSet<>(new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));
 		
 		FOStructure structure = new FOStructureImpl(universe);
 		structure.setConstantMapping(c0, zero);
@@ -147,7 +151,15 @@ public class FOStructureImplTest {
 			
 			Assert.assertEquals("((_v1 + _v2 + _v3) = c3)", sgiser.stringiseFOFormula(form, 100));
 
-			Assert.assertFalse(structure.models(form));			
+			Assert.assertFalse(structure.models(form));
+
+			Assert.assertEquals(4 * 4 * 4, FluentIterable.from(structure.getAssignments(form)).size());
+			
+			Assert.assertEquals(4 * 4 * 1, FluentIterable.from(structure.getSatisfyingAssignments(form)).size());
+
+			// Now let's iterate over satisfying combinations
+			//for(Map<FOVariable, FOElement> assignment : structure.getSatisfyingAssignments(form))
+			//	System.out.println("" + assignment.get(v1).getElement() + "," + assignment.get(v2).getElement() + "," + assignment.get(v3).getElement());
 		}		
 	}	
 }

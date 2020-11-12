@@ -44,7 +44,7 @@ public class FOFormulaByRecursionImplTest {
 	}
 
 	@Test
-	public void testConstants() throws FORuntimeException, FOConstructionException
+	public void testConstants() throws FOConstructionException
 	{
 		FOConstant c1 = new FOConstantImpl("c1");
 		FOConstant c2 = new FOConstantImpl("c2");
@@ -102,7 +102,7 @@ public class FOFormulaByRecursionImplTest {
 	}
 
 	@Test
-	public void testOrFormulas() throws FORuntimeException, FOConstructionException
+	public void testOrFormulas() throws FOConstructionException
 	{
 		FOConstant c1 = new FOConstantImpl("c1");
 		FOConstant c2 = new FOConstantImpl("c2");
@@ -153,7 +153,7 @@ public class FOFormulaByRecursionImplTest {
 	}
 
 	@Test
-	public void testForAllFormulas() throws FORuntimeException, FOConstructionException
+	public void testForAllFormulas() throws FOConstructionException
 	{
 		FOConstant c1 = new FOConstantImpl("c1");
 		FOConstant c2 = new FOConstantImpl("c2");
@@ -226,7 +226,7 @@ public class FOFormulaByRecursionImplTest {
 	}
 	
 	@Test
-	public void testFunctions() throws FORuntimeException, FOConstructionException
+	public void testFunctions() throws FOConstructionException
 	{
 		FOConstant c0 = new FOConstantImpl("c0");
 		FOConstant c1 = new FOConstantImpl("c1");
