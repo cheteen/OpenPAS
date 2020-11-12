@@ -23,7 +23,7 @@ import fopas.basics.FOStructure;
 import fopas.basics.FOTerm;
 import fopas.basics.FOVariable;
 
-abstract class FOFormulaByRecursionImpl implements FOFormula {
+public abstract class FOFormulaByRecursionImpl implements FOFormula {
 	
 	final protected boolean mNegated;
 	
@@ -41,12 +41,13 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 	abstract FormulaType getType(); 
 	
 	@Override
-	public boolean models(FOStructure structure, Set<FOVariable> setFreeVars) throws FOConstructionException
+	public boolean models(FOStructure structure) throws FOConstructionException
 	{	
+		Set<FOVariable> setFreeVars = findFreeVars();
 		if(setFreeVars.size() > 0)
 		{
 			boolean failed = false;
-			for(Map<FOVariable, FOElement> pickings : getAssignments(structure, setFreeVars))
+			for(Map<FOVariable, FOElement> pickings : getAssignments(structure))
 			{
 				failed |= !checkAssignment(structure, pickings);
 				if(failed)
@@ -63,15 +64,16 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 	}
 	
 	@Override
-	public Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure, Set<FOVariable> setFreeVars)
+	public Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure)
 			throws FOConstructionException
 	{
-		return FluentIterable.from(getAssignments(structure, setFreeVars)).filter(pickings -> checkAssignment(structure, pickings));
+		return FluentIterable.from(getAssignments(structure)).filter(pickings -> checkAssignment(structure, pickings));
 	}
 
-	public Iterable<Map<FOVariable, FOElement>> getAssignments(FOStructure structure, Set<FOVariable> setFreeVars)
+	public Iterable<Map<FOVariable, FOElement>> getAssignments(FOStructure structure)
 			throws FOConstructionException
 	{
+		Set<FOVariable> setFreeVars = findFreeVars();
 		return new Iterable<Map<FOVariable,FOElement>>() {
 			@Override
 			public Iterator<Map<FOVariable, FOElement>> iterator()
@@ -156,6 +158,8 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 			
 			FOVariable var = vars.get(ixPick);
 			Iterator<FOElement> it = pickers.get(ixPick);
+			
+			// Starting fresh new iteration on this level.
 			if(!pickings.containsKey(var))
 			{
 				//Initialise picker if we're starting anew.
@@ -212,6 +216,24 @@ abstract class FOFormulaByRecursionImpl implements FOFormula {
 	
 	abstract void analyseVars(Set<FOVariable> setVarsInScope, Set<FOVariable> setVarsSeenInScope,
 			Set<FOVariable> setFreeVars, List<String> listWarnings) throws FOConstructionException;
+	
+	
+	Set<FOVariable> findFreeVars() throws FOConstructionException
+	{
+		Set<FOVariable> setVarsInScope = new LinkedHashSet<>(); // use linked hash set here so we get consistent results each time.
+		Set<FOVariable> setVarsSeenInScope = new LinkedHashSet<>();
+		Set<FOVariable> setFreeVars = new LinkedHashSet<>();
+		List<String> listWarnings = new ArrayList<>();
+		
+		((FOFormulaByRecursionImpl) this).analyseVars(setVarsInScope, setVarsSeenInScope, setFreeVars, listWarnings);
+		
+		// Anything that's in my scope here is a free variable, since we're really in a kind of hidden scope here
+		// for all the free variables.
+		assert setVarsInScope.isEmpty();
+		setVarsSeenInScope.addAll(setFreeVars); // use own scope variables first
+		setFreeVars = setVarsSeenInScope;
+		return setFreeVars;
+	}
 	
 	static class FOFormulaBRRelation extends FOFormulaByRecursionImpl
 	{
