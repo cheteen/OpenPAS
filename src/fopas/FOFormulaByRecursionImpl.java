@@ -34,6 +34,7 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 	
 	enum FormulaType
 	{
+		UNKNOWN,
 		RELATION,
 		OR,
 		FOR_ALL
@@ -225,7 +226,7 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		Set<FOVariable> setFreeVars = new LinkedHashSet<>();
 		List<String> listWarnings = new ArrayList<>();
 		
-		((FOFormulaByRecursionImpl) this).analyseVars(setVarsInScope, setVarsSeenInScope, setFreeVars, listWarnings);
+		analyseVars(setVarsInScope, setVarsSeenInScope, setFreeVars, listWarnings);
 		
 		// Anything that's in my scope here is a free variable, since we're really in a kind of hidden scope here
 		// for all the free variables.

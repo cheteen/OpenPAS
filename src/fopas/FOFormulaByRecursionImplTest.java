@@ -3,6 +3,7 @@ package fopas;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -14,11 +15,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.common.collect.FluentIterable;
+
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOFormula;
+import fopas.basics.FOFunction;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
@@ -54,11 +58,11 @@ public class FOFormulaByRecursionImplTest {
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(one, two)));
 		
-		FOStructure structure = new FOStructureImpl(universe);
+		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		
+		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
-		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
 		FOTermByRecursionImpl.FOTermConstant term_constant1 = new FOTermByRecursionImpl.FOTermConstant(c1);
 		FOTermByRecursionImpl.FOTermConstant term_constant2 = new FOTermByRecursionImpl.FOTermConstant(c2);
@@ -112,14 +116,13 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(one, two, three)));
+		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(one, two, three)));		
+		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
-		FOStructure structure = new FOStructureImpl(universe);
+		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
-		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
 		FOTermByRecursionImpl.FOTermConstant term_constant1 = new FOTermByRecursionImpl.FOTermConstant(c1);
 		FOTermByRecursionImpl.FOTermConstant term_constant2 = new FOTermByRecursionImpl.FOTermConstant(c2);
@@ -164,13 +167,12 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(one, two, three)));
-		
-		FOStructure structure = new FOStructureImpl(universe);
+		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+				
+		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
-		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
 		FOTermByRecursionImpl.FOTermConstant term_constant1 = new FOTermByRecursionImpl.FOTermConstant(c1);
 		FOTermByRecursionImpl.FOTermConstant term_constant2 = new FOTermByRecursionImpl.FOTermConstant(c2);
@@ -239,14 +241,14 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(zero, one, two, three)));
-		
-		FOStructure structure = new FOStructureImpl(universe);
+		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FOFunction funaddmod4 = new FOInternalIntFunctions.FOInternalSumModulus(4);
+				
+		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
-		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
 		FOTermByRecursionImpl.FOTermConstant term_constant0 = new FOTermByRecursionImpl.FOTermConstant(c0);
 		FOTermByRecursionImpl.FOTermConstant term_constant1 = new FOTermByRecursionImpl.FOTermConstant(c1);
@@ -260,7 +262,7 @@ public class FOFormulaByRecursionImplTest {
 		{
 			// (1 + 2)
 			FOTermByRecursionImpl.FOTermFunction term_addition =
-					new FOTermByRecursionImpl.FOTermFunction(new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_constant1, term_constant2));
+					new FOTermByRecursionImpl.FOTermFunction(funaddmod4, Arrays.asList(term_constant1, term_constant2));
 
 			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_constant3, term_addition));
 			
@@ -276,10 +278,10 @@ public class FOFormulaByRecursionImplTest {
 		// (forall _v1)((1 + _v1 + 1) = _v1 + 2)  
 		{
 			FOTermByRecursionImpl.FOTermFunction term_addition1 =
-					new FOTermByRecursionImpl.FOTermFunction(new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_constant1, term_var1, term_constant1));
+					new FOTermByRecursionImpl.FOTermFunction(funaddmod4, Arrays.asList(term_constant1, term_var1, term_constant1));
 
 			FOTermByRecursionImpl.FOTermFunction term_addition2 =
-					new FOTermByRecursionImpl.FOTermFunction(new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_var1, term_constant2));
+					new FOTermByRecursionImpl.FOTermFunction(funaddmod4, Arrays.asList(term_var1, term_constant2));
 			
 			FOFormula subform = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition1, term_addition2));
 

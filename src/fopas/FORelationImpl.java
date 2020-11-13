@@ -10,6 +10,7 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 	
 	FORelationImpl(String name)
 	{
+		//TODO: Validate name here.
 		mName = name;
 	}
 	
@@ -39,5 +40,11 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 
 		@Override
 		public int getCardinality() { return 2; }
+
+		@Override
+		public String getInfix()
+		{
+			return "=";
+		}
 	}
 }

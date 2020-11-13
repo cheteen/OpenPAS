@@ -13,6 +13,8 @@ import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
+import fopas.basics.FOFunction;
+import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
@@ -23,13 +25,18 @@ class FOStructureImpl implements FOStructure
 {
 	protected Map<FOConstant, FOElement> mConstMapping;
 	protected FOSet<FOElement> mUniverse;
+	final protected Set<FORelation<FOElement>> mRelations;
+	final protected Set<FOFunction> mFuns;
 	
 	transient FOFormula mFreeVars;
 	
-	FOStructureImpl(FOSet<FOElement> universe)
+	FOStructureImpl(FOSet<FOElement> universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
 	{
+		//TODO: Need to check that function/relation names and infix ops don't clash.
 		mUniverse = universe;
 		mConstMapping = new HashMap<FOConstant, FOElement>();
+		mRelations = relations;
+		mFuns = funs;
 	}
 
 	@Override
@@ -71,5 +78,23 @@ class FOStructureImpl implements FOStructure
 	public Iterable<Map<FOVariable, FOElement>> getAssignments(FOFormula form) throws FOConstructionException
 	{
 		return ((FOFormulaByRecursionImpl) form).getAssignments(this);
+	}
+
+	@Override
+	public Iterable<FORelation<FOElement>> getRelations()
+	{
+		return mRelations;
+	}
+
+	@Override
+	public Iterable<FOFunction> getFunctions()
+	{
+		return mFuns;
+	}
+
+	@Override
+	public Iterable<FOConstant> getConstants()
+	{
+		return mConstMapping.keySet();
 	}
 }

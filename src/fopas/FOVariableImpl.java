@@ -8,6 +8,7 @@ public class FOVariableImpl implements FOVariable
 	
 	FOVariableImpl(String name)
 	{
+		//TODO: Validate name here.
 		mName = name;
 	}
 

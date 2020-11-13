@@ -4,6 +4,7 @@ public interface FORelation <T extends FOElement>
 {
 	String getName();
 	boolean satisfies(FOElement ... args);
+	String getInfix();
 	
 	/**
 	 * Get cardinality of the relation.

@@ -7,6 +7,9 @@ public interface FOStructure
 	FOSet<FOElement> getUniverse();
 	FOElement getConstantMapping(FOConstant foconst);
 	FOElement setConstantMapping(FOConstant foconst, FOElement elt);
+	Iterable<FORelation<FOElement>> getRelations();
+	Iterable<FOFunction> getFunctions();
+	Iterable<FOConstant> getConstants();
 	
 	/**
 	 * Answer whether this structure is a model of {@code form}.

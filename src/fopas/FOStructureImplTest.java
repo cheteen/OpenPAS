@@ -3,6 +3,7 @@ package fopas;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -57,13 +58,12 @@ public class FOStructureImplTest {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(one, two, three)));
+		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
-		FOStructure structure = new FOStructureImpl(universe);
+		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
-		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
 		FOTermByRecursionImpl.FOTermConstant term_constant1 = new FOTermByRecursionImpl.FOTermConstant(c1);
 		FOTermByRecursionImpl.FOTermConstant term_constant2 = new FOTermByRecursionImpl.FOTermConstant(c2);
@@ -115,15 +115,14 @@ public class FOStructureImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>(new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));
+		FOSet<FOElement> universe = new FOBridgeSet<>(new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
+		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
-		FOStructure structure = new FOStructureImpl(universe);
+		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
-		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
 		FOTermByRecursionImpl.FOTermConstant term_constant0 = new FOTermByRecursionImpl.FOTermConstant(c0);
 		FOTermByRecursionImpl.FOTermConstant term_constant1 = new FOTermByRecursionImpl.FOTermConstant(c1);

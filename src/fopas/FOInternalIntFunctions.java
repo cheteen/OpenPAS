@@ -17,6 +17,7 @@ abstract class FOInternalIntFunctions implements FOFunction
 		
 		FOInternalSumModulus(int modulus)
 		{
+			//TODO: Validate name here.
 			mModulus = modulus;
 		}
 		
