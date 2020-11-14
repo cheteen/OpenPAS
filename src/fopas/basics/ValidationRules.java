@@ -6,4 +6,5 @@ public class ValidationRules
 {
 	static final public String validName =  "[a-zA-Z]+[a-zA-Z_0-9]*"; 
 	static final public String validInfixOp =  "[=+-/*^><~@]+"; 
+	static final public String validLogicalOp =  "[|¬&]"; 
 }

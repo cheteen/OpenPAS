@@ -34,6 +34,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			START_GROUP,
 			END_GROUP,
 			COMMA,
+			NEGATION,
+			LOGICAL_OP,
 			RELATION,
 			INFIX_RELATION_OP,
 			FUNCTION,
@@ -53,8 +55,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	
 	List<FOToken> parseTokens(String strform, FOStructure structure) throws FOConstructionException
 	{
-		Pattern nameExtractor =  Pattern.compile("(" + ValidationRules.validName + ")"); 
-		Pattern nameInfixOp =  Pattern.compile("(" + ValidationRules.validInfixOp + ")"); 
+		Pattern nameExtractor =  Pattern.compile("^(" + ValidationRules.validName + ")"); 
+		Pattern nameInfixOp =  Pattern.compile("^(" + ValidationRules.validInfixOp + ")"); 
 		
 		Map<String, FORelation<FOElement>> mapRels = new HashMap<>();
 		Map<String, FORelation<FOElement>> mapInfixRels = new HashMap<>();
@@ -82,52 +84,67 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		
 		List<FOToken> listTokens = new ArrayList<FOToken>();
 		int ixPos = 0;
-		String strremains = strform.trim();
 		
-		while(ixPos < strremains.length())
+		while(ixPos < strform.length())
 		{
 			// Trim whitespace at the start.
-			if(strremains.startsWith(" ", ixPos) || strremains.startsWith("\t", ixPos))
+			if(strform.startsWith(" ", ixPos) || strform.startsWith("\t", ixPos))
 			{
 				ixPos++;
 				continue;				
 			}
 
-			if(strremains.startsWith("(", ixPos))
+			if(strform.startsWith("(", ixPos))
 			{
 				listTokens.add(new FOToken(FOToken.Type.START_GROUP, "("));
 				ixPos++;
 				continue;
 			}
 			
-			if(strremains.startsWith(")", ixPos))
+			if(strform.startsWith(")", ixPos))
 			{
 				listTokens.add(new FOToken(FOToken.Type.END_GROUP, ")"));
 				ixPos++;
 				continue;
 			}
 			
-			if(strremains.startsWith(",", ixPos))
+			if(strform.startsWith(",", ixPos))
 			{
 				listTokens.add(new FOToken(FOToken.Type.COMMA, ","));
 				ixPos++;
 				continue;
 			}
 
-			if(strremains.startsWith("_", ixPos))
+			if(strform.startsWith("¬", ixPos))
 			{
-				Matcher m = nameExtractor.matcher(strremains.subSequence(ixPos + 1, strremains.length()));
-				if(m.groupCount() == 1)
-					throw new FOConstructionException("Variable name can't be parsed: " + strremains.substring(ixPos));
+				listTokens.add(new FOToken(FOToken.Type.NEGATION, "¬"));
+				ixPos++;
+				continue;
+			}
+
+			if(strform.startsWith("|", ixPos) || strform.startsWith("&", ixPos))
+			{
+				listTokens.add(new FOToken(FOToken.Type.LOGICAL_OP, strform.substring(ixPos, ixPos + 1)));
+				ixPos++;
+				continue;
+			}
+
+			if(strform.startsWith("_", ixPos))
+			{
+				Matcher m = nameExtractor.matcher(strform.subSequence(ixPos + 1, strform.length()));
+				if(!m.find())
+					throw new FOConstructionException("Variable name can't be parsed: " + strform.substring(ixPos));
+				assert m.groupCount() == 1;
 				String name = m.group(1);
 				listTokens.add(new FOToken(Type.VARIABLE, name));
 				ixPos += (name.length() + 1);
 				continue;
 			}
 			
-			Matcher mInfix = nameInfixOp.matcher(strremains.subSequence(ixPos, strremains.length()));
-			if(mInfix.groupCount() <= 1)
+			Matcher mInfix = nameInfixOp.matcher(strform.subSequence(ixPos, strform.length()));
+			if(mInfix.find())
 			{
+				assert mInfix.groupCount() == 1;
 				String name = mInfix.group(1);
 				boolean infixed = false;
 				if(mapInfixRels.keySet().contains(name))
@@ -147,9 +164,10 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				}
 			}
 
-			Matcher mName = nameExtractor.matcher(strremains.subSequence(ixPos, strremains.length()));
-			if(mName.groupCount() <= 1)
+			Matcher mName = nameExtractor.matcher(strform.subSequence(ixPos, strform.length()));
+			if(mName.find())
 			{
+				assert mName.groupCount() == 1;
 				boolean named = false;
 				String name = mName.group(1);
 				if(mapRels.keySet().contains(name))
@@ -162,7 +180,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					listTokens.add(new FOToken(Type.FUNCTION, name));
 					named = true;
 				}
-				else if(name == "forall")
+				else if(name.equals("forall"))
 				{
 					listTokens.add(new FOToken(Type.SCOPE_COMMAND, name));
 					named = true;
@@ -179,7 +197,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				}
 			}
 			
-			throw new FOConstructionException("Can't parse: " + strremains.substring(ixPos));
+			throw new FOConstructionException("Can't parse: " + strform.substring(ixPos));
 		}
 		
 		return listTokens;
