@@ -326,13 +326,11 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 	{
 		final protected FOVariable mVar;
 		final protected FOFormula mScopeFormula;
-		final protected boolean mIsFreeVariable;
-		FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormula scopeFormula, boolean isFreVariable)
+		FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormula scopeFormula)
 		{
 			super(isNegated);
 			mVar = var;
 			mScopeFormula = scopeFormula;
-			mIsFreeVariable = isFreVariable;
 		}
 		
 		@Override

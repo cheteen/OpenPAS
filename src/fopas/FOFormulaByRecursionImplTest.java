@@ -192,7 +192,7 @@ public class FOFormulaByRecursionImplTest {
 
 			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBROr(false, Arrays.asList(subsubform1, subsubform2, subsubform3));
 			
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1, false);
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1);
 			
 			Assert.assertEquals("(forall _v1)((_v1 = c1) | (_v1 = c2) | (_v1 = c3))", sgiser.stringiseFOFormula(form, 100));
 
@@ -207,7 +207,7 @@ public class FOFormulaByRecursionImplTest {
 
 			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBROr(false, Arrays.asList(subsubform1, subsubform2));
 			
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1, false);
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform1);
 			
 			Assert.assertEquals("(forall _v1)((_v1 = c1) | (_v1 = c2))", sgiser.stringiseFOFormula(form, 100));
 
@@ -219,7 +219,7 @@ public class FOFormulaByRecursionImplTest {
 		{
 			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(true, foequals, Arrays.asList(term_var1, term_constant3));
 
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(true, v1, subform1, false);
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(true, v1, subform1);
 			
 			Assert.assertEquals("¬(forall _v1)¬(_v1 = c3)", sgiser.stringiseFOFormula(form, 100));
 
@@ -285,7 +285,7 @@ public class FOFormulaByRecursionImplTest {
 			
 			FOFormula subform = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition1, term_addition2));
 
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform, false);
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(false, v1, subform);
 			
 			Assert.assertEquals("(forall _v1)((c1 + _v1 + c1) = (_v1 + c2))", sgiser.stringiseFOFormula(form, 100));
 
