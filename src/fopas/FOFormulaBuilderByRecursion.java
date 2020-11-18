@@ -90,6 +90,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		}		
 	}
 	
+	// Need to re-write this to:
+	// 1) Second pass of creating terms.
+	// 2) Third pass that looks at the depths of matching paranthesis and partitions formula recusion with that.
 	@Override
 	public FOFormula buildFrom(String strform, FOStructure structure) throws FOConstructionException
 	{
@@ -104,13 +107,17 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		List<FOToken> tokens = parseTokens(strform, structure, mapRels, mapInfixRels,
 				mapFuns, mapInfixFuns, mapConstants);
 		
+		// This below is painfully ugly, need to rewrite this stuff.
 		// Check if there are surrounding parentheses for the sentence, if not add them.
-		boolean needToAddParas = tokens.get(0).type != Type.START_GROUP;
-		if(tokens.get(0).type == Type.START_GROUP)
+		int ixStart = 0;
+		if(tokens.get(ixStart).type == Type.NEGATION)
+			ixStart++;
+		boolean needToAddParas = tokens.get(ixStart).type != Type.START_GROUP;
+		if(tokens.get(ixStart).type == Type.START_GROUP)
 		{
 			// Find if this is a surrounding para.
 			int endPara = 1; // if this drops to 0, then we need to add still
-			for(int i = 1; i < tokens.size() - 1; i++)
+			for(int i = ixStart + 1; i < tokens.size() - 1; i++)
 			{
 				if(tokens.get(i).type == Type.END_GROUP)
 					endPara--;
@@ -121,7 +128,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					needToAddParas = true;
 					break;
 				}
-			}
+			}				
 		}
 		if(needToAddParas)
 		{
@@ -153,12 +160,16 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		// Negated formula (short cut)
 		boolean isNegated = false;
 		if(tokens.get(pf.ixPos).type == Type.NEGATION)
+		{
 			isNegated = true;
+			pf.ixPos++;
+		}
 		
 		// Allow the top-level sentence to not have parentheses.
 		if(tokens.get(pf.ixPos).type != Type.START_GROUP)
 			throw new FOConstructionException("Missing starting paranthesis for formula.");
 		pf.ixPos++;
+		boolean hasLastPara = true;
 		
 		FOFormula form;
 		
@@ -172,15 +183,19 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			if(tokens.get(pf.ixPos).type != Type.VARIABLE)
 				throw new FOConstructionException("Expected variable not found for command scope.");
 			FOToken scopeVariable = tokens.get(pf.ixPos); 
-			
 			pf.ixPos++;
+			
 			if(tokens.get(pf.ixPos).type != Type.END_GROUP)
 				throw new FOConstructionException("Unmatching bracket found for command scope.");
+			pf.ixPos++;
 			
 			FOFormula scopeFormula = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
 			
 			FOVariable variable = new FOVariableImpl(scopeVariable.value);
 			form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(isNegated, variable, scopeFormula);
+			
+			// This is an ugly hack, but need this until a rewrite:
+			hasLastPara = false; // forall doesn't need/consume last para because of its format
 		}
 		// OR of formulas
 		else if(tokens.get(pf.ixPos).type == Type.NEGATION || tokens.get(pf.ixPos).type == Type.START_GROUP)
@@ -190,7 +205,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			subFormulas.add(subForm);
 
 			// Must find Or here.
-			if(tokens.get(pf.ixPos).type != Type.LOGICAL_OP || !tokens.get(pf.ixPos).value.equals("|"))
+			if((tokens.get(pf.ixPos).type != Type.LOGICAL_OP || !tokens.get(pf.ixPos).value.equals("|"))
+					&& tokens.get(pf.ixPos).type != Type.END_GROUP // allow single subformula as OR
+					)
 				throw new FOConstructionException("Expected first logical op not found.");				
 			
 			while(pf.ixPos < tokens.size())
@@ -270,9 +287,12 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			// TODO: Error messages not helpful, need to improve error reporting here.
 			throw new FOConstructionException("Synthax error constructing a formula.");
 		
-		if(tokens.get(pf.ixPos).type != Type.END_GROUP)
-			throw new FOConstructionException("Unmatching paranthesis found.");
-		pf.ixPos++;
+		if(hasLastPara)
+		{
+			if(tokens.get(pf.ixPos).type != Type.END_GROUP)
+				throw new FOConstructionException("Unmatching paranthesis found.");
+			pf.ixPos++;			
+		}
 			
 		return form;
 	}

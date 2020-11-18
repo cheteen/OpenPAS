@@ -189,6 +189,7 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "c0 = c1", false, "(%s)");
 		testFormula(structure, "(c0 = c1)", false, null);
 		testFormula(structure, "  c0  =   c1 ", false, "(c0 = c1)");
+		testFormula(structure, "¬(c1 = c1)", false, null);
 		
 		testFormula(structure, "c3 = (c1 + c2)", true, "(%s)");
 		testFormula(structure, "c0 = (c1 + c1 + c1 + c1)", true, "(%s)");
@@ -201,8 +202,22 @@ public class FOFormulaBuilderByRecursionTest {
 		FOStructure structure = createSimpleStructure();
 		
 		testFormula(structure, "(c0 = c1) | (c1 = c1)", true, "(%s)");
+		testFormula(structure, "(c0 = c1) | ¬(c1 = c1)", false, "(%s)");
+		testFormula(structure, "(c0 = c1) | (c1 = c1)", true, "(%s)");
 		testFormula(structure, "(  ( c0 = c1) | (c1 = c1))", true, "((c0 = c1) | (c1 = c1))");
 		testFormula(structure, "(c0 = c1) | (c1 = c2) | (c2 = c3)", false, "(%s)");
 		testFormula(structure, "(c0 = c1) | (c1 = c2) | (c2 = c3) | (c0 = c0)", true, "(%s)");
+	}
+	
+	@Test
+	public void testBuildForAllFormulas() throws FOConstructionException
+	{
+		FOStructure structure = createSimpleStructure();
+
+		testFormula(structure, "(forall _v1)(_v1 = c1)", false, "(%s)");
+		testFormula(structure, "(forall _v1)(c1 = c1)", true, "(%s)");
+		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c2)", false, "(%s)");
+		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c1)", true, "(%s)");
+		testFormula(structure, "(forall _v1)((_v1 = c0) | (_v1 = c1) | (_v1 = c2) | (_v1 = c3))", true, "(%s)");
 	}
 }
