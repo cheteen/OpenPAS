@@ -4,7 +4,7 @@ import java.util.Map;
 
 public interface FOStructure
 {
-	FOSet<FOElement> getUniverse();
+	FOUniverse getUniverse();
 	FOElement getConstantMapping(FOConstant foconst);
 	FOElement setConstantMapping(FOConstant foconst, FOElement elt);
 	Iterable<FORelation<FOElement>> getRelations();

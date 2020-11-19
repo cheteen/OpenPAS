@@ -64,7 +64,7 @@ public class FOFormulaBuilderByRecursionTest {
 		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(one, two, three)));
 		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 				
-		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
+		FOStructure structure = new FOStructureImpl(new FOUniverseImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
@@ -157,7 +157,7 @@ public class FOFormulaBuilderByRecursionTest {
 		
 		FOFunction funaddmod4 = new FOInternalIntFunctions.FOInternalSumModulus(4);
 		
-		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
+		FOStructure structure = new FOStructureImpl(new FOUniverseImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
