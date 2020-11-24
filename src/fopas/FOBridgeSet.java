@@ -5,17 +5,23 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.google.common.collect.FluentIterable;
+
 import fopas.basics.FOElement;
 import fopas.basics.FOFiniteSet;
 import fopas.basics.FORelation;
 import fopas.basics.FOSet;
+import fopas.basics.KnownIterable;
+import fopas.CannedKnownIterable;;
 
 public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
 
-	protected Set<T> mSet;
+	protected final String mName;
+	protected final Set<T> mSet;
 	
-	FOBridgeSet(Set<T> sourceSet)
+	FOBridgeSet(String name, Set<T> sourceSet)
 	{
+		mName = name;
 		mSet = sourceSet;
 	}
 	
@@ -90,8 +96,20 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
 	//-------------------------------------------------------------------------------------------
 
 	@Override
-	public FOSet<T> sacrificeForSubset(FORelation<T> relation) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getName()
+	{
+		return mName;
+	}
+
+	@Override
+	public FOSet<T> createSubset(FORelation<T> rel)
+	{
+		return new FOSubsetImpl<T>(this, rel);
+	}
+
+	@Override
+	public int getSubsetSize(FORelation<T> rel)
+	{
+		return -1; // this is the simplest set impl, so we don't support any help here.
 	}
 }

@@ -6,9 +6,17 @@ import java.util.Set;
 public interface FOSet<T extends FOElement> extends Iterable<T>
 {
 	public int size(); // shared with Set
-
+	
+	public String getName();
+	
+	public boolean contains(Object o);
+	
+	public FOSet<T> createSubset(FORelation<T> rel);
+	
 	/**
-	 * Sacrifice this set to create a subset using this relation. Can return this set after possible modifying self.
+	 * Find the size of the subset if this set was constrained to have members that satisified {@code rel}.
+	 * @param rel
+	 * @return Can return (-1) if size would be unkown, natural number otherwise.
 	 */
-	FOSet<T> sacrificeForSubset(FORelation<T> relation);
+	public int getSubsetSize(FORelation<T> rel);
 }

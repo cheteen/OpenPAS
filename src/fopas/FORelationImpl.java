@@ -3,6 +3,9 @@ package fopas;
 import fopas.basics.FOElement;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
+import fopas.basics.FOSet;
+import fopas.basics.FOStructure;
+import fopas.basics.FOCombinedSet;
 
 abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 {
@@ -45,6 +48,48 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		public String getInfix()
 		{
 			return "=";
+		}
+	}
+
+	/**
+	 * This is a special relation that binds to a set to return true
+	 * when an element comes that is in the set.
+	 */
+	static class FORelationInSet extends FORelationImpl<FOElement>
+	{
+		protected FOSet<FOElement> mSet;
+		
+		FORelationInSet(FOCombinedSet universe, String setName)
+		{
+			super("InSet@" + setName);
+			if(universe.getOriginalSubset(setName) == null)
+				throw new FORuntimeException("Expected subset not found in univese: " + setName);
+			mSet = universe.getOriginalSubset(setName);
+		}
+
+		@Override
+		public boolean satisfies(FOElement... args)
+		{
+			if(args.length != 1)
+				throw new FORuntimeException("Unexpected number of args.");
+			return mSet.contains(args[0]);
+		}
+
+		@Override
+		public String getInfix()
+		{
+			return null;
+		}
+
+		@Override
+		public int getCardinality()
+		{
+			return 0;
+		}
+
+		FOSet<FOElement> getSet()
+		{
+			return mSet;
 		}
 	}
 }

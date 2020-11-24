@@ -19,19 +19,19 @@ import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOTerm;
-import fopas.basics.FOUniverse;
+import fopas.basics.FOCombinedSet;
 import fopas.basics.FOVariable;
 
 class FOStructureImpl implements FOStructure
 {
 	protected Map<FOConstant, FOElement> mConstMapping;
-	protected FOUniverse mUniverse;
+	protected FOCombinedSet mUniverse;
 	final protected Set<FORelation<FOElement>> mRelations;
 	final protected Set<FOFunction> mFuns;
 	
 	transient FOFormula mFreeVars;
 	
-	FOStructureImpl(FOUniverse universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
+	FOStructureImpl(FOCombinedSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
 	{
 		//TODO: Need to check that function/relation names and infix ops don't clash.
 		mUniverse = universe;
@@ -57,7 +57,7 @@ class FOStructureImpl implements FOStructure
 	}
 
 	@Override
-	public FOUniverse getUniverse()
+	public FOCombinedSet getUniverse()
 	{
 		// this should really be unmodifiable
 		return mUniverse;

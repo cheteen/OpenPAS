@@ -90,7 +90,7 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 	{
 		protected final List<FOVariable> vars;
 		protected final HashMap<FOVariable, FOElement> pickings;
-		protected final List<Iterable<FOElement>> pickables;
+		protected final List<FOSet<FOElement>> pickables;
 		protected final List<Iterator<FOElement>> pickers;
 		protected Iterator<FOElement> focusIterator;
 		protected int focusIteratorIx; 

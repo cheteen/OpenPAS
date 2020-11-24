@@ -61,10 +61,10 @@ public class FOFormulaBuilderByRecursionTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>(new HashSet<>(Arrays.asList(one, two, three)));
+		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new HashSet<>(Arrays.asList(one, two, three)));
 		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 				
-		FOStructure structure = new FOStructureImpl(new FOUniverseImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
+		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
@@ -152,12 +152,12 @@ public class FOFormulaBuilderByRecursionTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>(new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
+		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
 		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
 		FOFunction funaddmod4 = new FOInternalIntFunctions.FOInternalSumModulus(4);
 		
-		FOStructure structure = new FOStructureImpl(new FOUniverseImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
+		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
