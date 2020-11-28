@@ -13,7 +13,7 @@ public interface FOStructure
 
 	Iterable<String> getAliases();
 	FOFormula getAlias(String name);
-	void addAlias(String name, FOFormula scopeForm) throws FOConstructionException;
+	void addAlias(FOAlias formAlias) throws FOConstructionException;
 	
 	/**
 	 * Answer whether this structure is a model of {@code form}.

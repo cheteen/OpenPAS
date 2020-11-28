@@ -9,6 +9,7 @@ import java.util.Set;
 import com.google.common.collect.Lists;
 
 import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll;
+import fopas.basics.FOAlias;
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -114,11 +115,11 @@ class FOStructureImpl implements FOStructure
 	}
 
 	@Override
-	public void addAlias(String name, FOFormula scopeForm) throws FOConstructionException
+	public void addAlias(FOAlias formAlias) throws FOConstructionException
 	{		
-		FOFormula existing = mAliasMapping.put(name, scopeForm);
+		FOFormula existing = mAliasMapping.put(formAlias.getName(), formAlias);
 
 		if(existing != null)
-			throw new FOConstructionException("Tring to recreate existing alias: " + name);
+			throw new FOConstructionException("Tring to recreate existing alias: " + formAlias.getName());
 	}
 }

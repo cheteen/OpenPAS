@@ -88,6 +88,26 @@ public class FOByRecursionStringiser
 			}
 			sb.append(")");
 			break;
+		case ALIAS_BINDING:
+			sb.append("(");
+			FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl foalias = (FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl) recform;
+			sb.append(foalias.getName());
+			sb.append("(");
+			Iterator<FOTerm> termit = foalias.getBoundTerms().iterator();
+			if(termit.hasNext())
+			{
+				FOTerm argTerm = termit.next();
+				stringiseFOTerm(argTerm, maxLen, sb);
+				while(termit.hasNext())
+				{
+					argTerm = termit.next();
+					sb.append(", ");
+					stringiseFOTerm(argTerm, maxLen, sb);
+				}				
+			}
+			sb.append("))");
+			break;
+			
 		default:
 			sb.append("ERROR!"); // should never happen.
 			break;

@@ -14,6 +14,7 @@ import fopas.FOFormulaByRecursionImpl.FOFormulaBROr;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBRRelation;
 import fopas.FOFormulaByRecursionImpl.FormulaType;
 import fopas.FOTermByRecursionImpl.FOTermVariable;
+import fopas.basics.FOAlias;
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -123,9 +124,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	}
 	
 	@Override
-	public FOFormula buildAlias(String name, String strform, FOStructure structure, List<FOVariable> args) throws FOConstructionException
+	public FOAlias buildAlias(String name, List<FOVariable> args, String strform, FOStructure structure) throws FOConstructionException
 	{
-		return buildFormula(strform, structure, name, args);
+		return (FOAlias) buildFormula(strform, structure, name, args);
 	}
 
 	@Override
@@ -223,7 +224,6 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			pf.ixPos++;
 		}
 		
-		// Allow the top-level sentence to not have parentheses.
 		if(tokens.get(pf.ixPos).type != Type.START_GROUP)
 			throw new FOConstructionException("Missing starting paranthesis for formula.");
 		pf.ixPos++;
@@ -365,9 +365,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				if(tokenInFun.type != Type.COMMA)
 					throw new FOConstructionException("Synthax error with function - expecting comma.");
 			}
-			pf.ixPos++;
 			
-			form = new FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl(isNegated, (FOAliasByRecursionImpl) mapAliases.get(tokAlias.value), subterms);
+			form = new FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl(
+					tokAlias.value, isNegated, (FOAliasByRecursionImpl) mapAliases.get(tokAlias.value), subterms);
 		}
 		else
 			// TODO: Error messages not helpful, need to improve error reporting here.

@@ -5,5 +5,5 @@ import java.util.List;
 public interface FOFormulaBuilder
 {
 	FOFormula buildFrom(String strform, FOStructure structure) throws FOConstructionException;
-	FOFormula buildAlias(String name, String strform, FOStructure structure, List<FOVariable> args) throws FOConstructionException;
+	FOAlias buildAlias(String name, List<FOVariable> args, String strform, FOStructure structure) throws FOConstructionException;
 }

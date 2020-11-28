@@ -65,6 +65,7 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 	void analyseVars(Set<FOVariable> setVarsInScope, Set<FOVariable> setVarsSeenInScope, Set<FOVariable> setFreeVars,
 			List<String> listWarnings) throws FOConstructionException
 	{
+		// TODO: This needs to check that this formula doesn't contain undeclared variables.
 		if(mScopeForm == null)
 			throw new FOConstructionException("Scoped formula undefined alias: " + mName);
 		
@@ -86,15 +87,23 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 		mScopeForm = (FOFormulaByRecursionImpl) form;
 	}
 	
+	@Override
+	public String getName()
+	{
+		return mName;
+	}
+	
 	static class FOAliasBindingByRecursionImpl extends FOFormulaByRecursionImpl implements FOAlias
 	{
 		final List<FOTerm> mTerms;
 		final FOAliasByRecursionImpl mBoundFormula;
 		final Map<FOVariable, FOElement> mMappedAssignment;
+		final String mName;
 		
-		FOAliasBindingByRecursionImpl(boolean negated, FOAliasByRecursionImpl boundFormula, List<FOTerm> terms) throws FOConstructionException
+		FOAliasBindingByRecursionImpl(String name, boolean negated, FOAliasByRecursionImpl boundFormula, List<FOTerm> terms) throws FOConstructionException
 		{
 			super(negated);
+			mName = name;
 			mTerms = terms;
 			mBoundFormula = boundFormula;
 			mMappedAssignment = new HashMap<FOVariable, FOElement>();
@@ -134,15 +143,28 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 
 		@Override
 		void analyseVars(Set<FOVariable> setVarsInScope, Set<FOVariable> setVarsSeenInScope,
-				Set<FOVariable> setFreeVars, List<String> listWarnings) throws FOConstructionException {
-			// TODO Auto-generated method stub
-			
+				Set<FOVariable> setFreeVars, List<String> listWarnings) throws FOConstructionException
+		{
+			// This only looks at the terms in the args since variables of the alias are mapped (ie. not used).
+			for(FOTerm term : mTerms)
+				((FOTermByRecursionImpl) term).analyseScope(setVarsSeenInScope);
 		}
 
 		@Override
 		public int getCardinality()
 		{
 			return mTerms.size();
+		}
+
+		@Override
+		public String getName()
+		{
+			return mName;
+		}
+		
+		List<FOTerm> getBoundTerms()
+		{
+			return mTerms;
 		}
 	}
 }
