@@ -12,7 +12,6 @@ import fopas.basics.FOFiniteSet;
 import fopas.basics.FORelation;
 import fopas.basics.FOSet;
 import fopas.basics.KnownIterable;
-import fopas.CannedKnownIterable;;
 
 public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
 

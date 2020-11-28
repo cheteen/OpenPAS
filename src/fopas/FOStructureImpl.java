@@ -19,25 +19,27 @@ import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOTerm;
-import fopas.basics.FOCombinedSet;
+import fopas.basics.FOUnionSet;
 import fopas.basics.FOVariable;
 
 class FOStructureImpl implements FOStructure
 {
 	protected Map<FOConstant, FOElement> mConstMapping;
-	protected FOCombinedSet mUniverse;
+	protected FOUnionSet mUniverse;
 	final protected Set<FORelation<FOElement>> mRelations;
 	final protected Set<FOFunction> mFuns;
+	final protected Map<String, FOFormula> mAliasMapping;
 	
 	transient FOFormula mFreeVars;
 	
-	FOStructureImpl(FOCombinedSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
+	FOStructureImpl(FOUnionSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
 	{
 		//TODO: Need to check that function/relation names and infix ops don't clash.
 		mUniverse = universe;
-		mConstMapping = new HashMap<FOConstant, FOElement>();
+		mConstMapping = new HashMap<>();
 		mRelations = relations;
 		mFuns = funs;
+		mAliasMapping = new HashMap<>();
 	}
 
 	@Override
@@ -57,7 +59,7 @@ class FOStructureImpl implements FOStructure
 	}
 
 	@Override
-	public FOCombinedSet getUniverse()
+	public FOUnionSet getUniverse()
 	{
 		// this should really be unmodifiable
 		return mUniverse;
@@ -97,5 +99,26 @@ class FOStructureImpl implements FOStructure
 	public Iterable<FOConstant> getConstants()
 	{
 		return mConstMapping.keySet();
+	}
+
+	@Override
+	public Iterable<String> getAliases()
+	{
+		return mAliasMapping.keySet();
+	}
+
+	@Override
+	public FOFormula getAlias(String name)
+	{
+		return mAliasMapping.get(name);
+	}
+
+	@Override
+	public void addAlias(String name, FOFormula scopeForm) throws FOConstructionException
+	{		
+		FOFormula existing = mAliasMapping.put(name, scopeForm);
+
+		if(existing != null)
+			throw new FOConstructionException("Tring to recreate existing alias: " + name);
 	}
 }

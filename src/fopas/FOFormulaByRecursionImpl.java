@@ -37,7 +37,9 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		UNKNOWN,
 		RELATION,
 		OR,
-		FOR_ALL
+		FOR_ALL,
+		ALIAS,
+		ALIAS_BINDING
 	}
 	abstract FormulaType getType(); 
 	

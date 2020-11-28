@@ -76,10 +76,11 @@ public class FOFormulaBuilderByRecursionTest {
 		Map<String, FOFunction> mapFuns = new HashMap<>();
 		Map<String, FOFunction> mapInfixFuns = new HashMap<>();
 		Map<String, FOConstant> mapConstants = new HashMap<>();
-		builder.buildMaps(structure, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+		Map<String, FOFormula> mapAliases = new HashMap<>();
+		builder.buildMaps(structure, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
 		List<FOToken> tokens = builder.parseTokens("(forall _v1)(_v1 = c1 | _v1 = c2 | _v1 = c3)",
-				structure, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+				structure, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 
 		Assert.assertEquals(17, tokens.size());
 		List<FOToken.Type> expectedTypes = Arrays.asList(

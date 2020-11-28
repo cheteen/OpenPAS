@@ -78,11 +78,9 @@ abstract class FOElementImpl implements FOElement
 	// This is no different to Integer in that it boxes an int.
 	static class FOIntImpl extends FOElementImpl implements FOInteger
 	{
-		final Integer mIntElt;
 		FOIntImpl(int elt)
 		{
 			super(elt);
-			mIntElt = elt;
 		}
 		
 		@Override
@@ -93,7 +91,7 @@ abstract class FOElementImpl implements FOElement
 		@Override
 		public int getInteger() 
 		{
-			return mIntElt;
+			return (Integer) mElt;
 		}
 	}
 }

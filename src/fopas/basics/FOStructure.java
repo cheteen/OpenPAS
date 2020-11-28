@@ -10,6 +10,10 @@ public interface FOStructure
 	Iterable<FORelation<FOElement>> getRelations();
 	Iterable<FOFunction> getFunctions();
 	Iterable<FOConstant> getConstants();
+
+	Iterable<String> getAliases();
+	FOFormula getAlias(String name);
+	void addAlias(String name, FOFormula scopeForm) throws FOConstructionException;
 	
 	/**
 	 * Answer whether this structure is a model of {@code form}.

@@ -15,26 +15,22 @@ import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.KnownIterable;
-import fopas.basics.FOCombinedSet;
+import fopas.basics.FOUnionSet;
 
-public class FOUnionSetImpl implements FOCombinedSet
+public class FOUnionSetImpl implements FOUnionSet
 {
-	protected FOSet<FOElement> mDefault;
-	protected Map<String, FOSet<FOElement>> mSubsets;
+	protected Map<String, FOSet<? extends FOElement>> mSubsets;
 	
 	FOUnionSetImpl(FOSet<FOElement> defaultSet)
 	{
-		mDefault = defaultSet;
 		mSubsets = new HashMap<>(2);
 		mSubsets.put(defaultSet.getName(), defaultSet);
 	}
 
-	FOUnionSetImpl(FOSet<FOElement> defaultSet, Set<FOSet<FOElement>> subsets)
+	FOUnionSetImpl(Set<FOSet<? extends FOElement>> subsets)
 	{
-		mDefault = defaultSet;
 		mSubsets = new LinkedHashMap<>();
-		mSubsets.put(mDefault.getName(), mDefault); // default set is a subset as well.
-		for(FOSet<FOElement> foset : subsets)
+		for(FOSet<? extends FOElement> foset : subsets)
 			mSubsets.put(foset.getName(), foset);
 	}
 
@@ -48,7 +44,7 @@ public class FOUnionSetImpl implements FOCombinedSet
 	public int size()
 	{
 		int size = 0;
-		for(FOSet<FOElement> foset : mSubsets.values())
+		for(FOSet<? extends FOElement> foset : mSubsets.values())
 			if(foset.size() == -1)
 				return -1; //infinite set
 			else
@@ -56,6 +52,7 @@ public class FOUnionSetImpl implements FOCombinedSet
 		return size;
 	}
 
+	//TODO: No, this set needs a name.
 	@Override
 	public String getName()
 	{
@@ -65,67 +62,44 @@ public class FOUnionSetImpl implements FOCombinedSet
 	@Override
 	public boolean contains(Object o)
 	{
-		for(FOSet<FOElement> foset : mSubsets.values())
+		for(FOSet<? extends FOElement> foset : mSubsets.values())
 			if(foset.contains(o))
 				return true;
 		return false;
 	}
 
+	//TODO: Remove this, no need.
 	@Override
-	public FOSet<FOElement> getOriginalSubset(String name)
+	public FOSet<? extends FOElement> getOriginalSubset(String name)
 	{
 		return mSubsets.get(name);
 	}
 
 	@Override
-	public int getSubsetSize(FORelation rel) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int getSubsetSize(FORelation relation)
+	{
+		if(relation.getClass() == FORelationImpl.FORelationInSet.class)
+		{
+			FORelationImpl.FORelationInSet inSetRel = (FORelationImpl.FORelationInSet) relation;
+			FOSet<? extends FOElement> subset = mSubsets.get(inSetRel.getSet().getName());
+			assert subset == inSetRel.getSet();
+			return subset.size();
+		}
+		return -1;
 	}
 
 	@Override
-	public FOSet createSubset(FORelation relation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	static class FOUnionSetSubsetImpl implements FOSet<FOElement>
+	public FOSet<? extends FOElement> createSubset(FORelation relation)
 	{
-
-		@Override
-		public Iterator<FOElement> iterator() {
-			// TODO Auto-generated method stub
-			return null;
+		if(relation.getClass() == FORelationImpl.FORelationInSet.class)
+		{
+			FORelationImpl.FORelationInSet inSetRel = (FORelationImpl.FORelationInSet) relation;
+			FOSet<? extends FOElement> subset = mSubsets.get(inSetRel.getSet().getName());
+			assert subset == inSetRel.getSet();
+			return subset;
 		}
-
-		@Override
-		public int size() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-
-		@Override
-		public String getName() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean contains(Object o) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public FOSet<FOElement> createSubset(FORelation<FOElement> rel) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public int getSubsetSize(FORelation<FOElement> rel) {
-			// TODO Auto-generated method stub
-			return 0;
-		}
+		
+		// Shouldn't normally be using this.
+		return new FOSubsetImpl<>(this, relation);
 	}
 }

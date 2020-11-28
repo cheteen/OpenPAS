@@ -11,12 +11,14 @@ public interface FOSet<T extends FOElement> extends Iterable<T>
 	
 	public boolean contains(Object o);
 	
-	public FOSet<T> createSubset(FORelation<T> rel);
+	/**
+	 * @return Can return null if no good way to create a subset.
+	 */
+	public FOSet<T> createSubset(FORelation<T> relation);
 	
 	/**
 	 * Find the size of the subset if this set was constrained to have members that satisified {@code rel}.
-	 * @param rel
 	 * @return Can return (-1) if size would be unkown, natural number otherwise.
 	 */
-	public int getSubsetSize(FORelation<T> rel);
+	public int getSubsetSize(FORelation<T> relation);
 }

@@ -1,6 +1,7 @@
 package fopas;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBROr;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBRRelation;
 import fopas.FOFormulaByRecursionImpl.FormulaType;
+import fopas.FOTermByRecursionImpl.FOTermVariable;
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -42,7 +44,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			SCOPE_COMMAND,
 			VARIABLE,
 			CONSTANT,
-			END_SENTENCE
+			END_SENTENCE,
+			ALIAS
 		}
 		Type type;
 		String value;
@@ -62,12 +65,36 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		}
 	}
 	
+	// TODO: Need to test these two or remove them.
+	// This builds a canned formula that should exist in all structures and is always true.
+	public static FOFormula buildTautology()
+	{
+		FOVariable fox = new FOVariableImpl("x");
+		FOTerm termX = new FOTermByRecursionImpl.FOTermVariable(fox);
+		FOFormula formEq = new FOFormulaBRRelation(false, new FORelationImpl.FORelationImplEquals(), Arrays.asList(termX, termX));
+		FOFormula formAll = new FOFormulaBRForAll(false, fox, formEq);
+		return formAll;
+	}
+	
+	// This builds a canned formula that should exist in all structures and is a contradiction.
+	public static FOFormula buildContradiction()
+	{
+		FOVariable fox = new FOVariableImpl("x");
+		FOTerm termX = new FOTermByRecursionImpl.FOTermVariable(fox);
+		FOFormula formEq = new FOFormulaBRRelation(false, new FORelationImpl.FORelationImplEquals(), Arrays.asList(termX, termX));
+		FOFormula formAll = new FOFormulaBRForAll(false, fox, formEq);
+		FOFormula formNotAll = new FOFormulaBRForAll(true, fox, formEq);
+		FOFormula formAnd = new FOFormulaBROr(true, Arrays.asList(formNotAll, formAll));
+		return formAnd;
+	}
+	
 	void buildMaps(FOStructure structure,
 			Map<String, FORelation<FOElement>> mapRels,
 			Map<String, FORelation<FOElement>> mapInfixRels,
 			Map<String, FOFunction> mapFuns,
 			Map<String, FOFunction> mapInfixFuns,
-			Map<String, FOConstant> mapConstants
+			Map<String, FOConstant> mapConstants,
+			Map<String, FOFormula> mapAliases
 			)
 	{
 		for(FORelation<FOElement> rel : structure.getRelations())
@@ -88,24 +115,48 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		{
 			mapConstants.put(foconst.getName(), foconst);
 		}		
+		
+		for(String aliasName : structure.getAliases())
+		{
+			mapAliases.put(aliasName, structure.getAlias(aliasName));
+		}		
 	}
 	
+	@Override
+	public FOFormula buildAlias(String name, String strform, FOStructure structure, List<FOVariable> args) throws FOConstructionException
+	{
+		return buildFormula(strform, structure, name, args);
+	}
+
+	@Override
+	public FOFormula buildFrom(String strform, FOStructure structure) throws FOConstructionException
+	{
+		return buildFormula(strform, structure, null, null);
+	}
+
 	// Need to re-write this to:
 	// 1) Second pass of creating terms.
 	// 2) Third pass that looks at the depths of matching paranthesis and partitions formula recusion with that.
-	@Override
-	public FOFormula buildFrom(String strform, FOStructure structure) throws FOConstructionException
+	public FOFormula buildFormula(String strform, FOStructure structure, String aliasName, List<FOVariable> aliasArgs) throws FOConstructionException
 	{
 		Map<String, FORelation<FOElement>> mapRels = new HashMap<>();
 		Map<String, FORelation<FOElement>> mapInfixRels = new HashMap<>();		
 		Map<String, FOFunction> mapFuns = new HashMap<>();
 		Map<String, FOFunction> mapInfixFuns = new HashMap<>();
 		Map<String, FOConstant> mapConstants = new HashMap<>();
+		Map<String, FOFormula> mapAliases = new HashMap<>();
 		
-		buildMaps(structure, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+		buildMaps(structure, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
+		
+		FOAliasByRecursionImpl formAlias = null;
+		if(aliasName != null)
+		{
+			formAlias = new FOAliasByRecursionImpl(aliasName, aliasArgs); 
+			mapAliases.put(aliasName, formAlias);			
+		}
 		
 		List<FOToken> tokens = parseTokens(strform, structure, mapRels, mapInfixRels,
-				mapFuns, mapInfixFuns, mapConstants);
+				mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
 		// This below is painfully ugly, need to rewrite this stuff.
 		// Check if there are surrounding parentheses for the sentence, if not add them.
@@ -141,12 +192,18 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		
 		PosForward pf = new PosForward(0);
 		
-		FOFormula form = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+		FOFormula form = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
 		if(tokens.get(pf.ixPos).type != Type.END_SENTENCE)
 			throw new FOConstructionException("Syntax error constructing the formula.");
 		
-		return form;
+		if(formAlias != null)
+		{
+			formAlias.setScopeFormula(form);
+			return formAlias;
+		}
+		else
+			return form;
 	}
 	
 	FOFormula constructFormula(List<FOToken> tokens, PosForward pf,
@@ -154,7 +211,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			Map<String, FORelation<FOElement>> mapInfixRels,
 			Map<String, FOFunction> mapFuns,
 			Map<String, FOFunction> mapInfixFuns,
-			Map<String, FOConstant> mapConstants
+			Map<String, FOConstant> mapConstants,
+			Map<String, FOFormula> mapAliases
 			) throws FOConstructionException
 	{
 		// Negated formula (short cut)
@@ -189,7 +247,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				throw new FOConstructionException("Unmatching bracket found for command scope.");
 			pf.ixPos++;
 			
-			FOFormula scopeFormula = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+			FOFormula scopeFormula = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 			
 			FOVariable variable = new FOVariableImpl(scopeVariable.value);
 			form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(isNegated, variable, scopeFormula);
@@ -201,7 +259,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		else if(tokens.get(pf.ixPos).type == Type.NEGATION || tokens.get(pf.ixPos).type == Type.START_GROUP)
 		{
 			List<FOFormula> subFormulas = new ArrayList<FOFormula>();
-			FOFormula subForm = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+			FOFormula subForm = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 			subFormulas.add(subForm);
 
 			// Must find Or here.
@@ -219,7 +277,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					throw new FOConstructionException("Expected logical op not found.");				
 				pf.ixPos++;
 
-				subForm = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+				subForm = constructFormula(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 				subFormulas.add(subForm);				
 			}
 			form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, subFormulas);
@@ -282,6 +340,34 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			assert rel != null; //tokeniser should handle this.
 
 			form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(isNegated, rel, terms);			
+		}
+		else if(tokens.get(pf.ixPos).type == Type.ALIAS)
+		{
+			FOToken tokAlias = tokens.get(pf.ixPos); 
+			pf.ixPos++;
+
+			if(tokens.get(pf.ixPos).type != Type.START_GROUP)
+				throw new FOConstructionException("Synthax error with relation - expecting starting paranthesis.");
+			pf.ixPos++;
+			
+			List<FOTerm> subterms = new ArrayList<FOTerm>();
+			while(pf.ixPos < tokens.size())
+			{
+				FOTerm subterm = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+				subterms.add(subterm);
+			
+				FOToken tokenInFun = tokens.get(pf.ixPos);
+				pf.ixPos++;
+
+				if(tokenInFun.type == Type.END_GROUP)
+					break;
+
+				if(tokenInFun.type != Type.COMMA)
+					throw new FOConstructionException("Synthax error with function - expecting comma.");
+			}
+			pf.ixPos++;
+			
+			form = new FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl(isNegated, (FOAliasByRecursionImpl) mapAliases.get(tokAlias.value), subterms);
 		}
 		else
 			// TODO: Error messages not helpful, need to improve error reporting here.
@@ -396,7 +482,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			Map<String, FORelation<FOElement>> mapInfixRels,
 			Map<String, FOFunction> mapFuns,
 			Map<String, FOFunction> mapInfixFuns,
-			Map<String, FOConstant> mapConstants
+			Map<String, FOConstant> mapConstants,
+			Map<String, FOFormula> mapAliases
 			) throws FOConstructionException
 	{
 		Pattern nameExtractor =  Pattern.compile("^(" + ValidationRules.validName + ")"); 
@@ -509,6 +596,11 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				else if(mapConstants.keySet().contains(name))
 				{
 					listTokens.add(new FOToken(Type.CONSTANT, name));
+					named = true;
+				}
+				else if(mapAliases.keySet().contains(name))
+				{
+					listTokens.add(new FOToken(Type.ALIAS, name));
 					named = true;
 				}
 				if(named)
