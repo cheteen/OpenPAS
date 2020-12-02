@@ -70,7 +70,9 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 	public Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure)
 			throws FOConstructionException
 	{
-		return FluentIterable.from(getAssignments(structure)).filter(pickings -> checkAssignment(structure, pickings));
+		return FluentIterable.from(
+				getAssignments(structure)).filter(pickings -> checkAssignment(structure, pickings)
+						);
 	}
 
 	public Iterable<Map<FOVariable, FOElement>> getAssignments(FOStructure structure)
@@ -107,10 +109,12 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 				pickers.add(Collections.emptyIterator());
 			
 			// Need to init the internal structure for things to start.
+			// We need to create the iterator here so that a reference to the 
+			// focus iterator can be made here.
 			Iterator<FOElement> it = pickables.get(0).iterator();
 			pickers.set(0, it);
-			if(it.hasNext())
-				pickings.put(vars.get(0), it.next());
+			//if(it.hasNext())
+			//	pickings.put(vars.get(0), it.next());
 			
 			// Point the focus to the above.
 			focusIteratorIx = 0;
@@ -141,17 +145,25 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		public Map<FOVariable, FOElement> next()
 		{
 			pickElements(pickers, 0, vars, pickings, pickables);
+
+			// Uncomment for debugging.
+//			StringBuilder sb = new StringBuilder();
+//			sb.append("picking: ");
+//			for(FOVariable var : pickings.keySet())
+//				sb.append("[" + var.getName() + "=" + pickings.get(var).getElement() + "]");
+//			System.out.println(sb.toString());				
+
 			return pickings;
 		}
 
 		/**
 		 * This picks M^N combinations of elements for M variables from a universe set with N elements.
 		 * @param <IterableFOElts>
-		 * @param pickers
-		 * @param ixPick
-		 * @param vars
+		 * @param pickers Iterators over the sets for the variables.
+		 * @param ixPick Which variable we're picking.
+		 * @param vars Variables we're picking for.
 		 * @param pickings
-		 * @param pickables
+		 * @param pickables Sets for the variables.
 		 * @return true if there's another combination of variable to pick yet, false when done.
 		 */
 		<IterableFOElts extends Iterable<FOElement>> boolean pickElements(List<Iterator<FOElement>> pickers, int ixPick, 
@@ -166,8 +178,12 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 			if(!pickings.containsKey(var))
 			{
 				//Initialise picker if we're starting anew.
-				it = pickables.get(ixPick).iterator();
-				pickers.set(ixPick, it);
+				// The iterator is fresh only at the very start.
+				if(!it.hasNext())
+				{
+					it = pickables.get(ixPick).iterator();
+					pickers.set(ixPick, it);
+				}
 				
 				// Fresh start has empty iterator.
 				if(!it.hasNext())

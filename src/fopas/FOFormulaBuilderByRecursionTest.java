@@ -168,7 +168,7 @@ public class FOFormulaBuilderByRecursionTest {
 
 	private void testFormula(FOStructure structure, String strFormula, boolean expectSatisfaction, String format) throws FOConstructionException
 	{
-		FOFormula form = builder.buildFrom(strFormula, structure);
+		FOFormula form = builder.buildFormula(strFormula, structure);
 		
 		String strReForm = sgiser.stringiseFOFormula(form, 100);
 		if(format == null)

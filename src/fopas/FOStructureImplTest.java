@@ -137,6 +137,20 @@ public class FOStructureImplTest {
 		FOTermByRecursionImpl.FOTermVariable term_var3 = new FOTermByRecursionImpl.FOTermVariable(v3);
 		
 		FOByRecursionStringiser sgiser = new FOByRecursionStringiser();
+		
+		// Test single variable
+		{
+			FOTermByRecursionImpl.FOTermFunction term_addition =
+					new FOTermByRecursionImpl.FOTermFunction(
+							new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_var1, term_constant0));
+
+			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant0));
+
+			Assert.assertEquals("((_v1 + c0) = c0)", sgiser.stringiseFOFormula(form, 100));
+
+			Assert.assertEquals(4, FluentIterable.from(structure.getAssignments(form)).size());
+			Assert.assertEquals(1, FluentIterable.from(structure.getSatisfyingAssignments(form)).size());
+		}
 
 		// Test simple addition
 		// (_v1 + _v2 + _v3 = c3)
