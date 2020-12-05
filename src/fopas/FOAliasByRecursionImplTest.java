@@ -105,8 +105,8 @@ public class FOAliasByRecursionImplTest
 		
 		structure.addAlias(formAlias);
 		
-		testFormula(structure, "add(c1, c2, c3)", true, "(%s)");
-		testFormula(structure, "add(c1, c0, c1)", true, "(%s)");
+		testFormula(structure, "add(c1, c2, c3)", true, null);
+		testFormula(structure, "add(c1, c0, c1)", true, null);
 	}
 
 	@Test
@@ -121,16 +121,11 @@ public class FOAliasByRecursionImplTest
 		
 		structure.addAlias(formAlias);
 		
-		testFormula(structure, "substract(c3, c2, c1)", true, "(%s)");
-		testFormula(structure, "substract(c3, c3, c1)", false, "(%s)");
-		testFormula(structure, "substract(c3, c3, c0)", true, "(%s)");
-		testFormula(structure, "¬(substract(c3, c1, c0))", true, null);
-		// This form works too:
-		{
-			String formSubstract = "¬substract(c3, c1, c0)";
-			
-			testFormula(structure, formSubstract, true, "¬(" + formSubstract.substring(1) + ")");			
-		}
+		testFormula(structure, "substract(c3, c2, c1)", true, null);
+		testFormula(structure, "substract(c3, c3, c1)", false, null);
+		testFormula(structure, "substract(c3, c3, c0)", true, null);
+		testFormula(structure, "¬(substract(c3, c1, c0))", true, "¬substract(c3, c1, c0)");
+		testFormula(structure, "¬substract(c3, c1, c0)", true, null);
 	}
 
 	@Test
@@ -174,6 +169,44 @@ public class FOAliasByRecursionImplTest
 			System.out.println(sb);
 		}
 	}
+	
+	@Test
+	public void testSimpleImplication() throws FOConstructionException
+	{
+		FOStructure structure = createSimpleStructure();
+		
+		// map_choices (x, y, y0, y1):
+		// if(x = 0) then y = y0
+		// if(x = 1) then y = y1
+		//
+		// This is implemented using: (x = 0 -> y = y0) & (x = 1 -> y = y1) 
+		// 
+		// Using only | and ¬ this becomes:
+		//
+		// map_choices(x, y, y0, y1) := ¬(x = 0 | x = 1) | ¬(x = 0 | y = y1) | ¬(x = 1 | y = y0)
+		// 
+		structure.addAlias(
+				builder.buildAlias("map_choices", 
+						Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("y0"), new FOVariableImpl("y1")),
+							"¬(_x = c0 | _x = c1) |"
+						+ 	" ¬(¬(_x = c0) | ¬(_y = _y0)) |"
+						+ 	" ¬(¬(_x = c1) | ¬(_y = _y1))",
+						structure)
+				);
+		
+		// (map_choices(x, y, c3, c2) & (x = 0)) -> (y = c3)
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c0) | (_y = c3)", true, "(%s)");
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c1) | (_y = c2)", true, "(%s)");
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c0) | (_y = c1)", false, "(%s)");
+		
+		// When x isn't in the map (it isn't c0 or c1) anyone of them is possible.
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c0)", false, "(%s)");
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c1)", false, "(%s)");
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c2)", false, "(%s)");
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c3)", false, "(%s)");
+		
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c0) | (_y = c1) | (_y = c2) | (_y = c3)", true, "(%s)");
+	}
 
 	@Test
 	public void testSimpleArithmetics() throws FOConstructionException
@@ -189,15 +222,16 @@ public class FOAliasByRecursionImplTest
 
 		// Define: x * y = z
 		// multiply(x, y, z) :-
-		// ((x = 0) & (_z = c0)) |		% base case 0
-		// ((x = 1) & (_z = _y)) |		% base case 1
-		// (substract(_x, c1, _x1) & multiply(_x1, _y, _z1) & (_z = (_z1 + _y))) % recursive case
-		FOAlias formAlias = builder.buildAlias("multiply", 
-				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-				"¬(¬(_x = c0) | ¬(_z = c0)) | ¬(¬(_x = c1) | ¬(_z = _y)) | ¬(¬substract(_x, c1, _x1) | ¬multiply(_x1, _y, _z1) | ¬(_z = (_z1 + _y)))", structure);
-		
-		structure.addAlias(formAlias);
-		
-		testFormula(structure, "substract(c3, c2, c1)", true, "(%s)");
+		// (((x = 0) -> (_z = c0)) & 		% base case 0
+		// ((x = 1) -> (_z = _y))) |		% base case 1
+		// (substract(_x, c1, _x1) & (multiply(_x1, _y, _z1) & (_z = (_z1 + _y)))) % recursive case
+//		FOAlias formAlias = builder.buildAlias("multiply", 
+//				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
+//				"_x", structure);
+//		
+//		structure.addAlias(formAlias);
+//		
+//		testFormula(structure, "substract(c3, c2, c1)", true, "(%s)");
+//		testFormula(structure, "substract(c1, c1, c1)", true, "(%s)");
 	}
 }

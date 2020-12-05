@@ -215,10 +215,10 @@ public class FOFormulaBuilderByRecursionTest {
 	{
 		FOStructure structure = createSimpleStructure();
 
-		testFormula(structure, "(forall _v1)(_v1 = c1)", false, "(%s)");
-		testFormula(structure, "(forall _v1)(c1 = c1)", true, "(%s)");
+		testFormula(structure, "(forall _v1)(_v1 = c1)", false, null);
+		testFormula(structure, "(forall _v1)(c1 = c1)", true, null);
 		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c2)", false, "(%s)");
 		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c1)", true, "(%s)");
-		testFormula(structure, "(forall _v1)((_v1 = c0) | (_v1 = c1) | (_v1 = c2) | (_v1 = c3))", true, "(%s)");
+		testFormula(structure, "(forall _v1)((_v1 = c0) | (_v1 = c1) | (_v1 = c2) | (_v1 = c3))", true, null);
 	}
 }

@@ -89,7 +89,6 @@ public class FOByRecursionStringiser
 			sb.append(")");
 			break;
 		case ALIAS_BINDING:
-			sb.append("(");
 			FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl foalias = (FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl) recform;
 			sb.append(foalias.getName());
 			sb.append("(");
@@ -105,7 +104,7 @@ public class FOByRecursionStringiser
 					stringiseFOTerm(argTerm, maxLen, sb);
 				}				
 			}
-			sb.append("))");
+			sb.append(")");
 			break;
 			
 		default:

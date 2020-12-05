@@ -184,7 +184,11 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		List<FOToken> tokens = parseTokens(strform, structure, mapRels, mapInfixRels,
 				mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
-		FOFormula form = constructFormula(tokens, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
+		FOToken finalToken = buildSubformula(tokens, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
+		if(finalToken == null)
+			throw new FOConstructionException("Did not find a valid formula to build.");
+		
+		FOFormula form = finalToken.subformula;
 		
 		if(formAlias != null)
 		{
@@ -209,52 +213,76 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		for(int ixStart = 0; ixStart < tokens.size(); ++ixStart)
 		{
 			int ixEnd = -1;
+			int paraInStart = ixStart + 1;
 			boolean subNegation = false;
 			if(tokens.get(ixStart).type == Type.START_GROUP || 
 					tokens.get(ixStart).type == Type.NEGATION && tokens.get(ixStart + 1).type == Type.START_GROUP)
 			{
-				int paraStart = ixStart + 1;
 				if(tokens.get(ixStart).type == Type.NEGATION)
 				{
 					subNegation = true;
-					++paraStart;
+					++paraInStart;
 				}
 				
-				int endPara = 1;
-				for(int i = paraStart; i < tokens.size(); i++)
+				int paraDepth = 1;
+				for(int i = paraInStart; i < tokens.size(); i++)
 				{
 					if(tokens.get(i).type == Type.END_GROUP)
 					{
-						endPara--;
-						if(endPara == 0)
+						paraDepth--;
+						if(paraDepth == 0)
 						{
 							ixEnd = i;
 							break;
 						}
 					}
 					else if(tokens.get(i).type == Type.START_GROUP)
-						endPara++;
+						paraDepth++;
 				}					
 			}
 					
 			if(ixEnd != -1)
 			{
-				FOToken compToken = buildSubformula(tokens.subList(ixStart + 1, ixEnd - 1), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, subNegation);
-				replaceTokens(tokens, ixStart, ixEnd, compToken);
+				FOToken compToken = buildSubformula(new ArrayList<>(tokens.subList(paraInStart, ixEnd)),
+						mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, subNegation);
+				// It's legit for building subformula to fail for something between parantheses.
+				// It may still be valid syntax such as a function call.
+				if(compToken != null)
+					replaceTokens(tokens, ixStart, ixEnd + 1, compToken);
 			}
 		}
 		
 		// By this point the everything between parantheses should have been converted to subformulas in the tokens (sub)list.
 		// Now look for "|" operations.
+		boolean foundLogicalOp = false;
 		for(int ixStart = 0; ixStart < tokens.size(); ++ixStart)
 		{
-			for(int ixEnd = ixStart + 1; ixEnd < tokens.size(); ixEnd++)
+			for(int ixEnd = ixStart + 1; ixEnd < tokens.size() + 1; ixEnd++)
 			{
-				if(tokens.get(ixStart).type == Type.LOGICAL_OP)
+				//TODO: This check should be in the outer loop
+				if(!foundLogicalOp && ixEnd == tokens.size())
+					continue; // don't do the loop extension if no logical op was found
+				if(ixEnd == tokens.size() ||  // the last part of a logical group found
+						tokens.get(ixEnd).type == Type.LOGICAL_OP
+						) 
 				{
-					assert tokens.get(ixStart).value.equals("|");
-					FOToken subformula = buildSubformula(tokens.subList(ixStart, ixEnd - 1), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
-					replaceTokens(tokens, ixStart, ixEnd, subformula);
+					assert ixEnd == tokens.size() || tokens.get(ixEnd).value.equals("|");
+					foundLogicalOp = true;
+					
+					FOToken subformula;
+					if(ixEnd - ixStart == 1)
+					{
+						// Already built formula in logical op (must've been in parantheses).
+						if(tokens.get(ixStart).type != Type.COMP_SUBFORMULA)
+							throw new FOConstructionException("Error in logical op, expected subformula not found.");
+					}
+					else
+					{
+						subformula = buildSubformula(tokens.subList(ixStart, ixEnd), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
+						replaceTokens(tokens, ixStart, ixEnd, subformula);
+					}					
+					ixStart++; //skip over "|"
+					break;
 				}
 			}
 		}
@@ -283,8 +311,19 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			return new FOToken(Type.COMP_SCOPE, new FOTokenScope(variable));
 		}
 		
-		// Now it's only a single formula possibly with composite tokens.
-		FOFormula formula = constructFormula(tokens, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
+		FOFormula formula;
+		if(tokens.size() == 1 && tokens.get(0).type == Type.COMP_SUBFORMULA)
+			// There was surrounding parantheses, so the whole thing got compressed to a single subformula.
+			formula = tokens.get(0).subformula;
+		else
+		{
+			// It's only a single formula possibly with composite tokens.
+			formula = constructFormula(tokens, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, isNegated);
+			if(formula == null)
+				return null; // didn't find a formula here (it may still be valid syntax)
+			isNegated = false; // We've embedded this negation in the subformula, so can remove this.
+		}
+		
 		if(isNegated)
 			return new FOToken(Type.COMP_SUBFORMULA, new FOFormulaByRecursionImpl.FOFormulaBROr(true, Arrays.asList(formula)));
 		else
@@ -293,8 +332,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 
 	private void replaceTokens(List<FOToken> tokens, int ixStart, int ixEnd, FOToken subformula)
 	{
-		for(int i = ixStart; i < ixEnd + 1; ++i)
-			tokens.remove(ixStart);
+		//TODO: use sublist.clear idiom for this.
+		for(int i = ixEnd - 1; i >= ixStart; --i)
+			tokens.remove(i);
 		tokens.add(ixStart, subformula);
 	}
 	
@@ -304,42 +344,72 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			Map<String, FOFunction> mapFuns,
 			Map<String, FOFunction> mapInfixFuns,
 			Map<String, FOConstant> mapConstants,
-			Map<String, FOFormula> mapAliases
+			Map<String, FOFormula> mapAliases,
+			boolean isExternallyNegated
 			) throws FOConstructionException
 	{
 		int ixToken = 0;
 		
-		boolean isNegated = false;
+		boolean hasNegation = false;
 		if(tokens.get(ixToken).type == Type.NEGATION)
 		{
-			isNegated = true;
+			hasNegation = true;
 			ixToken++;
 		}
+		
+		// This servers to collapse unnecessary parantheses.
+		boolean isNegated = hasNegation ^ isExternallyNegated;
 		
 		FOFormula form;
 		
 		if(tokens.get(ixToken + 1).type == Type.LOGICAL_OP)
 		{
-			FOToken tokLogOp = tokens.get(ixToken + 1);
-			assert tokLogOp.value.equals("|");
-
 			// At this point all subformulas should already have been created as composite tokens,
 			// we just need to wrap them.
+			
+			// This option can't work with infix operators.
+			if(hasNegation)
+				throw new FOConstructionException("Unexpected negation token found.");
+
+			FOToken tokLogOp = tokens.get(ixToken + 1);
+			assert tokLogOp.value.equals("|");
+			
+			List<FOFormula> listFormulas = new ArrayList<>();
+			while(ixToken < tokens.size())
+			{
+				FOToken tok = tokens.get(ixToken);
+				if(tok.type != Type.COMP_SUBFORMULA)
+					throw new FOConstructionException("Unexpected token found: " + tok.value);
+				listFormulas.add(tok.subformula);
+				ixToken++;
+				
+				if(ixToken == tokens.size())
+					break;
+
+				FOToken tokInLogical = tokens.get(ixToken);
+				if(!tokLogOp.value.equals(tokInLogical.value))
+					throw new FOConstructionException("Inconsistent logical op found: " + tokInLogical.value);
+				ixToken++;
+			}
+
+			form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, listFormulas);
 		}
 		// forall formula
 		else if(tokens.get(ixToken).type == Type.COMP_SCOPE)
 		{
-			FOToken tokScope = tokens.get(ixToken);
-			ixToken++;
-			
 			// Like the above case, at this point all subformulas should already have been created as composite tokens,
 			// let's wrap them.
 
-			// Let's build the scope as a single formula first.
-			//FOFormula scopeFormula = constructFormula(tokens.subList(ixToken, tokens.size()), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
-			
+			FOToken tokScope = tokens.get(ixToken);
 			FOVariable variable = tokScope.tokenScope.scopeVar;
-			form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(isNegated, variable, scopeFormula);
+			ixToken++;
+
+			FOToken tokScopeFormula = tokens.get(ixToken); 
+			ixToken++;
+			if(tokScopeFormula.type != Type.COMP_SUBFORMULA)
+				throw new FOConstructionException("Expected scoped formula not found: " + tokScopeFormula.value);
+
+			form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(isNegated, variable, tokScopeFormula.subformula);
 		}
 		// Relation formula (prefix)
 		else if(tokens.get(ixToken).type == Type.RELATION)
@@ -379,7 +449,10 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		// But for now, for simplicity, assume only one infix relation can exist in a single-formula string.
 		else if(tokens.get(ixToken + 1).type == Type.INFIX_RELATION_OP)
 		{
-			//TODO: This can't be negated.
+			// This option can't work with infix operators.
+			if(hasNegation)
+				throw new FOConstructionException("Unexpected negation token found.");
+
 			FOToken tokInfixRelation = tokens.get(ixToken + 1);
 			
 			List<FOTerm> terms = new ArrayList<FOTerm>();
@@ -408,35 +481,17 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 
 			form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(isNegated, rel, terms);			
 		}
-		else if((tokens.get(pf.ixPos).type == Type.NEGATION && tokens.get(pf.ixPos + 1).type == Type.ALIAS)
-				|| tokens.get(pf.ixPos).type == Type.ALIAS)
+		else if(tokens.get(ixToken).type == Type.ALIAS)
 		{
-			// This is a bit of a syntactic sugar. The following:
-			// ¬(¬alias(x))
-			// becomes:
-			// alias(x)
-			// isNegated is at the start of paras
-			// aliasNegated captures the negation before the alias.
-			// Alternative to this would've been using this:
-			// ¬(alias(x))
-			// This would've created an OR sentence with a single non-negated alias.
-			// Really need to get rid of this very clumsy way of creating formulas,
-			// need to get something that consumes paras and then relations.
-			boolean aliasNegated = false;
-			if(tokens.get(pf.ixPos).type == Type.NEGATION)
-			{
-				aliasNegated = true;
-				pf.ixPos++;
-			}
-			
-			FOToken tokAlias = tokens.get(pf.ixPos); 
-			pf.ixPos++;
+			FOToken tokAlias = tokens.get(ixToken); 
+			ixToken++;
 
-			if(tokens.get(pf.ixPos).type != Type.START_GROUP)
+			if(tokens.get(ixToken).type != Type.START_GROUP)
 				throw new FOConstructionException("Synthax error with relation - expecting starting paranthesis.");
-			pf.ixPos++;
+			ixToken++;
 			
 			List<FOTerm> subterms = new ArrayList<FOTerm>();
+			PosForward pf = new PosForward(ixToken);
 			while(pf.ixPos < tokens.size())
 			{
 				FOTerm subterm = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
@@ -451,21 +506,17 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				if(tokenInFun.type != Type.COMMA)
 					throw new FOConstructionException("Synthax error with function - expecting comma.");
 			}
+			ixToken = pf.ixPos;
 			
 			form = new FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl(
-					tokAlias.value, isNegated ^ aliasNegated, (FOAliasByRecursionImpl) mapAliases.get(tokAlias.value), subterms);
+					tokAlias.value, isNegated, (FOAliasByRecursionImpl) mapAliases.get(tokAlias.value), subterms);
 		}
 		else
-			// TODO: Error messages not helpful, need to improve error reporting here.
-			throw new FOConstructionException("Synthax error constructing a formula.");
+			return null; // This used to throw exception, but now refuses to create a formula instead.
 		
-		if(hasLastPara)
-		{
-			if(tokens.get(pf.ixPos).type != Type.END_GROUP)
-				throw new FOConstructionException("Unmatching paranthesis found.");
-			pf.ixPos++;			
-		}
-			
+		if(ixToken != tokens.size())
+			throw new FOConstructionException("Unexpected token found at the end.");
+		
 		return form;
 	}
 	
