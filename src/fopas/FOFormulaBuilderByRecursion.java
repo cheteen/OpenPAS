@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.Lists;
+
 import fopas.FOFormulaBuilderByRecursion.FOToken.Type;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBROr;
@@ -80,6 +82,45 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			assert type == Type.COMP_SCOPE;
 			this.tokenScope = tokenScope;
 		}
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((subformula == null) ? 0 : subformula.hashCode());
+			result = prime * result + ((tokenScope == null) ? 0 : tokenScope.hashCode());
+			result = prime * result + ((type == null) ? 0 : type.hashCode());
+			result = prime * result + ((value == null) ? 0 : value.hashCode());
+			return result;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			FOToken other = (FOToken) obj;
+			if (subformula == null) {
+				if (other.subformula != null)
+					return false;
+			} else if (!subformula.equals(other.subformula))
+				return false;
+			if (tokenScope == null) {
+				if (other.tokenScope != null)
+					return false;
+			} else if (!tokenScope.equals(other.tokenScope))
+				return false;
+			if (type != other.type)
+				return false;
+			if (value == null) {
+				if (other.value != null)
+					return false;
+			} else if (!value.equals(other.value))
+				return false;
+			return true;
+		}
 	}
 	
 	static class PosForward
@@ -88,6 +129,23 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		PosForward(int ixPos)
 		{
 			this.ixPos = ixPos;
+		}
+	}
+	
+	static class TokenPart
+	{
+		int ixStart;
+		int ixEnd;
+		
+		TokenPart(int ixStart, int ixEnd)
+		{
+			this.ixStart = ixStart;
+			this.ixEnd = ixEnd;
+		}
+		
+		int size()
+		{
+			return ixEnd - ixStart;
 		}
 	}
 	
@@ -160,9 +218,13 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		return buildFormula(strform, structure, null, null);
 	}
 	
-	// Need to re-write this to:
-	// 1) Second pass of creating terms.
-	// 2) Third pass that looks at the depths of matching paranthesis and partitions formula recusion with that.
+	// This builder is better than the previous one, but still not happy about it.
+	// Need to possibly rewrite this in the future to:
+	// - Combine infix operations for logical ops and relations.
+	// - So that it recognises terms and formulas.
+	// - Then inherent precedens of the infix operators can decide whether we're building a term or a formula.
+	// - Each paranthesis pair is then processed using the above.
+	// - This way the constructFomula method doesn't have to return null which is very ugly.
 	public FOFormula buildFormula(String strform, FOStructure structure, String aliasName, List<FOVariable> aliasArgs) throws FOConstructionException
 	{
 		Map<String, FORelation<FOElement>> mapRels = new HashMap<>();
@@ -199,7 +261,6 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			return form;
 	}
 
-	
 	FOToken buildSubformula(List<FOToken> tokens,
 			Map<String, FORelation<FOElement>> mapRels,
 			Map<String, FORelation<FOElement>> mapInfixRels,
@@ -254,35 +315,20 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		
 		// By this point the everything between parantheses should have been converted to subformulas in the tokens (sub)list.
 		// Now look for "|" operations.
-		boolean foundLogicalOp = false;
-		for(int ixStart = 0; ixStart < tokens.size(); ++ixStart)
+		List<TokenPart> splitted = splitTokens(tokens, new FOToken(Type.LOGICAL_OP, "|"));
+		if(splitted != null)
 		{
-			for(int ixEnd = ixStart + 1; ixEnd < tokens.size() + 1; ixEnd++)
+			for(TokenPart part : Lists.reverse(splitted))
 			{
-				//TODO: This check should be in the outer loop
-				if(!foundLogicalOp && ixEnd == tokens.size())
-					continue; // don't do the loop extension if no logical op was found
-				if(ixEnd == tokens.size() ||  // the last part of a logical group found
-						tokens.get(ixEnd).type == Type.LOGICAL_OP
-						) 
+				if(part.size() == 1)
 				{
-					assert ixEnd == tokens.size() || tokens.get(ixEnd).value.equals("|");
-					foundLogicalOp = true;
-					
-					FOToken subformula;
-					if(ixEnd - ixStart == 1)
-					{
-						// Already built formula in logical op (must've been in parantheses).
-						if(tokens.get(ixStart).type != Type.COMP_SUBFORMULA)
-							throw new FOConstructionException("Error in logical op, expected subformula not found.");
-					}
-					else
-					{
-						subformula = buildSubformula(tokens.subList(ixStart, ixEnd), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
-						replaceTokens(tokens, ixStart, ixEnd, subformula);
-					}					
-					ixStart++; //skip over "|"
-					break;
+					if(tokens.get(part.ixStart).type != Type.COMP_SUBFORMULA)
+						throw new FOConstructionException("Error in logical op, expected subformula not found.");				
+				}
+				else
+				{
+					FOToken subformula = buildSubformula(tokens.subList(part.ixStart, part.ixEnd), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
+					replaceTokens(tokens, part.ixStart, part.ixEnd, subformula);
 				}
 			}
 		}
@@ -328,6 +374,33 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			return new FOToken(Type.COMP_SUBFORMULA, new FOFormulaByRecursionImpl.FOFormulaBROr(true, Arrays.asList(formula)));
 		else
 			return new FOToken(Type.COMP_SUBFORMULA, formula);
+	}
+	
+	private List<TokenPart> splitTokens(List<FOToken> tokens, FOToken anchor) throws FOConstructionException
+	{
+		List<TokenPart> splitted = null;
+		int ixStart = 0;
+		
+		for(int ixEnd = 0; ixEnd < tokens.size() + 1; ++ixEnd)
+		{
+			if(splitted == null && ixEnd == tokens.size())
+				break;
+			if((ixEnd == tokens.size()) ||  // the last part of a group found
+					tokens.get(ixEnd).equals(anchor)
+					)
+			{
+				if(ixStart == ixEnd)
+					throw new FOConstructionException("Badly structured tokens list.");
+				
+				if(splitted == null)
+					splitted = new ArrayList<>();
+				
+				splitted.add(new TokenPart(ixStart, ixEnd));
+				ixStart = ixEnd + 1;
+			}
+		}
+		
+		return splitted;
 	}
 
 	private void replaceTokens(List<FOToken> tokens, int ixStart, int ixEnd, FOToken subformula)
