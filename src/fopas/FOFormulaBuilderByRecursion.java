@@ -315,23 +315,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		
 		// By this point the everything between parantheses should have been converted to subformulas in the tokens (sub)list.
 		// Now look for "|" operations.
-		List<TokenPart> splitted = splitTokens(tokens, new FOToken(Type.LOGICAL_OP, "|"));
-		if(splitted != null)
-		{
-			for(TokenPart part : Lists.reverse(splitted))
-			{
-				if(part.size() == 1)
-				{
-					if(tokens.get(part.ixStart).type != Type.COMP_SUBFORMULA)
-						throw new FOConstructionException("Error in logical op, expected subformula not found.");				
-				}
-				else
-				{
-					FOToken subformula = buildSubformula(tokens.subList(part.ixStart, part.ixEnd), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
-					replaceTokens(tokens, part.ixStart, part.ixEnd, subformula);
-				}
-			}
-		}
+		buildParts(tokens, Arrays.asList(new FOToken(Type.LOGICAL_OP, "|")), 0, 0, tokens.size(),
+				mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
 		// When "&" is added, it would be implemented here.
 		
@@ -375,13 +360,52 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		else
 			return new FOToken(Type.COMP_SUBFORMULA, formula);
 	}
+
+	private void buildParts(List<FOToken> tokens, List<FOToken> anchors, int ixAnchor,
+			int ixToStart, int ixToEnd,
+			Map<String, FORelation<FOElement>> mapRels,
+			Map<String, FORelation<FOElement>> mapInfixRels, Map<String, FOFunction> mapFuns,
+			Map<String, FOFunction> mapInfixFuns, Map<String, FOConstant> mapConstants,
+			Map<String, FOFormula> mapAliases) throws FOConstructionException
+	{
+		List<TokenPart> splitted = splitTokens(tokens, anchors.get(ixAnchor), ixToStart, ixToEnd);
+		if(splitted == null)
+		{
+			if(ixAnchor + 1 < anchors.size())
+				buildParts(tokens, anchors, ixAnchor + 1, ixToStart, ixToEnd,
+						mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
+			return;
+		}
+		else if(ixAnchor + 1 < anchors.size())
+		{
+			for(TokenPart part : Lists.reverse(splitted))
+				buildParts(tokens, anchors, ixAnchor + 1, part.ixStart, part.ixEnd,
+						mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
+		}
+
+		// Split again now that the tokens possibly have collapsed.
+		splitted = splitTokens(tokens, anchors.get(ixAnchor), ixToStart, ixToEnd);
+		for(TokenPart part : Lists.reverse(splitted))
+		{
+			if(part.size() == 1)
+			{
+				if(tokens.get(part.ixStart).type != Type.COMP_SUBFORMULA)
+					throw new FOConstructionException("Error in logical op, expected subformula not found.");				
+			}
+			else
+			{
+				FOToken subformula = buildSubformula(tokens.subList(part.ixStart, part.ixEnd), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
+				replaceTokens(tokens, part.ixStart, part.ixEnd, subformula);
+			}
+		}
+	}
 	
-	private List<TokenPart> splitTokens(List<FOToken> tokens, FOToken anchor) throws FOConstructionException
+	private List<TokenPart> splitTokens(List<FOToken> tokens, FOToken anchor, int ixToStart, int ixToEnd) throws FOConstructionException
 	{
 		List<TokenPart> splitted = null;
-		int ixStart = 0;
+		int ixStart = ixToStart;
 		
-		for(int ixEnd = 0; ixEnd < tokens.size() + 1; ++ixEnd)
+		for(int ixEnd = ixStart; ixEnd < ixToEnd + 1; ++ixEnd)
 		{
 			if(splitted == null && ixEnd == tokens.size())
 				break;
@@ -405,9 +429,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 
 	private void replaceTokens(List<FOToken> tokens, int ixStart, int ixEnd, FOToken subformula)
 	{
-		//TODO: use sublist.clear idiom for this.
-		for(int i = ixEnd - 1; i >= ixStart; --i)
-			tokens.remove(i);
+		tokens.subList(ixStart, ixEnd).clear();
 		tokens.add(ixStart, subformula);
 	}
 	
