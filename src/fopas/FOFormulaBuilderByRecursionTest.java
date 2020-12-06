@@ -168,15 +168,23 @@ public class FOFormulaBuilderByRecursionTest {
 
 	private void testFormula(FOStructure structure, String strFormula, boolean expectSatisfaction, String format) throws FOConstructionException
 	{
+		testFormula(structure, strFormula, expectSatisfaction, format, true);
+	}
+
+	private void testFormula(FOStructure structure, String strFormula, boolean expectSatisfaction, String format, boolean checkFormat) throws FOConstructionException
+	{
 		FOFormula form = builder.buildFormula(strFormula, structure);
 		
-		String strReForm = sgiser.stringiseFOFormula(form, 100);
-		if(format == null)
-			Assert.assertEquals(strFormula, strReForm);
-		else
+		if(checkFormat)
 		{
-			String strReFormReformat = String.format(format, strFormula);
-			Assert.assertEquals(strReFormReformat, strReForm);
+			String strReForm = sgiser.stringiseFOFormula(form, 100);
+			if(format == null)
+				Assert.assertEquals(strFormula, strReForm);
+			else
+			{
+				String strReFormReformat = String.format(format, strFormula);
+				Assert.assertEquals(strReFormReformat, strReForm);
+			}			
 		}
 		
 		Assert.assertEquals(expectSatisfaction, structure.models(form));
@@ -220,5 +228,19 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c2)", false, "(%s)");
 		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c1)", true, "(%s)");
 		testFormula(structure, "(forall _v1)((_v1 = c0) | (_v1 = c1) | (_v1 = c2) | (_v1 = c3))", true, null);
+	}
+	
+	@Test
+	public void testBuildAndFormulas() throws FOConstructionException
+	{
+		FOStructure structure = createSimpleStructure();
+
+		testFormula(structure, "(c0 = c0) & (c1 = c1)", true, "¬(¬(c0 = c0) | ¬(c1 = c1))");
+		testFormula(structure, "(c0 = c0) & (c0 = c1)", false, null, false);
+		testFormula(structure, "(c0 = c0) & ¬(c1 = c1)", false, null, false);
+		testFormula(structure, "(c0 = c1) & (c1 = c1)", false, null, false);
+		testFormula(structure, "  (  c0  =  c1  )   &   (  c1  =   c1 )  ", false, null, false);
+		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2)", true, null, false);
+		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2) & (c1 = c2)", false, null, false);
 	}
 }

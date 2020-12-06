@@ -93,6 +93,13 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 		return mName;
 	}
 	
+	@Override
+	public FOFormula negate()
+	{
+		assert false; // should never happen.
+		return null; // not possible to negate this.
+	}
+	
 	static class FOAliasBindingByRecursionImpl extends FOFormulaByRecursionImpl implements FOAlias
 	{
 		final List<FOTerm> mTerms;
@@ -100,7 +107,7 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 		final Map<FOVariable, FOElement> mMappedAssignment;
 		final String mName;
 		
-		FOAliasBindingByRecursionImpl(String name, boolean negated, FOAliasByRecursionImpl boundFormula, List<FOTerm> terms) throws FOConstructionException
+		FOAliasBindingByRecursionImpl(boolean negated, String name, FOAliasByRecursionImpl boundFormula, List<FOTerm> terms) throws FOConstructionException
 		{
 			super(negated);
 			mName = name;
@@ -165,6 +172,12 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 		List<FOTerm> getBoundTerms()
 		{
 			return mTerms;
+		}
+
+		@Override
+		public FOFormula negate() throws FOConstructionException
+		{
+			return new FOAliasBindingByRecursionImpl(!mNegated, mName, mBoundFormula, mTerms);
 		}
 	}
 }

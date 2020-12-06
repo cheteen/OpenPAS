@@ -304,6 +304,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					
 			if(ixEnd != -1)
 			{
+				//TODO: This should only be done for when the parantheses aren't preceded by function, relation etc.
+				// Then can remove the null bit from construct formula.
 				FOToken compToken = buildSubformula(new ArrayList<>(tokens.subList(paraInStart, ixEnd)),
 						mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, subNegation);
 				// It's legit for building subformula to fail for something between parantheses.
@@ -315,10 +317,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		
 		// By this point the everything between parantheses should have been converted to subformulas in the tokens (sub)list.
 		// Now look for "|" operations.
-		buildParts(tokens, Arrays.asList(new FOToken(Type.LOGICAL_OP, "|")), 0, 0, tokens.size(),
+		buildParts(tokens, Arrays.asList(new FOToken(Type.LOGICAL_OP, "|"), new FOToken(Type.LOGICAL_OP, "&")),
+				0, 0, tokens.size(),
 				mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
-		
-		// When "&" is added, it would be implemented here.
 		
 		// At this point we are looking at a single formula possibly with composite tokens or a command scope ,
 
@@ -467,7 +468,6 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				throw new FOConstructionException("Unexpected negation token found.");
 
 			FOToken tokLogOp = tokens.get(ixToken + 1);
-			assert tokLogOp.value.equals("|");
 			
 			List<FOFormula> listFormulas = new ArrayList<>();
 			while(ixToken < tokens.size())
@@ -482,12 +482,23 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					break;
 
 				FOToken tokInLogical = tokens.get(ixToken);
-				if(!tokLogOp.value.equals(tokInLogical.value))
-					throw new FOConstructionException("Inconsistent logical op found: " + tokInLogical.value);
+				if(!tokLogOp.equals(tokInLogical))
+					throw new FOConstructionException("Inconsistent logical op found: " + tokInLogical.value); // this should never happen.
 				ixToken++;
 			}
 
-			form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, listFormulas);
+			if(tokLogOp.value.equals("|"))
+				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, listFormulas);
+			else if(tokLogOp.value.equals("&"))
+			{
+				// Use this formulation for creating "&": a & b := ¬(¬a | ¬b)
+				List<FOFormula> listNegatedFormulas = new ArrayList<>(listFormulas.size());
+				for(FOFormula subform : listFormulas)
+					listNegatedFormulas.add(subform.negate());
+				form = new FOFormulaByRecursionImpl.FOFormulaBROr(!isNegated, listNegatedFormulas, FOFormulaByRecursionImpl.FOFormulaBROr.SubType.AND);
+			}
+			else
+				throw new FOConstructionException("Unexpected logical op found: " + tokLogOp.value); // this should never happen.
 		}
 		// forall formula
 		else if(tokens.get(ixToken).type == Type.COMP_SCOPE)
@@ -604,7 +615,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			ixToken = pf.ixPos;
 			
 			form = new FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl(
-					tokAlias.value, isNegated, (FOAliasByRecursionImpl) mapAliases.get(tokAlias.value), subterms);
+					isNegated, tokAlias.value, (FOAliasByRecursionImpl) mapAliases.get(tokAlias.value), subterms);
 		}
 		else
 			return null; // This used to throw exception, but now refuses to create a formula instead.

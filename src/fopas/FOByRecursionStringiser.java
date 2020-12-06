@@ -42,6 +42,7 @@ public class FOByRecursionStringiser
 			break;
 		case OR:
 			FOFormulaByRecursionImpl.FOFormulaBROr recformor = (FOFormulaByRecursionImpl.FOFormulaBROr) recform;
+			//FOFormulaByRecursionImpl.FOFormulaBROr.SubType subtype = recformor.getSubType();
 			sb.append("(");
 			Iterator<FOFormula> subforms = recformor.getFormulas().iterator();
 			if(!subforms.hasNext())

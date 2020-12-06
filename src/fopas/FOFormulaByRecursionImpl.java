@@ -302,17 +302,37 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 			for(FOTerm term : mTerms)
 				((FOTermByRecursionImpl) term).analyseScope(setVarsSeenInScope);
 		}
+
+		@Override
+		public FOFormula negate()
+		{
+			return new FOFormulaByRecursionImpl.FOFormulaBRRelation(!mNegated, mRel, mTerms);
+		}
 	}
 
 	static class FOFormulaBROr extends FOFormulaByRecursionImpl
 	{
+		static enum SubType
+		{
+			OR,
+			AND
+		}
+		
 		final protected List<FOFormula> mFormulas;
-		FOFormulaBROr(boolean isNegated, List<FOFormula> formulas)
+		SubType mSubType;
+		
+		FOFormulaBROr(boolean isNegated, List<FOFormula> formulas, SubType type)
 		{
 			super(isNegated);
 			mFormulas = formulas;
+			mSubType = type;
 		}
-		
+
+		FOFormulaBROr(boolean isNegated, List<FOFormula> formulas)
+		{
+			this(isNegated, formulas, SubType.OR);
+		}
+
 		@Override
 		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
 		{
@@ -337,6 +357,17 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		{
 			for(FOFormula form : mFormulas)
 				((FOFormulaByRecursionImpl) form).analyseVars(setVarsInScope, setVarsSeenInScope, setFreeVars, listWarnings);
+		}
+
+		@Override
+		public FOFormula negate()
+		{
+			return new FOFormulaBROr(!mNegated, mFormulas);
+		}
+		
+		SubType getSubType()
+		{
+			return mSubType;
 		}
 	}
 	
@@ -406,6 +437,12 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 			
 			setVarsForScope.remove(mVar);
 			// End of scope
+		}
+
+		@Override
+		public FOFormula negate()
+		{
+			return new FOFormulaByRecursionImpl.FOFormulaBRForAll(!mNegated, mVar, mScopeFormula);
 		}
 	}
 }
