@@ -149,9 +149,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		}
 	}
 	
-	// TODO: Need to test these two or remove them.
 	// This builds a canned formula that should exist in all structures and is always true.
-	public static FOFormula buildTautology()
+	public FOFormula buildTautology()
 	{
 		FOVariable fox = new FOVariableImpl("x");
 		FOTerm termX = new FOTermByRecursionImpl.FOTermVariable(fox);
@@ -161,7 +160,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	}
 	
 	// This builds a canned formula that should exist in all structures and is a contradiction.
-	public static FOFormula buildContradiction()
+	public FOFormula buildContradiction()
 	{
 		FOVariable fox = new FOVariableImpl("x");
 		FOTerm termX = new FOTermByRecursionImpl.FOTermVariable(fox);
@@ -223,7 +222,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	// - Combine infix operations for logical ops and relations.
 	// - So that it recognises terms and formulas.
 	// - Then inherent precedens of the infix operators can decide whether we're building a term or a formula.
-	// - Each paranthesis pair is then processed using the above.
+	// - Each parenthesis pair is then processed using the above.
 	// - This way the constructFomula method doesn't have to return null which is very ugly.
 	public FOFormula buildFormula(String strform, FOStructure structure, String aliasName, List<FOVariable> aliasArgs) throws FOConstructionException
 	{
@@ -304,8 +303,6 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					
 			if(ixEnd != -1)
 			{
-				//TODO: This should only be done for when the parantheses aren't preceded by function, relation etc.
-				// Then can remove the null bit from construct formula.
 				FOToken compToken = buildSubformula(new ArrayList<>(tokens.subList(paraInStart, ixEnd)),
 						mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, subNegation);
 				// It's legit for building subformula to fail for something between parantheses.
@@ -315,9 +312,10 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			}
 		}
 		
-		// By this point the everything between parantheses should have been converted to subformulas in the tokens (sub)list.
-		// Now look for "|" operations.
-		buildParts(tokens, Arrays.asList(new FOToken(Type.LOGICAL_OP, "|"), new FOToken(Type.LOGICAL_OP, "&")),
+		// By this point we are inside any parentheses, so we can start examining infix ops.
+		// Process ops in decreasing precedence, e.g. a & b | c <-> (a & b) | c
+		List<FOToken> infixOps = Arrays.asList(new FOToken(Type.LOGICAL_OP, "|"), new FOToken(Type.LOGICAL_OP, "&"));
+		buildParts(tokens, infixOps,
 				0, 0, tokens.size(),
 				mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
@@ -345,7 +343,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		
 		FOFormula formula;
 		if(tokens.size() == 1 && tokens.get(0).type == Type.COMP_SUBFORMULA)
-			// There was surrounding parantheses, so the whole thing got compressed to a single subformula.
+			// There was surrounding parentheses, so the whole thing got compressed to a single subformula.
 			formula = tokens.get(0).subformula;
 		else
 		{
@@ -453,7 +451,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			ixToken++;
 		}
 		
-		// This servers to collapse unnecessary parantheses.
+		// This serves to collapse unnecessary parentheses.
 		boolean isNegated = hasNegation ^ isExternallyNegated;
 		
 		FOFormula form;

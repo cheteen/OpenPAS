@@ -26,14 +26,14 @@ import fopas.basics.FOVariable;
 class FOStructureImpl implements FOStructure
 {
 	protected Map<FOConstant, FOElement> mConstMapping;
-	protected FOUnionSet mUniverse;
+	protected FOSet mUniverse;
 	final protected Set<FORelation<FOElement>> mRelations;
 	final protected Set<FOFunction> mFuns;
 	final protected Map<String, FOFormula> mAliasMapping;
 	
 	transient FOFormula mFreeVars;
 	
-	FOStructureImpl(FOUnionSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
+	FOStructureImpl(FOSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
 	{
 		//TODO: Need to check that function/relation names and infix ops don't clash.
 		mUniverse = universe;
@@ -60,7 +60,7 @@ class FOStructureImpl implements FOStructure
 	}
 
 	@Override
-	public FOUnionSet getUniverse()
+	public FOSet getUniverse()
 	{
 		// this should really be unmodifiable
 		return mUniverse;

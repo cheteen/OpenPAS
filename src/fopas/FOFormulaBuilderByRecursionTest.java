@@ -241,6 +241,30 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "(c0 = c1) & (c1 = c1)", false, null, false);
 		testFormula(structure, "  (  c0  =  c1  )   &   (  c1  =   c1 )  ", false, null, false);
 		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2)", true, null, false);
-		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2) & (c1 = c2)", false, null, false);
+		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2) & (c1 = c2)", false, null, false);		
+	}
+
+	@Test
+	public void testBuildAndOrFormulas() throws FOConstructionException
+	{
+		FOStructure structure = createSimpleStructure();
+		
+		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(¬(¬(c0 = c0) | ¬(c1 = c1)) | (c0 = c1))");
+	}
+
+	@Test
+	public void testBuildCannedFormulas() throws FOConstructionException
+	{
+		FOStructure structure = new FOStructureImpl(new FOBridgeSet<>("dummy", new HashSet<>(0)), new HashSet<>(0), new HashSet<>(0));
+
+		{
+			FOFormula form = builder.buildTautology();
+			Assert.assertTrue(form.models(structure));			
+		}
+		
+		{
+			FOFormula form = builder.buildContradiction();
+			Assert.assertFalse(form.models(structure));			
+		}
 	}
 }

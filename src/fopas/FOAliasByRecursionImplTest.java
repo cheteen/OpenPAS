@@ -171,7 +171,7 @@ public class FOAliasByRecursionImplTest
 	}
 	
 	@Test
-	public void testSimpleImplication() throws FOConstructionException
+	public void testSimpleImplicationUsingOr() throws FOConstructionException
 	{
 		FOStructure structure = createSimpleStructure();
 		

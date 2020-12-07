@@ -6,4 +6,7 @@ public interface FOFormulaBuilder
 {
 	FOFormula buildFormula(String strform, FOStructure structure) throws FOConstructionException;
 	FOAlias buildAlias(String name, List<FOVariable> args, String strform, FOStructure structure) throws FOConstructionException;
+	
+	FOFormula buildContradiction();
+	FOFormula buildTautology();
 }
