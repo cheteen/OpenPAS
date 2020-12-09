@@ -365,9 +365,22 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 			return new FOFormulaBROr(!mNegated, mFormulas);
 		}
 		
+		/**
+		 * The type this formula wants to be when presented (e.g. turned to string) is this.
+		 * Subclass this to present other types, e.g. an AND sentence or a HORN clause.
+		 */
 		SubType getSubType()
 		{
 			return mSubType;
+		}
+		
+		/**
+		 * The type the interface variables work right now is like this. All implementations are presenting as ORs
+		 * in this class since OR is the only implementation defined.
+		 */
+		SubType presentSubType()
+		{
+			return SubType.OR;
 		}
 	}
 	

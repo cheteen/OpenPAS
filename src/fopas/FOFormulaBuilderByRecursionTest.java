@@ -171,21 +171,18 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, strFormula, expectSatisfaction, format, true);
 	}
 
-	private void testFormula(FOStructure structure, String strFormula, boolean expectSatisfaction, String format, boolean checkFormat) throws FOConstructionException
+	private void testFormula(FOStructure structure, String strFormula, boolean expectSatisfaction, String format, boolean useExtended) throws FOConstructionException
 	{
 		FOFormula form = builder.buildFormula(strFormula, structure);
 		
-		if(checkFormat)
+		String strReForm = sgiser.stringiseFOFormula(form, 100, useExtended);
+		if(format == null)
+			Assert.assertEquals(strFormula, strReForm);
+		else
 		{
-			String strReForm = sgiser.stringiseFOFormula(form, 100);
-			if(format == null)
-				Assert.assertEquals(strFormula, strReForm);
-			else
-			{
-				String strReFormReformat = String.format(format, strFormula);
-				Assert.assertEquals(strReFormReformat, strReForm);
-			}			
-		}
+			String strReFormReformat = String.format(format, strFormula);
+			Assert.assertEquals(strReFormReformat, strReForm);
+		}			
 		
 		Assert.assertEquals(expectSatisfaction, structure.models(form));
 	}
@@ -228,6 +225,11 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c2)", false, "(%s)");
 		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c1)", true, "(%s)");
 		testFormula(structure, "(forall _v1)((_v1 = c0) | (_v1 = c1) | (_v1 = c2) | (_v1 = c3))", true, null);
+		
+		// Negation of forall scope affects the whole formula.
+		testFormula(structure, "¬(forall _v1)¬(_v1 = c1)", true, null);
+		// Double negation of forall directly via surrounding parenthesis is swallowed.
+		testFormula(structure, "¬(¬(forall _v1)¬(c0 = c1))", true, "(forall _v1)¬(c0 = c1)");
 	}
 	
 	@Test
@@ -235,13 +237,13 @@ public class FOFormulaBuilderByRecursionTest {
 	{
 		FOStructure structure = createSimpleStructure();
 
-		testFormula(structure, "(c0 = c0) & (c1 = c1)", true, "¬(¬(c0 = c0) | ¬(c1 = c1))");
-		testFormula(structure, "(c0 = c0) & (c0 = c1)", false, null, false);
-		testFormula(structure, "(c0 = c0) & ¬(c1 = c1)", false, null, false);
-		testFormula(structure, "(c0 = c1) & (c1 = c1)", false, null, false);
-		testFormula(structure, "  (  c0  =  c1  )   &   (  c1  =   c1 )  ", false, null, false);
-		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2)", true, null, false);
-		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2) & (c1 = c2)", false, null, false);		
+		testFormula(structure, "(c0 = c0) & (c1 = c1)", true, "¬(¬(c0 = c0) | ¬(c1 = c1))", false);
+		testFormula(structure, "(c0 = c0) & (c0 = c1)", false, "(%s)");
+		testFormula(structure, "(c0 = c0) & ¬(c1 = c1)", false, "(%s)");
+		testFormula(structure, "(c0 = c1) & (c1 = c1)", false, "(%s)");
+		testFormula(structure, "  (  c0  =  c1  )   &   (  c1  =   c1 )  ", false, "((c0 = c1) & (c1 = c1))");
+		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2)", true, "(%s)");
+		testFormula(structure, "(c0 = c0) & (c1 = c1) & (c2 = c2) & (c1 = c2)", false, "(%s)");		
 	}
 
 	@Test
@@ -249,7 +251,22 @@ public class FOFormulaBuilderByRecursionTest {
 	{
 		FOStructure structure = createSimpleStructure();
 		
-		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(¬(¬(c0 = c0) | ¬(c1 = c1)) | (c0 = c1))");
+		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(¬(¬(c0 = c0) | ¬(c1 = c1)) | (c0 = c1))", false);
+		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
+		testFormula(structure, "c0 = c0 & c1 = c1 | c0 = c1", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
+
+		testFormula(structure, "¬(forall _v1)¬(_v1 = c1)", true, null);		
+		testFormula(structure, "c0 = c0 & c1 = c1 | ¬(forall _v1)¬(_v1 = c1)", true, "(((c0 = c0) & (c1 = c1)) | ¬(forall _v1)¬(_v1 = c1))");
+		testFormula(structure, "¬(forall _v1)(¬(_v1 = c1) & ¬(_v1 = c2))", true, null);
+		testFormula(structure, "¬(forall _v1)¬(¬(_v1 = c1) | (c1 = c0))", true, null);
+	}
+
+	@Test
+	public void testBuildAndOrForAllFormulas() throws FOConstructionException
+	{
+		FOStructure structure = createSimpleStructure();
+		
+		testFormula(structure, "c0 = c1 & c1 = c0 | ¬(forall _v1)¬(_v1 = c1)", true, "(((c0 = c1) & (c1 = c0)) | ¬(forall _v1)¬(_v1 = c1))");
 	}
 
 	@Test
