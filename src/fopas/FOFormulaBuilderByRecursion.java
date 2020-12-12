@@ -260,7 +260,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	}
 	
 	@Override
-	public FOAlias buildAlias(String name, List<FOVariable> args, String strform, FOStructure structure) throws FOConstructionException
+	public FOAlias buildAlias(FOStructure structure, String name, List<FOVariable> args, String strform) throws FOConstructionException
 	{
 		return (FOAlias) buildFormula(strform, structure, name, args);
 	}

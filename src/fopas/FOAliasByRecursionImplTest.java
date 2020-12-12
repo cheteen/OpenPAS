@@ -59,22 +59,25 @@ public class FOAliasByRecursionImplTest
 		FOConstant c1 = new FOConstantImpl("c1");
 		FOConstant c2 = new FOConstantImpl("c2");
 		FOConstant c3 = new FOConstantImpl("c3");
+		FOConstant c4 = new FOConstantImpl("c4");
 		
 		FOInteger zero = new FOElementImpl.FOIntImpl(0);
 		FOInteger one = new FOElementImpl.FOIntImpl(1);
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
+		FOInteger four = new FOElementImpl.FOIntImpl(4);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
+		FOSet<FOElement> universe = new FOBridgeSet<>("SOMEINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three, four)));		
 		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
-		FOFunction funaddmod4 = new FOInternalIntFunctions.FOInternalSumModulus(4);
+		FOFunction funaddmod5 = new FOInternalIntFunctions.FOInternalSumModulus(5);
 		
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
+		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod5)));
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
+		structure.setConstantMapping(c4, four);
 		return structure;
 	}	
 
@@ -82,7 +85,7 @@ public class FOAliasByRecursionImplTest
 	{
 		FOFormula form = builder.buildFormula(strFormula, structure);
 		
-		String strReForm = sgiser.stringiseFOFormula(form, 100);
+		String strReForm = sgiser.stringiseFOFormula(form, 200);
 		if(format == null)
 			Assert.assertEquals(strFormula, strReForm);
 		else
@@ -99,9 +102,9 @@ public class FOAliasByRecursionImplTest
 	{
 		FOStructure structure = createSimpleStructure();
 		
-		FOAlias formAlias = builder.buildAlias("add", 
-				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-				"_z = (_x + _y)", structure);
+		FOAlias formAlias = builder.buildAlias(structure, 
+				"add",
+				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")), "_z = (_x + _y)");
 		
 		structure.addAlias(formAlias);
 		
@@ -118,9 +121,9 @@ public class FOAliasByRecursionImplTest
 		FOStructure structure = createSimpleStructure();
 		
 		// This defines: x - y = z\
-		FOAlias formAlias = builder.buildAlias("substract", 
-				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-				"_x = (_y + _z)", structure);
+		FOAlias formAlias = builder.buildAlias(structure, 
+				"substract",
+				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")), "_x = (_y + _z)");
 		
 		structure.addAlias(formAlias);
 		
@@ -137,15 +140,15 @@ public class FOAliasByRecursionImplTest
 		FOStructure structure = createSimpleStructure();
 		
 		// This defines: x - y = z\
-		FOAlias formAlias = builder.buildAlias("substract", 
-				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-				"_x = (_y + _z)", structure);
+		FOAlias formAlias = builder.buildAlias(structure, 
+				"substract",
+				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")), "_x = (_y + _z)");
 		
 		structure.addAlias(formAlias);
 
 		FOFormula form = builder.buildFormula("substract(c3, c3, _v)", structure);
 
-		Assert.assertEquals(4, FluentIterable.from(structure.getAssignments(form)).size());
+		Assert.assertEquals(5, FluentIterable.from(structure.getAssignments(form)).size());
 		Assert.assertEquals(1, FluentIterable.from(structure.getSatisfyingAssignments(form)).size());
 
 		FOVariable fovarV = new FOVariableImpl("v");
@@ -189,12 +192,12 @@ public class FOAliasByRecursionImplTest
 		// map_choices(x, y, y0, y1) := ¬(x = 0 | x = 1) | ¬(x = 0 | y = y1) | ¬(x = 1 | y = y0)
 		// 
 		structure.addAlias(
-				builder.buildAlias("map_choices", 
-						Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("y0"), new FOVariableImpl("y1")),
-							"¬(_x = c0 | _x = c1) |"
-						+ 	" ¬(¬(_x = c0) | ¬(_y = _y0)) |"
-						+ 	" ¬(¬(_x = c1) | ¬(_y = _y1))",
-						structure)
+				builder.buildAlias(structure, 
+						"map_choices",
+							Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("y0"), new FOVariableImpl("y1")),
+						"¬(_x = c0 | _x = c1) |"
++ 	" ¬(¬(_x = c0) | ¬(_y = _y0)) |"
++ 	" ¬(¬(_x = c1) | ¬(_y = _y1))")
 				);
 		
 		// (map_choices(x, y, c3, c2) & (x = 0)) -> (y = c3)
@@ -208,7 +211,7 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c2)", false, "(%s)");
 		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c3)", false, "(%s)");
 		
-		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c0) | (_y = c1) | (_y = c2) | (_y = c3)", true, "(%s)");
+		testFormula(structure, "¬map_choices(_x, _y, c3, c2) | ¬(_x = c2) | (_y = c0) | (_y = c1) | (_y = c2) | (_y = c3) | (_y = c4)", true, "(%s)");
 	}
 
 	@Test
@@ -218,9 +221,9 @@ public class FOAliasByRecursionImplTest
 		
 		// This defines: x - y = z
 		structure.addAlias(
-				builder.buildAlias("substract", 
-						Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-						"_x = (_y + _z)", structure)				
+				builder.buildAlias(structure, 
+						"substract",
+						Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")), "_x = (_y + _z)")				
 				);
 
 		// Define: x * y = z
@@ -228,13 +231,33 @@ public class FOAliasByRecursionImplTest
 		// (((x = 0) -> (_z = c0)) & 		% base case 0
 		// ((x = 1) -> (_z = _y))) |		% base case 1
 		// (substract(_x, c1, _x1) & (multiply(_x1, _y, _z1) & (_z = (_z1 + _y)))) % recursive case
-//		FOAlias formAlias = builder.buildAlias("multiply", 
-//				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-//				"_x", structure);
-//		
-//		structure.addAlias(formAlias);
-//		
-//		testFormula(structure, "substract(c3, c2, c1)", true, "(%s)");
-//		testFormula(structure, "substract(c1, c1, c1)", true, "(%s)");
+		FOAlias formAlias = builder.buildAlias(structure, 
+				"multiply",
+				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
+					"(_x = c0 -> _z = c0)"
+				+ 	"& (_x = c1 -> _z = _y)"
+				+   "& (forall _x1)((forall _z1)(¬(_x = c0) & ¬(_x = c1) & substract(_x, c1, _x1) & multiply(_x1, _y, _z1) -> _z = _z1 + _y))"
+				);
+		
+		structure.addAlias(formAlias);
+	
+		//Base case 0
+		testFormula(structure, "multiply(c0, c2, c0)", true, null);
+		testFormula(structure, "multiply(c0, c2, c2)", false, null);
+
+		//Base case 1
+		testFormula(structure, "multiply(c1, c2, c2)", true, null);
+		testFormula(structure, "multiply(c1, c3, c3)", true, null);
+		testFormula(structure, "multiply(c1, c2, c1)", false, null);
+
+		// Recursive case
+		testFormula(structure, "multiply(c2, c0, c0)", true, null);
+		testFormula(structure, "multiply(c2, c1, c0)", false, null);
+		testFormula(structure, "multiply(c2, c1, c2)", true, null);
+		testFormula(structure, "multiply(c2, c2, c4)", true, null);
+		testFormula(structure, "multiply(c4, c4, c1)", true, null); // 4*4 mode 5=16 mod 5=1
+		testFormula(structure, "multiply(c4, c4, c0)", false, null); 
+		testFormula(structure, "multiply(c4, c3, c2)", true, null); // 4*3 mode 5=12 mod 5=2
+		testFormula(structure, "multiply(c3, c4, c2)", true, null); // 3*4 mode 5=12 mod 5=2
 	}
 }

@@ -104,7 +104,6 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 	{
 		final List<FOTerm> mTerms;
 		final FOAliasByRecursionImpl mBoundFormula;
-		final Map<FOVariable, FOElement> mMappedAssignment;
 		final String mName;
 		
 		FOAliasBindingByRecursionImpl(boolean negated, String name, FOAliasByRecursionImpl boundFormula, List<FOTerm> terms) throws FOConstructionException
@@ -113,7 +112,6 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 			mName = name;
 			mTerms = terms;
 			mBoundFormula = boundFormula;
-			mMappedAssignment = new HashMap<FOVariable, FOElement>();
 			
 			if(terms.size() != mBoundFormula.getCardinality())
 				throw new FOConstructionException("Attempt to call alias with wrong number of args.");
@@ -122,16 +120,18 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 		@Override
 		public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
 		{
+			Map<FOVariable, FOElement> mappedAssignment = new HashMap<FOVariable, FOElement>();
+
 			for(int i = 0; i < mTerms.size(); i++)
 			{
 				FOTerm term = mTerms.get(i);
 				term.assignVariables(structure, assignment);
 				FOElement asg = term.getAssignment();
 				assert asg != null; // All variables should be assigned by this point.
-				mMappedAssignment.put(mBoundFormula.getListArgs().get(i), asg);
+				mappedAssignment.put(mBoundFormula.getListArgs().get(i), asg);
 			}
 			
-			boolean satisfied = mBoundFormula.checkAssignment(structure, mMappedAssignment);
+			boolean satisfied = mBoundFormula.checkAssignment(structure, mappedAssignment);
 			
 			return mNegated ^ satisfied;
 		}
