@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import fopas.FOFormulaBuilderByRecursion.FOToken.Type;
@@ -89,12 +91,17 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			END_SENTENCE,
 			ALIAS,
 			COMP_SUBFORMULA,
-			COMP_SCOPE
+			COMP_SCOPE,
+			COMP_TERM,
+			FOLD
 		}
 		final Type type;
 		String value;
 		FOFormula subformula;
 		FOTokenScope tokenScope;
+		FOTerm term;
+		FOToken foldAnchor;
+		List<FOToken> args;
 		FOToken(Type type, String value)
 		{
 			this.type = type;
@@ -106,17 +113,29 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			assert type == Type.COMP_SUBFORMULA;
 			this.subformula = subformula;
 		}
+		FOToken(FOTerm term)
+		{
+			this.type = Type.COMP_TERM;
+			this.term = term;
+		}
 		FOToken(Type type, FOTokenScope tokenScope)
 		{
 			this.type = type;
 			assert type == Type.COMP_SCOPE;
 			this.tokenScope = tokenScope;
 		}
+		FOToken(FOToken foldAnchor, List<FOToken> args)
+		{
+			this.type = Type.FOLD;
+			this.foldAnchor = foldAnchor;
+			this.args = args;
+		}
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ((subformula == null) ? 0 : subformula.hashCode());
+			result = prime * result + ((term == null) ? 0 : term.hashCode());
 			result = prime * result + ((tokenScope == null) ? 0 : tokenScope.hashCode());
 			result = prime * result + ((type == null) ? 0 : type.hashCode());
 			result = prime * result + ((value == null) ? 0 : value.hashCode());
@@ -136,6 +155,11 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				if (other.subformula != null)
 					return false;
 			} else if (!subformula.equals(other.subformula))
+				return false;
+			if (term == null) {
+				if (other.term != null)
+					return false;
+			} else if (!term.equals(other.term))
 				return false;
 			if (tokenScope == null) {
 				if (other.tokenScope != null)
@@ -275,7 +299,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		List<FOToken> tokens = parseTokens(strform, structure, mapRels, mapInfixRels,
 				mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
-		FOToken finalToken = buildSubformula(tokens, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
+		FOToken finalToken = buildParentheses(tokens, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
 		if(finalToken == null)
 			throw new FOConstructionException("Did not find a valid formula to build.");
 		
@@ -290,7 +314,10 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			return form;
 	}
 
-	FOToken buildSubformula(List<FOToken> tokens,
+	/**
+	 * Build the subformula that's between parentheses.
+	 */
+	FOToken buildParentheses(List<FOToken> tokens,
 			Map<String, FORelation<FOElement>> mapRels,
 			Map<String, FORelation<FOElement>> mapInfixRels,
 			Map<String, FOFunction> mapFuns,
@@ -305,9 +332,21 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			int ixEnd = -1;
 			int paraInStart = ixStart + 1;
 			boolean subNegation = false;
+			FOToken groupType = null;
 			if(tokens.get(ixStart).type == Type.START_GROUP || 
 					tokens.get(ixStart).type == Type.NEGATION && tokens.get(ixStart + 1).type == Type.START_GROUP)
 			{
+				if(ixStart > 0)
+				{
+					FOToken tokPre = tokens.get(ixStart - 1);
+					if(tokPre.type == Type.FUNCTION
+							|| tokPre.type == Type.RELATION
+							|| tokPre.type == Type.ALIAS)
+					{
+						groupType = tokPre;
+					}
+				}
+				
 				if(tokens.get(ixStart).type == Type.NEGATION)
 				{
 					subNegation = true;
@@ -333,12 +372,42 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					
 			if(ixEnd != -1)
 			{
-				FOToken compToken = buildSubformula(new ArrayList<>(tokens.subList(paraInStart, ixEnd)),
-						mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, subNegation);
-				// It's legit for building subformula to fail for something between parantheses.
-				// It may still be valid syntax such as a function call.
-				if(compToken != null)
+				// This pair of parentheses has to contain a formula or term.
+				if(groupType == null)
+				{
+					FOToken compToken = buildParentheses(new ArrayList<>(tokens.subList(paraInStart, ixEnd)),
+							mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, subNegation);					
+					assert compToken != null; // this is either a formula or a term
 					replaceTokens(tokens, ixStart, ixEnd + 1, compToken);
+				}
+				else // This is some kind of arg group, let's parse args 
+				{
+					List<List<FOToken>> listArgs = splitTokens(
+							new ArrayList<>(tokens.subList(paraInStart, ixEnd)), new FOToken(Type.COMMA, ","));
+					List<FOToken> listFolding = new ArrayList<>();
+					if(listArgs != null)
+					{
+						for(List<FOToken> arg : listArgs)
+						{
+							FOToken tokArg = buildParentheses(arg, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, isNegated);
+							if(tokArg == null)
+								throw new FOConstructionException("Error constructing arg.");
+							if(tokArg.type != Type.COMP_TERM)
+								throw new FOConstructionException("Term not found constructing arg.");
+							listFolding.add(tokArg);
+						}						
+					}
+					else
+					{
+						FOToken tokArg = buildParentheses(new ArrayList<>(tokens.subList(paraInStart, ixEnd)),
+								mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, isNegated);						
+						if(tokArg == null)
+							throw new FOConstructionException("Error constructing arg.");
+						listFolding.add(tokArg);
+					}
+					FOToken fold = new FOToken(groupType, listFolding);
+					replaceTokens(tokens, ixStart - 1, ixEnd + 1, fold);
+				}
 			}
 		}
 		
@@ -365,18 +434,26 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		// By this point we are inside any parentheses, so we can start examining infix ops.
 		// Process ops in decreasing precedence, e.g. a & b | c <-> (a & b) | c
 		List<FOToken> infixOps = Arrays.asList(
-				new FOToken(Type.LOGICAL_OP, mLang.getOr()), new FOToken(Type.LOGICAL_OP, mLang.getAnd()));
+				new FOToken(Type.LOGICAL_OP, mLang.getImp()), 
+				new FOToken(Type.LOGICAL_OP, mLang.getOr()), 
+				new FOToken(Type.LOGICAL_OP, mLang.getAnd()),
+				new FOToken(Type.INFIX_RELATION_OP, "="),
+				new FOToken(Type.INFIX_FUNCTION_OP, "+")
+				);
 		return buildParts(tokens, isNegated, infixOps, 0,
 				mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 	}
 
+	/**
+	 * Once in parenthesis, build parts created by using logical ops.
+	 */
 	private FOToken buildParts(List<FOToken> tokens, boolean isNegated, List<FOToken> anchors, int ixAnchor,
 			Map<String, FORelation<FOElement>> mapRels,
 			Map<String, FORelation<FOElement>> mapInfixRels, Map<String, FOFunction> mapFuns,
 			Map<String, FOFunction> mapInfixFuns, Map<String, FOConstant> mapConstants,
 			Map<String, FOFormula> mapAliases) throws FOConstructionException
 	{
-		List<FOToken> readyTokens;
+		List<FOToken> listPartTokens;
 		if(ixAnchor < anchors.size())
 		{
 			List<List<FOToken>> splitted = splitTokens(tokens, anchors.get(ixAnchor));
@@ -388,7 +465,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			}
 			else
 			{
-				readyTokens = new ArrayList<>();
+				List<FOToken> listFold = new ArrayList<>();
 				// At branch, need to process leaves first.
 				for(List<FOToken> part : splitted)
 				{
@@ -396,17 +473,18 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 							mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 					if(tokPart == null)
 						throw new FOConstructionException("Failed to construct formula part.");
-					readyTokens.add(tokPart );
-					readyTokens.add(anchors.get(ixAnchor));
+					listFold.add(tokPart);
 				}
-				readyTokens.remove(readyTokens.size() - 1); //remove last anchor (ugly but clean anyhow)				
+				FOToken tokFold = new FOToken(anchors.get(ixAnchor), listFold);
+				listPartTokens = new ArrayList<>(1);
+				listPartTokens.add(tokFold);
 			}
 		}
 		else // if we are past the leaf, then the tokens we have need to be ready as is.
-			readyTokens = tokens;
+			listPartTokens = tokens;
 		
 		// builtTokens should contain a single formula for a part with all parts from this anchor down (in precedence) built already. 
-		return buildFormulaTokenFromTokens(readyTokens, isNegated, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
+		return buildSingleFormulaOrTerm(listPartTokens, isNegated, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 	}
 	
 	private List<List<FOToken>> splitTokens(List<FOToken> tokens, FOToken anchor) throws FOConstructionException
@@ -442,7 +520,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		tokens.add(ixStart, subformula);
 	}
 
-	private FOToken buildFormulaTokenFromTokens(List<FOToken> tokens, boolean isNegated,
+	private FOToken buildSingleFormulaOrTerm(List<FOToken> tokens, boolean isNegated,
 			Map<String, FORelation<FOElement>> mapRels, Map<String, FORelation<FOElement>> mapInfixRels,
 			Map<String, FOFunction> mapFuns, Map<String, FOFunction> mapInfixFuns, Map<String, FOConstant> mapConstants,
 			Map<String, FOFormula> mapAliases) throws FOConstructionException
@@ -456,7 +534,10 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			// It's only a single formula possibly with composite tokens.
 			formula = constructFormula(tokens, isNegated, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 			if(formula == null)
-				return null; // didn't find a formula here (it may still be valid syntax)
+			{
+				FOTerm term = constructTerm(tokens, new PosForward(0), mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
+				return new FOToken(term); // didn't find a formula here but found a term.
+			}
 			isNegated = false; // We've embedded this negation in the subformula, so can remove this.
 		}
 		
@@ -466,6 +547,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			return new FOToken(Type.COMP_SUBFORMULA, formula);
 	}
 
+	/**
+	 * Construct a single formula from possibly composite tokens.
+	 */
 	FOFormula constructFormula(List<FOToken> tokens,
 			boolean isExternallyNegated,
 			Map<String, FORelation<FOElement>> mapRels,
@@ -489,48 +573,47 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		boolean isNegated = hasNegation ^ isExternallyNegated;
 		
 		FOFormula form;
-		
-		if(tokens.get(ixToken + 1).type == Type.LOGICAL_OP)
+				
+		if(tokens.get(ixToken).type == Type.FOLD && tokens.get(ixToken).foldAnchor.type == Type.LOGICAL_OP)
 		{
-			// At this point all subformulas should already have been created as composite tokens,
-			// we just need to wrap them.
-			
 			// This option can't work with infix operators.
 			if(hasNegation)
 				throw new FOConstructionException("Unexpected negation token found.");
-
-			FOToken tokLogOp = tokens.get(ixToken + 1);
 			
-			List<FOFormula> listFormulas = new ArrayList<>();
-			while(ixToken < tokens.size())
+			FOToken tokFold = tokens.get(ixToken);
+			FOToken tokAnchor = tokFold.foldAnchor;
+			verifyFoldHas(tokFold, Type.COMP_SUBFORMULA, "Expected formula not found constructing logical op.");
+			ixToken++;
+
+			if(tokAnchor.value.equals(mLang.getOr()))
 			{
-				FOToken tok = tokens.get(ixToken);
-				if(tok.type != Type.COMP_SUBFORMULA)
-					throw new FOConstructionException("Unexpected token found: " + tok.value);
-				listFormulas.add(tok.subformula);
-				ixToken++;
-				
-				if(ixToken == tokens.size())
-					break;
-
-				FOToken tokInLogical = tokens.get(ixToken);
-				if(!tokLogOp.equals(tokInLogical))
-					throw new FOConstructionException("Inconsistent logical op found: " + tokInLogical.value); // this should never happen.
-				ixToken++;
-			}
-
-			if(tokLogOp.value.equals(mLang.getOr()))
+				List<FOFormula> listFormulas = new ArrayList<>(tokFold.args.size());
+				for(FOToken tok : tokFold.args)
+					listFormulas.add(tok.subformula);
 				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, listFormulas);
-			else if(tokLogOp.value.equals(mLang.getAnd()))
+			}
+			else if(tokAnchor.value.equals(mLang.getAnd()))
 			{
 				// Use this formulation for creating "&": a & b := ¬(¬a | ¬b)
-				List<FOFormula> listNegatedFormulas = new ArrayList<>(listFormulas.size());
-				for(FOFormula subform : listFormulas)
-					listNegatedFormulas.add(subform.negate());
+				List<FOFormula> listNegatedFormulas = new ArrayList<>(tokFold.args.size());
+				for(FOToken tok : tokFold.args)
+					listNegatedFormulas.add(tok.subformula.negate());
 				form = new FOFormulaByRecursionImpl.FOFormulaBROr(!isNegated, listNegatedFormulas, FOFormulaByRecursionImpl.FOFormulaBROr.SubType.AND);
 			}
+			else if(tokAnchor.value.equals(mLang.getImp()))
+			{
+				// We use: a -> b :- ¬a | b
+				if(tokFold.args.size() > 2)
+					throw new FOConstructionException("Implication accepts only two operands: implicate and implicant.");
+				
+				List<FOFormula> impPair = new ArrayList<>(2);
+				impPair.add(tokFold.args.get(0).subformula.negate());
+				impPair.add(tokFold.args.get(1).subformula);
+
+				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, impPair);
+			}
 			else
-				throw new FOConstructionException("Unexpected logical op found: " + tokLogOp.value); // this should never happen.
+				throw new FOConstructionException("Unexpected logical op found: " + tokAnchor.value); // this should never happen.
 		}
 		// forall formula
 		else if(tokens.get(ixToken).type == Type.COMP_SCOPE)
@@ -551,105 +634,41 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 
 			form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(isNegated ^ tokScope.tokenScope.isNegated, variable, tokScopeFormula.subformula);
 		}
-		// Relation formula (prefix)
-		else if(tokens.get(ixToken).type == Type.RELATION)
+		else if(tokens.get(ixToken).type == Type.FOLD &&
+				(
+						tokens.get(ixToken).foldAnchor.type == Type.INFIX_RELATION_OP ||
+						tokens.get(ixToken).foldAnchor.type == Type.RELATION
+				))
 		{
-			FOToken tokRelation = tokens.get(ixToken);
+			assert !hasNegation || tokens.get(ixToken).foldAnchor.type == Type.RELATION;  
+
+			FOToken tokFold = tokens.get(ixToken);
+			FOToken tokAnchor = tokFold.foldAnchor;
+			verifyFoldHas(tokFold, Type.COMP_TERM, "Expected term not found constructing relation.");
 			ixToken++;
 
-			if(tokens.get(ixToken).type != Type.START_GROUP)
-				throw new FOConstructionException("Synthax error with relation - expecting starting paranthesis.");
-			ixToken++;
-
-			PosForward pf = new PosForward(ixToken);
-			List<FOTerm> terms = new ArrayList<FOTerm>();
-			while(ixToken < tokens.size())
-			{
-				FOTerm term = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
-				terms.add(term);
-
-				FOToken tokInRel = tokens.get(pf.ixPos); 
-				pf.ixPos++;
-				if(tokInRel.type == Type.END_GROUP)
-					break;
-
-				if(tokInRel.type != Type.COMMA)
-					throw new FOConstructionException("Synthax error with relation - expecting comma.");				
-			}
-			ixToken = pf.ixPos;
-			
-			FORelation<FOElement> rel = mapRels.get(tokRelation.value);
-			assert rel != null; // tokeniser handles the existence of the relation.
-			
-			form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(isNegated, rel, terms);
-		}
-		// Relation formula (infix)
-		// This is the most complex case. We could and should in the future support mixing of different infix relations in a formula.
-		// We can handle this by introducing a precedence value for each infix relation.
-		// But for now, for simplicity, assume only one infix relation can exist in a single-formula string.
-		else if(tokens.get(ixToken + 1).type == Type.INFIX_RELATION_OP)
-		{
-			// This option can't work with infix operators.
-			if(hasNegation)
-				throw new FOConstructionException("Unexpected negation token found.");
-
-			FOToken tokInfixRelation = tokens.get(ixToken + 1);
-			
-			List<FOTerm> terms = new ArrayList<FOTerm>();
-			PosForward pf = new PosForward(ixToken);
-			FOTerm term = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
-			terms.add(term);
-
-			while(pf.ixPos < tokens.size())
-			{
-				FOToken tokInfixFound = tokens.get(pf.ixPos);
-				if(tokInfixFound.type != Type.INFIX_RELATION_OP)
-					break;
-				
-				if(!tokInfixFound.value.equals(tokInfixRelation.value))
-					throw new FOConstructionException("Need to use parantheses for now. Inconsistent infix relation found: " + tokInfixRelation.value);				
-				
-				pf.ixPos++;
-				
-				term = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
-				terms.add(term);
-			}
-			ixToken = pf.ixPos;
-			
-			FORelation<FOElement> rel = mapInfixRels.get(tokInfixRelation.value);
+			FORelation<FOElement> rel = mapInfixRels.get(tokAnchor.value);
 			assert rel != null; //tokeniser should handle this.
 
-			form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(isNegated, rel, terms);			
+			List<FOTerm> listTerms = new ArrayList<>(tokFold.args.size());
+			for(FOToken tok : tokFold.args)
+				listTerms.add(tok.term);
+
+			form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(isNegated, rel, listTerms);			
 		}
-		else if(tokens.get(ixToken).type == Type.ALIAS)
+		else if(tokens.get(ixToken).type == Type.FOLD && tokens.get(ixToken).foldAnchor.type == Type.ALIAS)
 		{
-			FOToken tokAlias = tokens.get(ixToken); 
+			FOToken tokFold = tokens.get(ixToken);
+			FOToken tokAnchor = tokFold.foldAnchor;
+			verifyFoldHas(tokFold, Type.COMP_TERM, "Expected term not found constructing relation.");
 			ixToken++;
 
-			if(tokens.get(ixToken).type != Type.START_GROUP)
-				throw new FOConstructionException("Synthax error with relation - expecting starting paranthesis.");
-			ixToken++;
-			
-			List<FOTerm> subterms = new ArrayList<FOTerm>();
-			PosForward pf = new PosForward(ixToken);
-			while(pf.ixPos < tokens.size())
-			{
-				FOTerm subterm = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
-				subterms.add(subterm);
-			
-				FOToken tokenInFun = tokens.get(pf.ixPos);
-				pf.ixPos++;
+			List<FOTerm> listTerms = new ArrayList<>(tokFold.args.size());
+			for(FOToken tok : tokFold.args)
+				listTerms.add(tok.term);
 
-				if(tokenInFun.type == Type.END_GROUP)
-					break;
-
-				if(tokenInFun.type != Type.COMMA)
-					throw new FOConstructionException("Synthax error with function - expecting comma.");
-			}
-			ixToken = pf.ixPos;
-			
 			form = new FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl(
-					isNegated, tokAlias.value, (FOAliasByRecursionImpl) mapAliases.get(tokAlias.value), subterms);
+					isNegated, tokAnchor.value, (FOAliasByRecursionImpl) mapAliases.get(tokAnchor.value), listTerms);
 		}
 		else
 			return null; // This used to throw exception, but now refuses to create a formula instead.
@@ -658,6 +677,13 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			throw new FOConstructionException("Unexpected token found at the end.");
 		
 		return form;
+	}
+
+	private void verifyFoldHas(FOToken tokFold, FOToken.Type type, String err) throws FOConstructionException
+	{
+		for(FOToken tok : tokFold.args)
+			if(tok.type != type)
+				throw new FOConstructionException(err);
 	}
 	
 	FOTerm constructTerm(List<FOToken> tokens, PosForward pf,
@@ -669,7 +695,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			) throws FOConstructionException
 	{
 		FOToken token = tokens.get(pf.ixPos);
-		if(token.type == Type.VARIABLE)
+		if(tokens.size() == 1 && token.type == Type.COMP_TERM)
+			return token.term;
+		else if(token.type == Type.VARIABLE)
 		{
 			FOVariable fovar = new FOVariableImpl(token.value); //could consider pooling these at some point.
 			FOTerm term = new FOTermByRecursionImpl.FOTermVariable(fovar);
@@ -684,70 +712,29 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			pf.ixPos++;
 			return term;			
 		}
-		// prefix function
-		else if(token.type == Type.FUNCTION)
+		else if(token.type == Type.FOLD &&
+				(
+					token.foldAnchor.type == Type.INFIX_FUNCTION_OP ||
+					token.foldAnchor.type == Type.FUNCTION
+				))
 		{
-			FOFunction fofun = mapFuns.get(token.value);
+			FOToken tokFold = token;
+			FOToken tokAnchor = tokFold.foldAnchor;
+			verifyFoldHas(tokFold, Type.COMP_TERM, "Expected term not found constructing function.");
+			
+			FOFunction fofun;
+			if(tokAnchor.type == Type.FUNCTION)
+				fofun = mapFuns.get(tokAnchor.value);
+			else
+				fofun = mapInfixFuns.get(tokAnchor.value);				
 			assert fofun != null; //tokeniser should handle this.
 			pf.ixPos++;
 			
-			if(tokens.get(pf.ixPos).type != Type.START_GROUP)
-				throw new FOConstructionException("Starting paranthesis not found.");
-			pf.ixPos++;
-			
-			List<FOTerm> subterms = new ArrayList<FOTerm>();
-			while(pf.ixPos < tokens.size())
-			{
-				FOTerm subterm = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
-				subterms.add(subterm);
-			
-				FOToken tokenInFun = tokens.get(pf.ixPos);
-				pf.ixPos++;
+			List<FOTerm> listTerms = new ArrayList<>(tokFold.args.size());
+			for(FOToken tok : tokFold.args)
+				listTerms.add(tok.term);
 
-				if(tokenInFun.type == Type.END_GROUP)
-					break;
-
-				if(tokenInFun.type != Type.COMMA)
-					throw new FOConstructionException("Synthax error with function - expecting comma.");
-			}
-			
-			pf.ixPos++;
-			
-			FOTerm termfun = new FOTermByRecursionImpl.FOTermFunction(fofun, subterms);
-			return termfun;
-		}
-		else if(tokens.get(pf.ixPos).type == Type.START_GROUP && pf.ixPos < tokens.size() - 2 && tokens.get(pf.ixPos + 2).type == Type.INFIX_FUNCTION_OP)
-		{
-			FOToken tokInfixFunction = tokens.get(pf.ixPos + 2);
-			pf.ixPos ++;
-			
-			List<FOTerm> subterms = new ArrayList<FOTerm>();
-			FOTerm term = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
-			subterms.add(term);
-
-			while(pf.ixPos < tokens.size())
-			{
-				FOToken tokInfixFound = tokens.get(pf.ixPos);
-				if(tokInfixFound.type != Type.INFIX_FUNCTION_OP)
-					break;
-
-				if(!tokInfixFound.value.equals(tokInfixFunction.value))
-					throw new FOConstructionException("Inconsistent infix function found: " + tokInfixFunction.value);				
-
-				pf.ixPos++;
-				
-				term = constructTerm(tokens, pf, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants);
-				subterms.add(term);
-			}
-			
-			if(tokens.get(pf.ixPos).type != Type.END_GROUP)
-				throw new FOConstructionException("End paranthesis not found for infix function: " + tokInfixFunction.value);				
-			pf.ixPos++;
-			
-			FOFunction fun = mapInfixFuns.get(tokInfixFunction.value);
-			assert fun != null; //tokeniser should handle this.
-			
-			FOTerm termfun = new FOTermByRecursionImpl.FOTermFunction(fun, subterms);
+			FOTerm termfun = new FOTermByRecursionImpl.FOTermFunction(fofun, listTerms);
 			return termfun;
 		}
 		else
@@ -766,6 +753,11 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		Pattern nameExtractor =  Pattern.compile("^(" + ValidationRules.validName + ")"); 
 		Pattern nameInfixOp =  Pattern.compile("^(" + ValidationRules.validInfixOp + ")"); 
 		
+		List<String> listOperators = Arrays.asList(
+				mLang.getOr(),
+				mLang.getAnd(),
+				mLang.getImp()
+				);
 		
 		List<FOToken> listTokens = new ArrayList<FOToken>();
 		int ixPos = 0;
@@ -807,12 +799,21 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				continue;
 			}
 
-			if(strform.startsWith(mLang.getOr(), ixPos) || strform.startsWith(mLang.getAnd(), ixPos))
+			boolean breakLoopAfterLogicalOp = false;
+			for(String operator : listOperators)
 			{
-				listTokens.add(new FOToken(FOToken.Type.LOGICAL_OP, strform.substring(ixPos, ixPos + 1)));
-				ixPos++;
-				continue;
+				if(strform.startsWith(operator, ixPos))
+				{
+					listTokens.add(new FOToken(FOToken.Type.LOGICAL_OP, strform.substring(ixPos, ixPos + operator.length())));
+					ixPos += operator.length();
+					breakLoopAfterLogicalOp = true;
+					break;
+				}
+				if(breakLoopAfterLogicalOp)
+					break;
 			}
+			if(breakLoopAfterLogicalOp)
+				continue;
 
 			if(strform.startsWith("_", ixPos))
 			{

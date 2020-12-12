@@ -107,6 +107,9 @@ public class FOAliasByRecursionImplTest
 		
 		testFormula(structure, "add(c1, c2, c3)", true, null);
 		testFormula(structure, "add(c1, c0, c1)", true, null);
+		testFormula(structure, "add((c1 + c2), c0, c3)", true, null);
+		testFormula(structure, "add(c1 + c2, c0, c3)", true, "add((c1 + c2), c0, c3)");
+		testFormula(structure, "add(c1 + c0, c0 + c1, c1 + c1)", true, "add((c1 + c0), (c0 + c1), (c1 + c1))");
 	}
 
 	@Test

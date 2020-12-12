@@ -315,7 +315,8 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		static enum SubType
 		{
 			OR,
-			AND
+			AND,
+			IMP // implication
 		}
 		
 		final protected List<FOFormula> mFormulas;
