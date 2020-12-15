@@ -19,6 +19,7 @@ import fopas.basics.FOVariable;
  * Alias allows a formula to be named, and possibly used multiple time in another formula.
  * Also some simple sanity checks for the alias to make sure the arg variables are in the formula.
  */
+// Definition of an "alias" is on Friendly p.127
 public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements FOAlias
 {
 	protected FOFormulaByRecursionImpl mScopeForm;
@@ -130,6 +131,9 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 				assert asg != null; // All variables should be assigned by this point.
 				mappedAssignment.put(mBoundFormula.getListArgs().get(i), asg);
 			}
+			
+			//TODO: Need to start a new assignment round here with the free variables given an assignment.
+			//TODO: Should cache the free variables during the bind creation since this is root level at that point.
 			
 			boolean satisfied = mBoundFormula.checkAssignment(structure, mappedAssignment);
 			

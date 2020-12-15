@@ -3,9 +3,11 @@ package fopas;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
@@ -195,9 +197,9 @@ public class FOAliasByRecursionImplTest
 				builder.buildAlias(structure, 
 						"map_choices",
 							Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("y0"), new FOVariableImpl("y1")),
-						"¬(_x = c0 | _x = c1) |"
-+ 	" ¬(¬(_x = c0) | ¬(_y = _y0)) |"
-+ 	" ¬(¬(_x = c1) | ¬(_y = _y1))")
+							"¬(_x = c0 | _x = c1) |"
+						+ 	" ¬(¬(_x = c0) | ¬(_y = _y0)) |"
+						+ 	" ¬(¬(_x = c1) | ¬(_y = _y1))")
 				);
 		
 		// (map_choices(x, y, c3, c2) & (x = 0)) -> (y = c3)
@@ -215,7 +217,7 @@ public class FOAliasByRecursionImplTest
 	}
 
 	@Test
-	public void testSimpleArithmetics() throws FOConstructionException
+	public void testSimpleArithmeticsUsingRecursion() throws FOConstructionException
 	{
 		FOStructure structure = createSimpleStructure();
 		
@@ -226,11 +228,8 @@ public class FOAliasByRecursionImplTest
 						Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")), "_x = (_y + _z)")				
 				);
 
-		// Define: x * y = z
-		// multiply(x, y, z) :-
-		// (((x = 0) -> (_z = c0)) & 		% base case 0
-		// ((x = 1) -> (_z = _y))) |		% base case 1
-		// (substract(_x, c1, _x1) & (multiply(_x1, _y, _z1) & (_z = (_z1 + _y)))) % recursive case
+		// Define: x * y = z as multiply(x, y, z) 
+		// This implements multiplication using only the existing addition function recursively.
 		FOAlias formAlias = builder.buildAlias(structure, 
 				"multiply",
 				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
@@ -260,4 +259,69 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "multiply(c4, c3, c2)", true, null); // 4*3 mode 5=12 mod 5=2
 		testFormula(structure, "multiply(c3, c4, c2)", true, null); // 3*4 mode 5=12 mod 5=2
 	}
+	
+	@Test
+	public void testSimpleArithmeticsUsingConstructionSequence() throws FOConstructionException
+	{
+//		FOStructure structure = createSimpleStructure();
+//		
+//		// This defines: x - y = z
+//		structure.addAlias(
+//				builder.buildAlias(structure, 
+//						"Substract",
+//						Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")), "_x = (_y + _z)")				
+//				);
+//
+//		structure.addAlias(
+//				builder.buildAlias(structure, 
+//						"MultConstruction",
+//						FOStructureImpl.createVarArgs("y, s1, s2"),
+//						"_s2 = (_s1 + _y)")
+//				);
+//
+//		structure.addAlias(
+//				builder.buildAlias(structure, 
+//						"MultBase",
+//						FOStructureImpl.createVarArgs("s"),
+//						"_s = c0")
+//				);
+//
+//		structure.addAlias(
+//				builder.buildAlias(structure, 
+//						"ConstructionSeq",
+//						FOStructureImpl.createVarArgs("x, y, z"),
+//						"_s2 = (_s1 + _y)")
+//				);
+//
+//		// Define: x * y = z as Multiply(x, y, z) 
+//		// This implements multiplication using only the existing addition function recursively.
+//		FOAlias formAlias = builder.buildAlias(structure, 
+//				"Multiply",
+//				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
+//					"(_x = c0 -> _z = c0)"
+//				+ 	"& (_x = c1 -> _z = _y)"
+//				+   "& (forall _x1)((forall _z1)(¬(_x = c0) & ¬(_x = c1) & Substract(_x, c1, _x1) & Multiply(_x1, _y, _z1) -> _z = _z1 + _y))"
+//				);
+//		
+//		structure.addAlias(formAlias);
+//	
+//		//Base case 0
+//		testFormula(structure, "Multiply(c0, c2, c0)", true, null);
+//		testFormula(structure, "Multiply(c0, c2, c2)", false, null);
+//
+//		//Base case 1
+//		testFormula(structure, "Multiply(c1, c2, c2)", true, null);
+//		testFormula(structure, "Multiply(c1, c3, c3)", true, null);
+//		testFormula(structure, "Multiply(c1, c2, c1)", false, null);
+//
+//		// Recursive case
+//		testFormula(structure, "Multiply(c2, c0, c0)", true, null);
+//		testFormula(structure, "Multiply(c2, c1, c0)", false, null);
+//		testFormula(structure, "Multiply(c2, c1, c2)", true, null);
+//		testFormula(structure, "Multiply(c2, c2, c4)", true, null);
+//		testFormula(structure, "Multiply(c4, c4, c1)", true, null); // 4*4 mode 5=16 mod 5=1
+//		testFormula(structure, "Multiply(c4, c4, c0)", false, null); 
+//		testFormula(structure, "Multiply(c4, c3, c2)", true, null); // 4*3 mode 5=12 mod 5=2
+//		testFormula(structure, "Multiply(c3, c4, c2)", true, null); // 3*4 mode 5=12 mod 5=2
+	}	
 }

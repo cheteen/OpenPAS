@@ -484,7 +484,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			listPartTokens = tokens;
 		
 		// builtTokens should contain a single formula for a part with all parts from this anchor down (in precedence) built already. 
-		return buildSingleFormulaOrTerm(listPartTokens, isNegated, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
+		return buildSingleExpression(listPartTokens, isNegated, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 	}
 	
 	private List<List<FOToken>> splitTokens(List<FOToken> tokens, FOToken anchor) throws FOConstructionException
@@ -520,7 +520,20 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		tokens.add(ixStart, subformula);
 	}
 
-	private FOToken buildSingleFormulaOrTerm(List<FOToken> tokens, boolean isNegated,
+	/**
+	 * This will create a token that contains a formula or a term.
+	 * @param tokens The tokens should contain the description of a single formula or a term.
+	 * @param isNegated
+	 * @param mapRels
+	 * @param mapInfixRels
+	 * @param mapFuns
+	 * @param mapInfixFuns
+	 * @param mapConstants
+	 * @param mapAliases
+	 * @return
+	 * @throws FOConstructionException
+	 */
+	private FOToken buildSingleExpression(List<FOToken> tokens, boolean isNegated,
 			Map<String, FORelation<FOElement>> mapRels, Map<String, FORelation<FOElement>> mapInfixRels,
 			Map<String, FOFunction> mapFuns, Map<String, FOFunction> mapInfixFuns, Map<String, FOConstant> mapConstants,
 			Map<String, FOFormula> mapAliases) throws FOConstructionException
@@ -610,7 +623,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				impPair.add(tokFold.args.get(0).subformula.negate());
 				impPair.add(tokFold.args.get(1).subformula);
 
-				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, impPair);
+				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, impPair, FOFormulaByRecursionImpl.FOFormulaBROr.SubType.IMP);
 			}
 			else
 				throw new FOConstructionException("Unexpected logical op found: " + tokAnchor.value); // this should never happen.

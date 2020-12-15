@@ -1,8 +1,11 @@
 package fopas;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,8 +33,6 @@ class FOStructureImpl implements FOStructure
 	final protected Set<FORelation<FOElement>> mRelations;
 	final protected Set<FOFunction> mFuns;
 	final protected Map<String, FOFormula> mAliasMapping;
-	
-	transient FOFormula mFreeVars;
 	
 	FOStructureImpl(FOSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
 	{
@@ -121,5 +122,14 @@ class FOStructureImpl implements FOStructure
 
 		if(existing != null)
 			throw new FOConstructionException("Tring to recreate existing alias: " + formAlias.getName());
+	}
+	
+	static List<FOVariable> createVarArgs(String argsString)
+	{
+		String[] argStrings = argsString.split(",");
+		List<FOVariable> listVars = new ArrayList<>();
+		for(int i = 0; i < argStrings.length; ++i)
+			listVars.add(new FOVariableImpl(argStrings[i].trim()));
+		return listVars;
 	}
 }

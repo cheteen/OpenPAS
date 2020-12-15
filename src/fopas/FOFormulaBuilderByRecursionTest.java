@@ -311,6 +311,8 @@ public class FOFormulaBuilderByRecursionTest {
 		FOStructure structure = createSimpleStructure();
 		
 		testFormula(structure, "_v = c0 -> (_v + c1) = c1", true, "(¬(_v = c0) | ((_v + c1) = c1))", false);
+		testFormula(structure, "_v = c0 -> (_v + c1) = c1", true, "((_v = c0) -> ((_v + c1) = c1))");
+		testFormula(structure, "c0 = c0 & c1 = c0 | c0 = c1 -> c1 = c1", true, "((((c0 = c0) & (c1 = c0)) | (c0 = c1)) -> (c1 = c1))");
 	}
 	
 	@Test

@@ -1,5 +1,6 @@
 package fopas;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import fopas.FOFormulaByRecursionImpl.FOFormulaBROr.SubType;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
+import fopas.basics.FORuntimeException;
 import fopas.basics.FOStructure;
 import fopas.basics.FOTerm;
 import fopas.basics.FOVariable;
@@ -45,6 +47,18 @@ public class FOByRecursionStringiser
 						return null; // This should never throw really.
 					}
 				});				
+			}
+			else if(getSubType() == SubType.IMP)
+			{
+				if(mFormulas.size() != 2)
+					throw new FORuntimeException("Incorrectly created formula found.");
+				try
+				{
+					return FluentIterable.from(Arrays.asList(mFormulas.get(0).negate(), mFormulas.get(1)));
+				} catch (FOConstructionException e)
+				{
+					throw new FORuntimeException("Incorrectly created formula found - cannot negate.");
+				}
 			}
 			else
 				return super.getFormulas();
@@ -132,6 +146,8 @@ public class FOByRecursionStringiser
 				sb.append(" ");
 				if(recformor.presentSubType() == SubType.OR)
 					sb.append(mLang.getOr());
+				else if(recformor.presentSubType() == SubType.IMP)
+					sb.append(mLang.getImp());
 				else
 					sb.append(mLang.getAnd());
 				sb.append(" ");
