@@ -72,7 +72,7 @@ public class FOAliasByRecursionImplTest
 		FOSet<FOElement> universe = new FOBridgeSet<>("SOMEINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three, four)));		
 		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
-		FOFunction funaddmod5 = new FOInternalIntFunctions.FOInternalSumModulus(5);
+		FOFunction funaddmod5 = new FOFunctionsInternalInt.FOInternalSumModulus(5);
 		
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod5)));
 		structure.setConstantMapping(c0, zero);

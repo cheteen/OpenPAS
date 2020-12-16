@@ -242,7 +242,7 @@ public class FOFormulaByRecursionImplTest {
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(zero, one, two, three)));
 		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
-		FOFunction funaddmod4 = new FOInternalIntFunctions.FOInternalSumModulus(4);
+		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);
 
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
 		structure.setConstantMapping(c0, zero);

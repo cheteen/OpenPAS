@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -107,10 +108,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			this.type = type;
 			this.value = value;
 		}
-		FOToken(Type type, FOFormula subformula)
+		FOToken(FOFormula subformula)
 		{
-			this.type = type;
-			assert type == Type.COMP_SUBFORMULA;
+			this.type = Type.COMP_SUBFORMULA;
 			this.subformula = subformula;
 		}
 		FOToken(FOTerm term)
@@ -118,10 +118,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			this.type = Type.COMP_TERM;
 			this.term = term;
 		}
-		FOToken(Type type, FOTokenScope tokenScope)
+		FOToken(FOTokenScope tokenScope)
 		{
-			this.type = type;
-			assert type == Type.COMP_SCOPE;
+			this.type = Type.COMP_SCOPE;
 			this.tokenScope = tokenScope;
 		}
 		FOToken(FOToken foldAnchor, List<FOToken> args)
@@ -245,7 +244,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		{
 			if(fun.getInfix() != null)
 				mapInfixFuns.put(fun.getInfix(), fun);			
-			mapFuns.put(fun.getName(), fun);
+			mapFuns.put(fun.getName(), ((FOFunctionImpl) fun).inversePresentInfix());
 		}
 		
 		for(FOConstant foconst : structure.getConstants())
@@ -289,6 +288,15 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		
 		buildMaps(structure, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
+		TreeMap<Integer, FOToken> anchors = new TreeMap<>();
+		anchors.put(mLang.getPrecedenceAnd(), new FOToken(Type.LOGICAL_OP, mLang.getAnd()));
+		anchors.put(mLang.getPrecedenceOr(), new FOToken(Type.LOGICAL_OP, mLang.getOr()));
+		anchors.put(mLang.getPrecedenceImp(), new FOToken(Type.LOGICAL_OP, mLang.getImp()));
+		for(FORelation<? extends FOElement> inrel : mapInfixRels.values())
+			anchors.put(inrel.getPrecedence(), new FOToken(Type.INFIX_RELATION_OP, inrel.getInfix()));
+		for(FOFunction infun : mapInfixFuns.values())
+			anchors.put(infun.getPrecedence(), new FOToken(Type.INFIX_FUNCTION_OP, infun.getInfix()));
+		
 		FOAliasByRecursionImpl formAlias = null;
 		if(aliasName != null)
 		{
@@ -299,7 +307,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		List<FOToken> tokens = parseTokens(strform, structure, mapRels, mapInfixRels,
 				mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
-		FOToken finalToken = buildParentheses(tokens, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, false);
+		FOToken finalToken = buildParentheses(tokens, false, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, anchors);
 		if(finalToken == null)
 			throw new FOConstructionException("Did not find a valid formula to build.");
 		
@@ -318,13 +326,14 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	 * Build the subformula that's between parentheses.
 	 */
 	FOToken buildParentheses(List<FOToken> tokens,
+			boolean isNegated,
 			Map<String, FORelation<FOElement>> mapRels,
 			Map<String, FORelation<FOElement>> mapInfixRels,
 			Map<String, FOFunction> mapFuns,
 			Map<String, FOFunction> mapInfixFuns,
 			Map<String, FOConstant> mapConstants,
 			Map<String, FOFormula> mapAliases,
-			boolean isNegated
+			TreeMap<Integer, FOToken> anchors
 			) throws FOConstructionException
 	{
 		for(int ixStart = 0; ixStart < tokens.size(); ++ixStart)
@@ -376,7 +385,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				if(groupType == null)
 				{
 					FOToken compToken = buildParentheses(new ArrayList<>(tokens.subList(paraInStart, ixEnd)),
-							mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, subNegation);					
+							subNegation, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, anchors);					
 					assert compToken != null; // this is either a formula or a term
 					replaceTokens(tokens, ixStart, ixEnd + 1, compToken);
 				}
@@ -389,7 +398,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					{
 						for(List<FOToken> arg : listArgs)
 						{
-							FOToken tokArg = buildParentheses(arg, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, isNegated);
+							FOToken tokArg = buildParentheses(arg, isNegated, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, anchors);
 							if(tokArg == null)
 								throw new FOConstructionException("Error constructing arg.");
 							if(tokArg.type != Type.COMP_TERM)
@@ -400,7 +409,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					else
 					{
 						FOToken tokArg = buildParentheses(new ArrayList<>(tokens.subList(paraInStart, ixEnd)),
-								mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, isNegated);						
+								isNegated, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, anchors);						
 						if(tokArg == null)
 							throw new FOConstructionException("Error constructing arg.");
 						listFolding.add(tokArg);
@@ -428,18 +437,12 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				throw new FOConstructionException("Unexpected token found in command scope.");
 			
 			FOVariable variable = new FOVariableImpl(scopeTokenVariable.value);
-			return new FOToken(Type.COMP_SCOPE, new FOTokenScope(variable, isNegated));
+			return new FOToken(new FOTokenScope(variable, isNegated));
 		}
 		
 		// By this point we are inside any parentheses, so we can start examining infix ops.
 		// Process ops in decreasing precedence, e.g. a & b | c <-> (a & b) | c
-		List<FOToken> infixOps = Arrays.asList(
-				new FOToken(Type.LOGICAL_OP, mLang.getImp()), 
-				new FOToken(Type.LOGICAL_OP, mLang.getOr()), 
-				new FOToken(Type.LOGICAL_OP, mLang.getAnd()),
-				new FOToken(Type.INFIX_RELATION_OP, "="),
-				new FOToken(Type.INFIX_FUNCTION_OP, "+")
-				);
+		List<FOToken> infixOps = new ArrayList<>(anchors.values());
 		return buildParts(tokens, isNegated, infixOps, 0,
 				mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 	}
@@ -555,9 +558,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		}
 		
 		if(isNegated)
-			return new FOToken(Type.COMP_SUBFORMULA, new FOFormulaByRecursionImpl.FOFormulaBROr(true, Arrays.asList(formula)));
+			return new FOToken(new FOFormulaByRecursionImpl.FOFormulaBROr(true, Arrays.asList(formula)));
 		else
-			return new FOToken(Type.COMP_SUBFORMULA, formula);
+			return new FOToken(formula);
 	}
 
 	/**

@@ -228,21 +228,24 @@ public class FOByRecursionStringiser
 			break;
 		case FUNCTION:
 			FOTermByRecursionImpl.FOTermFunction rectermfun = (FOTermByRecursionImpl.FOTermFunction) term;
-			String infix = rectermfun.getFunction().getInfix();
+			String sep = rectermfun.getFunction().getInfix();
 			Iterable<FOTerm> terms = rectermfun.getTerms();
 			Iterator<FOTerm> termit = terms.iterator();
-			if(infix == null)
+			FOFunctionImpl funimpl = (FOFunctionImpl) rectermfun.getFunction();
+			boolean isExplicit = sep == null || !funimpl.presentInfix();
+			if(isExplicit)
 			{
 				sb.append(rectermfun.getFunction().getName());
-				infix = ","; // don't have an infix but an explicit function call, so "," acts like an infix.
+				sep = ","; // don't have an infix but an explicit function call, so "," acts like an infix.
 			}
 			sb.append("(");				
 			FOTerm interm = termit.next();
 			stringiseFOTerm(interm, maxLen, sb);
 			while(termit.hasNext())
 			{
-				sb.append(" ");
-				sb.append(infix);
+				if(!isExplicit)
+					sb.append(" ");
+				sb.append(sep);
 				sb.append(" ");
 				interm = termit.next();
 				stringiseFOTerm(interm, maxLen, sb);

@@ -142,7 +142,7 @@ public class FOStructureImplTest {
 		{
 			FOTermByRecursionImpl.FOTermFunction term_addition =
 					new FOTermByRecursionImpl.FOTermFunction(
-							new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_var1, term_constant0));
+							new FOFunctionsInternalInt.FOInternalSumModulus(4), Arrays.asList(term_var1, term_constant0));
 
 			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant0));
 
@@ -158,7 +158,7 @@ public class FOStructureImplTest {
 			// (_v1 + _v2 + _v3)
 			FOTermByRecursionImpl.FOTermFunction term_addition =
 					new FOTermByRecursionImpl.FOTermFunction(
-							new FOInternalIntFunctions.FOInternalSumModulus(4), Arrays.asList(term_var1, term_var2, term_var3));
+							new FOFunctionsInternalInt.FOInternalSumModulus(4), Arrays.asList(term_var1, term_var2, term_var3));
 
 			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant3));
 			

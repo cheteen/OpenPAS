@@ -2,6 +2,7 @@ package fopas;
 
 import java.util.function.Predicate;
 
+import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FORelation;
@@ -52,6 +53,12 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		{
 			return "=";
 		}
+
+		@Override
+		public int getPrecedence()
+		{
+			return 2000;
+		}
 	}
 
 	/**
@@ -94,6 +101,12 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		{
 			return mSet;
 		}
+
+		@Override
+		public int getPrecedence()
+		{
+			return 2250;
+		}
 	}
 	
 	static class FORelationCompare<T extends FOInteger> extends FORelationImpl<T>
@@ -135,6 +148,12 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		public int getCardinality()
 		{
 			return 2;
+		}
+
+		@Override
+		public int getPrecedence()
+		{
+			return 2500;
 		}		
 	}
 	
@@ -195,6 +214,12 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		public FOInteger getAnchor2()
 		{
 			return mInt2;
+		}
+
+		@Override
+		public int getPrecedence() throws FOConstructionException
+		{
+			throw new FOConstructionException("Unexpected operation found.");
 		}
 	}
 }

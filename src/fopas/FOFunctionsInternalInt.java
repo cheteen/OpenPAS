@@ -9,15 +9,29 @@ import fopas.basics.FOFunction;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOStructure;
 
-abstract class FOInternalIntFunctions implements FOFunction 
+abstract class FOFunctionsInternalInt extends FOFunctionImpl
 {
-	static class FOInternalSumModulus extends FOInternalIntFunctions
+	protected final boolean mPresentInfix;
+	FOFunctionsInternalInt(boolean presentInfix)
+	{
+		mPresentInfix = presentInfix;		
+	}
+	
+	boolean presentInfix() { return mPresentInfix; }
+	
+	static class FOInternalSumModulus extends FOFunctionsInternalInt
 	{
 		protected final int mModulus;
 		
 		FOInternalSumModulus(int modulus)
 		{
+			this(modulus, true);
+		}
+		
+		FOInternalSumModulus(int modulus, boolean presentInfix)
+		{
 			//TODO: Validate name here.
+			super(presentInfix);
 			mModulus = modulus;
 		}
 		
@@ -50,6 +64,18 @@ abstract class FOInternalIntFunctions implements FOFunction
 		public String getInfix()
 		{
 			return "+";
+		}
+
+		@Override
+		public int getPrecedence()
+		{
+			return 3000;
+		}
+
+		@Override
+		public FOFunction inversePresentInfix()
+		{
+			return new FOInternalSumModulus(mModulus, !mPresentInfix);
 		}
 	}
 

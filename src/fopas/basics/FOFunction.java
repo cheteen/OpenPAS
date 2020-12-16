@@ -18,4 +18,6 @@ public interface FOFunction
 	 * @return
 	 */
 	String getInfix();
+	
+	int getPrecedence();	
 }

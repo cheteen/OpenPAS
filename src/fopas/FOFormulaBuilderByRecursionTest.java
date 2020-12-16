@@ -156,7 +156,7 @@ public class FOFormulaBuilderByRecursionTest {
 		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
 		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
 		
-		FOFunction funaddmod4 = new FOInternalIntFunctions.FOInternalSumModulus(4);
+		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);
 		
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
 		structure.setConstantMapping(c0, zero);
@@ -201,24 +201,12 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "c3 = c1 + c2", true, "(c3 = (c1 + c2))");
 		testFormula(structure, "c0 = (c1 + c1 + c1 + c1)", true, "(%s)");
 		
-		//TODO: Need a way to deal with such functions, and in particular arg lists.
-		//TODO: Probably need to stop processing of parenthesis for prefix relations and relations, and deal with them separately.
-		// likely as part of the parenthesis construction. Use buildParts to build comma separated terms, and throw if it's a formula.
-		//TODO: When I do this I should change construcTerm to no longer need pf, and add size checks for sanity (e.g. a variable is 1 long).
-		//TODO: Do combined pre- infix things.
-		//TODO: Simplyfy things as much as possible.
-		//TODO: Can't I massively simplify all of this by introducing a token fold? A primary anchor token, and folded tokens. 
-		// This way comma can become another separator like the others, and we keep the processing simple.
-		// buildFormula and buildTerm functions become much simpler using token folds.
-		
 		// Kept above as archive, new to do:
-		// TODO: Probably don't need separate constructformula and term at this point, merge them or fortify/refactor terms one at least.
 		// TODO: need present mode for functions too it seems, how do I do this? infix + vs sum.
 		// TODO: Should splitTokens return a single item list instead? It may simplfiy things further.
-		// TODO: Refactor tokens a little to remove inconsistent constructors.
 		// TODO: And yeah, document how this stuff works a little esp the tokens probably inpregnable at this point.
-		// TODO: Negation should be a prefix op fold.
-		testFormula(structure, "c3 = sum(c1, c2)", true, "(c3 = (c1 + c2))");
+		// TODO: Negation and forall should be a prefix op fold.
+		testFormula(structure, "c3 = sum(c1, c2)", true, "(%s)");
 	}
 
 	

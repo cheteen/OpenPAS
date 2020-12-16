@@ -11,4 +11,6 @@ public interface FORelation <T extends FOElement>
 	 * @return -1 for any cardinality, >0 otherwise.
 	 */
 	int getCardinality();
+	
+	int getPrecedence() throws FOConstructionException;
 }
