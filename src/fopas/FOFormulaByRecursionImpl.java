@@ -89,6 +89,13 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 			}
 		};
 	}
+	
+	@Override
+	public void checkFormula(FOStructure structure) throws FOConstructionException
+	{
+		// This triggers all the checks needed.
+		findFreeVars();
+	}
 
 	static class FOSatisfactionIterator implements Iterator<Map<FOVariable, FOElement>>
 	{

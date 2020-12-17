@@ -312,6 +312,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			throw new FOConstructionException("Did not find a valid formula to build.");
 		
 		FOFormula form = finalToken.subformula;
+		form.checkFormula(structure); // don't allow invalid formulas to be created.
 		
 		if(formAlias != null)
 		{
@@ -639,16 +640,32 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			// Like the above case, at this point all subformulas should already have been created as composite tokens,
 			// let's wrap them.
 
-			FOToken tokScope = tokens.get(ixToken);
-			FOVariable variable = tokScope.tokenScope.scopeVar;
+			List<FOTokenScope> scopes = new ArrayList<>();
+			scopes.add(tokens.get(ixToken).tokenScope);
 			ixToken++;
 
-			FOToken tokScopeFormula = tokens.get(ixToken); 
+			// Consume the rest of the scopes if there are any.
+			for(FOToken tokInScope = tokens.get(ixToken); tokInScope.type == Type.COMP_SCOPE; tokInScope = tokens.get(++ixToken))
+				scopes.add(tokInScope.tokenScope);
+			
+			FOToken tokInScope = tokens.get(ixToken);
+			if(tokInScope.type != Type.COMP_SUBFORMULA)
+				throw new FOConstructionException("Expected scoped formula not found: " + tokInScope.value);
 			ixToken++;
-			if(tokScopeFormula.type != Type.COMP_SUBFORMULA)
-				throw new FOConstructionException("Expected scoped formula not found: " + tokScopeFormula.value);
 
-			form = new FOFormulaByRecursionImpl.FOFormulaBRForAll(isNegated ^ tokScope.tokenScope.isNegated, variable, tokScopeFormula.subformula);
+			// We apply the outer negation to the first scope only, and need to construct this
+			// from the end back to the front.
+			FOFormula subForm = tokInScope.subformula;
+			for(int i = scopes.size() - 1; i >= 0; i--)
+			{
+				FOTokenScope tokenScope = scopes.get(i);
+				FOVariable variable = tokenScope.scopeVar;
+				subForm = new FOFormulaByRecursionImpl.FOFormulaBRForAll(
+						(i == 0 & isNegated) ^ tokenScope.isNegated, variable, subForm);				
+			}
+			
+			// The last subForm after a possible succession of scopes is the final formula.
+			form = subForm;
 		}
 		else if(tokens.get(ixToken).type == Type.FOLD &&
 				(

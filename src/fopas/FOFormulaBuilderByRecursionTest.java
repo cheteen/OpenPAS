@@ -186,6 +186,19 @@ public class FOFormulaBuilderByRecursionTest {
 		
 		Assert.assertEquals(expectSatisfaction, structure.models(form));
 	}
+	
+	private void testThrows(FOStructure structure, String strFormula, String expContains)
+	{
+		try
+		{
+			builder.buildFormula(strFormula, structure);
+		} catch (FOConstructionException e)
+		{
+			Assert.assertTrue(e.toString().contains(expContains));
+			return;
+		}
+		Assert.fail("Expected exception not found.");
+	}
 
 	@Test
 	public void testBuildSimpleFormulas() throws FOConstructionException
@@ -202,10 +215,9 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "c0 = (c1 + c1 + c1 + c1)", true, "(%s)");
 		
 		// Kept above as archive, new to do:
-		// TODO: need present mode for functions too it seems, how do I do this? infix + vs sum.
-		// TODO: Should splitTokens return a single item list instead? It may simplfiy things further.
+		// TODO: Unrecognised operators should throw, not default.
+		// TODO: Negation and forall should really be a prefix op fold.
 		// TODO: And yeah, document how this stuff works a little esp the tokens probably inpregnable at this point.
-		// TODO: Negation and forall should be a prefix op fold.
 		testFormula(structure, "c3 = sum(c1, c2)", true, "(%s)");
 	}
 
@@ -230,6 +242,8 @@ public class FOFormulaBuilderByRecursionTest {
 
 		testFormula(structure, "(forall _v1)(_v1 = c1)", false, null);
 		testFormula(structure, "(forall _v1)(c1 = c1)", true, null);
+		testFormula(structure, "¬(forall _v1)(c1 = c1)", false, null);
+		testThrows(structure, "(forall _v1) c1 = c1", "Expected scoped formula not found");
 		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c2)", false, "(%s)");
 		testFormula(structure, "(forall _v1)(c1 = c2) | (forall _v1)(c1 = c1)", true, "(%s)");
 		testFormula(structure, "(forall _v1)((_v1 = c0) | (_v1 = c1) | (_v1 = c2) | (_v1 = c3))", true, null);
@@ -238,6 +252,15 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "¬(forall _v1)¬(_v1 = c1)", true, null);
 		// Double negation of forall directly via surrounding parenthesis is swallowed.
 		testFormula(structure, "¬(¬(forall _v1)¬(c0 = c1))", true, "(forall _v1)¬(c0 = c1)");
+		
+		// Test multiple scopes
+		testFormula(structure, "(forall _v1)(forall _v2)(forall _v3)(c1 = c1)", true, null);
+		testThrows(structure, "(forall _v1)(forall _v1)(c1 = c1)", "Variable name collision");
+		// Exists at least one case v1 = v2.
+		// The following is interpreted as: "¬(forall _v1)((forall _v2)¬(_v1 = _v2))"
+		// Hence it becomes: "¬((forall _v1)(forall _v2)¬(_v1 = _v2))"
+		// Which is: "(exists _v1)(_exists _v2)(_v1 = _v2)"
+		testFormula(structure, "¬(forall _v1)(forall _v2)¬(_v1 = _v2)", true, null);
 	}
 	
 	@Test

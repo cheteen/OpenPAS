@@ -18,6 +18,7 @@ public interface FOFormula
 	boolean isNegated();
 	boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment);
 	boolean models(FOStructure structure) throws FOConstructionException;
+	void checkFormula(FOStructure structure) throws FOConstructionException;
 	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure) throws FOConstructionException;
 	FOFormula negate() throws FOConstructionException;
 //	Iterator<Expression<LogicalOr>> iterateAsCNF();
