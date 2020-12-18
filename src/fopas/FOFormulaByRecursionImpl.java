@@ -394,13 +394,26 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 	
 	static class FOFormulaBRForAll extends FOFormulaByRecursionImpl
 	{
+		enum ForAllSubtype
+		{
+			FOR_ALL,
+			EXISTS
+		}
+		final protected ForAllSubtype mSubtype;
 		final protected FOVariable mVar;
 		final protected FOFormula mScopeFormula;
+
 		FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormula scopeFormula)
+		{
+			this(isNegated, var, scopeFormula, ForAllSubtype.FOR_ALL);
+		}
+		
+		FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormula scopeFormula, ForAllSubtype subtype)
 		{
 			super(isNegated);
 			mVar = var;
 			mScopeFormula = scopeFormula;
+			mSubtype = subtype;
 		}
 		
 		@Override
@@ -464,6 +477,11 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		public FOFormula negate()
 		{
 			return new FOFormulaByRecursionImpl.FOFormulaBRForAll(!mNegated, mVar, mScopeFormula);
+		}
+		
+		ForAllSubtype getSubtype()
+		{
+			return mSubtype;
 		}
 	}
 }

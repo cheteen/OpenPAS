@@ -15,6 +15,7 @@ import com.google.common.collect.Lists;
 
 import fopas.FOFormulaBuilderByRecursion.FOToken.Type;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll;
+import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll.ForAllSubtype;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBROr;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBRRelation;
 import fopas.FOFormulaByRecursionImpl.FormulaType;
@@ -162,10 +163,11 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			this.type = Type.COMP_TERM;
 			this.term = term;
 		}
-		FOToken(FOTokenScope tokenScope)
+		FOToken(FOTokenScope tokenScope, String value)
 		{
 			this.type = Type.COMP_SCOPE;
 			this.tokenScope = tokenScope;
+			this.value = value;
 		}
 		FOToken(FOToken foldAnchor, List<FOToken> args)
 		{
@@ -466,7 +468,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			int ixTok = 0;
 			FOToken token = tokens.get(ixTok);
 			ixTok++;
-			assert token.value.equals("forall");
+			
+			if(!token.value.equals(mLang.getForAll()) && !token.value.equals(mLang.getExists()))
+				throw new FOConstructionException("Unexpected scope command found: " + token.value);
 			
 			if(tokens.get(ixTok).type != Type.VARIABLE)
 				throw new FOConstructionException("Expected variable not found for command scope.");
@@ -477,7 +481,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				throw new FOConstructionException("Unexpected token found in command scope.");
 			
 			FOVariable variable = new FOVariableImpl(scopeTokenVariable.value);
-			return new FOToken(new FOTokenScope(variable, isNegated));
+			return new FOToken(new FOTokenScope(variable, isNegated), token.value);
 		}
 		
 		// By this point we are inside any parentheses, so we can start examining infix ops.
@@ -677,28 +681,43 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			// Like the above case, at this point all subformulas should already have been created as composite tokens,
 			// let's wrap them.
 
-			List<FOTokenScope> scopes = new ArrayList<>();
-			scopes.add(tokens.get(ixToken).tokenScope);
+			List<FOToken> scopes = new ArrayList<>();
+			scopes.add(tokens.get(ixToken));
 			ixToken++;
 
 			// Consume the rest of the scopes if there are any.
 			for(FOToken tokInScope = tokens.get(ixToken); tokInScope.type == Type.COMP_SCOPE; tokInScope = tokens.get(++ixToken))
-				scopes.add(tokInScope.tokenScope);
+				scopes.add(tokInScope);
 			
 			FOToken tokInScope = tokens.get(ixToken);
 			if(tokInScope.type != Type.COMP_SUBFORMULA)
 				throw new FOConstructionException("Expected scoped formula not found: " + tokInScope.value);
 			ixToken++;
-
+			
 			// We apply the outer negation to the first scope only, and need to construct this
 			// from the end back to the front.
 			FOFormula subForm = tokInScope.subformula;
 			for(int i = scopes.size() - 1; i >= 0; i--)
 			{
-				FOTokenScope tokenScope = scopes.get(i);
+				FOToken tokScope = scopes.get(i);
+				FOTokenScope tokenScope = tokScope.tokenScope;
+				ForAllSubtype subtype;
+				if(tokScope.value.equals(mLang.getForAll()))
+					subtype = ForAllSubtype.FOR_ALL;
+				else if(tokScope.value.equals(mLang.getExists()))
+				{
+					subtype = ForAllSubtype.EXISTS;
+					subForm = subForm.negate();
+				}
+				else
+				{
+					assert false; // should've been stopp at the tokeniser
+					throw new FOConstructionException("Unexpected scope command found.");
+				}
+				
 				FOVariable variable = tokenScope.scopeVar;
 				subForm = new FOFormulaByRecursionImpl.FOFormulaBRForAll(
-						(i == 0 & isNegated) ^ tokenScope.isNegated, variable, subForm);				
+						(i == 0 & isNegated) ^ tokenScope.isNegated ^ subtype == ForAllSubtype.EXISTS, variable, subForm, subtype);				
 			}
 			
 			// The last subForm after a possible succession of scopes is the final formula.
@@ -936,7 +955,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 					listTokens.add(new FOToken(Type.FUNCTION, name));
 					named = true;
 				}
-				else if(name.equals("forall"))
+				else if(name.equals(mLang.getForAll()) || name.equals(mLang.getExists()))
 				{
 					listTokens.add(new FOToken(Type.SCOPE_COMMAND, name));
 					named = true;

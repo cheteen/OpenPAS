@@ -252,10 +252,10 @@ public class FOFormulaBuilderByRecursionTest {
 		// Test multiple scopes
 		testFormula(structure, "(forall _v1)(forall _v2)(forall _v3)(c1 = c1)", true, null);
 		testThrows(structure, "(forall _v1)(forall _v1)(c1 = c1)", "Variable name collision");
-		// Exists at least one case v1 = v2.
-		// The following is interpreted as: "¬(forall _v1)((forall _v2)¬(_v1 = _v2))"
+		// "(exists _v1)(_exists _v2)(_v1 = _v2)"
+		// This follows from: (exists v1, v2, ...)(L) :- ¬(forall v1, v2, ...) (¬L)
+		// is "¬(forall _v1)¬(¬forall(¬(_v1 = _v2)))"
 		// Hence it becomes: "¬((forall _v1)(forall _v2)¬(_v1 = _v2))"
-		// Which is: "(exists _v1)(_exists _v2)(_v1 = _v2)"
 		testFormula(structure, "¬(forall _v1)(forall _v2)¬(_v1 = _v2)", true, null);
 	}
 	
@@ -331,4 +331,17 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "c1 + c0 = c0 & c1 + c2 = c3 | c1 = c1", true, "((((c1 + c0) = c0) & ((c1 + c2) = c3)) | (c1 = c1))");
 		testFormula(structure, "c1 + c0 = c0 & (c1 + c2 = c3 | c1 = c1)", false, "(((c1 + c0) = c0) & (((c1 + c2) = c3) | (c1 = c1)))");
 	}
+	
+
+	@Test
+	public void testExistsFormulas() throws FOConstructionException
+	{
+		FOStructure structure = createSimpleStructure();
+		
+		testFormula(structure, "(exists _v1)(_v1 = _c1)", true, "¬(forall _v1)¬(_v1 = _c1)", false);
+		testFormula(structure, "(exists _v1)(exists _v2)(_v1 = _v2)", true, "¬(forall _v1)(forall _v2)¬(_v1 = _v2)", false);
+
+		testFormula(structure, "(exists _v1)(_v1 = _c1)", true, null);
+}
+
 }

@@ -10,4 +10,7 @@ public class FOLanguage
 	
 	String getImp() { return "->"; }
 	int getPrecedenceImp() { return 1000; }
+	
+	String getForAll() { return "forall"; }
+	String getExists() { return "exists"; }
 }
