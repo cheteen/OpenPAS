@@ -214,10 +214,6 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "c3 = c1 + c2", true, "(c3 = (c1 + c2))");
 		testFormula(structure, "c0 = (c1 + c1 + c1 + c1)", true, "(%s)");
 		
-		// Kept above as archive, new to do:
-		// TODO: Unrecognised operators should throw, not default.
-		// TODO: Negation and forall should really be a prefix op fold.
-		// TODO: And yeah, document how this stuff works a little esp the tokens probably inpregnable at this point.
 		testFormula(structure, "c3 = sum(c1, c2)", true, "(%s)");
 	}
 

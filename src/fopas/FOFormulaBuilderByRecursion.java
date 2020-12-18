@@ -32,6 +32,50 @@ import fopas.basics.FOTerm;
 import fopas.basics.FOVariable;
 import fopas.basics.ValidationRules;
 
+/**
+ * This builder goes through several steps.
+ * 
+ * High level transformation goes like this: string -> simple tokens -> standard function/rel folds & scope tokens & some negations ->
+ *                                               parseTokens   buildParentheses
+ *                                               
+ *     -> a single negation at start & scope tokens & a standard or infix function/rel fold -> a single, composite, term or formula token
+ * buildParts                                                                      buildSingleExpression
+ * 
+ * Folds are an intermediate representation that makes it easier to build expressions (terms or formulas) by handing out the token
+ * parsing logic to buildParts function which knows how to parse _all_ infix operators using the common concept of precendence. There
+ * can be negations left amongst fold tokens when they're not negating parentheses.
+ * 
+ * 1) Tokeniser goes over the input string and using regular expressions identifies all various tokens. That variables start with "_"
+ * is a key differentiator here since we don't use variable declarations. All other things are declared, so the tokeniser
+ * checks them against the various declared things (function, infix function, relation, ...) to make sure they're known. We 
+ * recognise and support both infix and standard function calls, as well as infix and standard relations and infix logical operators.
+ * 
+ * 2) Once tokens are recognised, we go and try to build all parentheses recursively. Special treatments is made for argument lists and
+ * scope operators. Arg list is represented as a fold token. The rest when parsed depth-first, are sent buildParts.
+ * This recognises and swallows a preceding negation as a parameter. buildParts builds from the leaf backwards each time returning
+ * a token that contains a composite token that has a term or a formula in it. This way lists of tokens are converted into composite
+ * token, and the final built formula thatis returned is extracted out of the last remaining composite token. Of course the top level
+ * sentence is also built whether it's surrounded by parentheses or not.
+ * 
+ * buildParentheses processes and replaces each pair of parentheses, and the moves onto building parts in the transformed list of tokens
+ * using buildParts which by this point contains no parenthesis and expressions possibly separated by infix operators.
+ * 
+ * 3) buildParts expects to find a series of tokens possibly with infix operators between them (logica, function and relation). It parses
+ * all declared infix relation and infix functions as well as implicit infix logical operators ("->", "|", "&") dept-first. At the leaf it
+ * expects to find a single expression. This will either be a single already folded token for an expression, or an infix operator
+ * separated expression that's ready to be folded. After folding, this will become a valid formula or a valid term.
+ * It starts with trying to construct a formula, if that fails it tries to build the fold as term.
+ * 
+ * 4) constructFormula expects to find the tokens that make up a single formula. It's helped primarily by having everything that matters
+ * into folds by this point, so there's little complexity. constructFormula will return null if it fails which will happen
+ * if it finds a term.
+ * 
+ * 5) constructTerm is called when we definitely expect to find a single term in the list of tokens. This construction isn't recursive
+ * at this point. The construction of terms in terms is handle by the parenthesis construction where a term fold can be made of
+ * composite tokens containing terms.
+ *
+ * @author Burak Cetin
+ */
 public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 {
 	final FOLanguage mLang = new FOLanguage();
@@ -270,13 +314,6 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		return buildFormula(strform, structure, null, null);
 	}
 	
-	// This builder is better than the previous one, but still not happy about it.
-	// Need to possibly rewrite this in the future to:
-	// - Combine infix operations for logical ops and relations.
-	// - So that it recognises terms and formulas.
-	// - Then inherent precedens of the infix operators can decide whether we're building a term or a formula.
-	// - Each parenthesis pair is then processed using the above.
-	// - This way the constructFomula method doesn't have to return null which is very ugly.
 	public FOFormula buildFormula(String strform, FOStructure structure, String aliasName, List<FOVariable> aliasArgs) throws FOConstructionException
 	{
 		Map<String, FORelation<FOElement>> mapRels = new HashMap<>();
@@ -288,6 +325,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		
 		buildMaps(structure, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
+		// Process ops in decreasing precedence, e.g. a & b | c <-> (a & b) | c
 		TreeMap<Integer, FOToken> anchors = new TreeMap<>();
 		anchors.put(mLang.getPrecedenceAnd(), new FOToken(Type.LOGICAL_OP, mLang.getAnd()));
 		anchors.put(mLang.getPrecedenceOr(), new FOToken(Type.LOGICAL_OP, mLang.getOr()));
@@ -296,6 +334,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			anchors.put(inrel.getPrecedence(), new FOToken(Type.INFIX_RELATION_OP, inrel.getInfix()));
 		for(FOFunction infun : mapInfixFuns.values())
 			anchors.put(infun.getPrecedence(), new FOToken(Type.INFIX_FUNCTION_OP, infun.getInfix()));
+		List<FOToken> infixOps = new ArrayList<>(anchors.values());
 		
 		FOAliasByRecursionImpl formAlias = null;
 		if(aliasName != null)
@@ -307,7 +346,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		List<FOToken> tokens = parseTokens(strform, structure, mapRels, mapInfixRels,
 				mapFuns, mapInfixFuns, mapConstants, mapAliases);
 		
-		FOToken finalToken = buildParentheses(tokens, false, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, anchors);
+		FOToken finalToken = buildParentheses(tokens, false, mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases, infixOps);
 		if(finalToken == null)
 			throw new FOConstructionException("Did not find a valid formula to build.");
 		
@@ -334,7 +373,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			Map<String, FOFunction> mapInfixFuns,
 			Map<String, FOConstant> mapConstants,
 			Map<String, FOFormula> mapAliases,
-			TreeMap<Integer, FOToken> anchors
+			List<FOToken> anchors
 			) throws FOConstructionException
 	{
 		for(int ixStart = 0; ixStart < tokens.size(); ++ixStart)
@@ -442,9 +481,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		}
 		
 		// By this point we are inside any parentheses, so we can start examining infix ops.
-		// Process ops in decreasing precedence, e.g. a & b | c <-> (a & b) | c
-		List<FOToken> infixOps = new ArrayList<>(anchors.values());
-		return buildParts(tokens, isNegated, infixOps, 0,
+		return buildParts(tokens, isNegated, anchors, 0,
 				mapRels, mapInfixRels, mapFuns, mapInfixFuns, mapConstants, mapAliases);
 	}
 

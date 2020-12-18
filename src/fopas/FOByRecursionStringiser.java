@@ -60,8 +60,12 @@ public class FOByRecursionStringiser
 					throw new FORuntimeException("Incorrectly created formula found - cannot negate.");
 				}
 			}
+			else if(getSubType() == SubType.OR)
+			{
+				return super.getFormulas();				
+			}
 			else
-				return super.getFormulas();
+				throw new FORuntimeException("Unexpected logical op found!");
 		}
 		
 		@Override
@@ -148,8 +152,13 @@ public class FOByRecursionStringiser
 					sb.append(mLang.getOr());
 				else if(recformor.presentSubType() == SubType.IMP)
 					sb.append(mLang.getImp());
-				else
+				else if(recformor.presentSubType() == SubType.AND)
 					sb.append(mLang.getAnd());
+				else
+				{
+					sb.append("ERROR!");
+					return;
+				}
 				sb.append(" ");
 				stringiseFOFormula(nextform, maxLen, useExtended, sb);
 			}
