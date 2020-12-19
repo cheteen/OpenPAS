@@ -261,6 +261,11 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		return setFreeVars;
 	}
 	
+	boolean presentNegated()
+	{
+		return mNegated;
+	}	
+	
 	static class FOFormulaBRRelation extends FOFormulaByRecursionImpl
 	{
 		final protected FORelation<FOElement> mRel;
@@ -319,7 +324,7 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 
 	static class FOFormulaBROr extends FOFormulaByRecursionImpl
 	{
-		static enum SubType
+		static enum OrSubType
 		{
 			OR,
 			AND,
@@ -327,9 +332,9 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		}
 		
 		final protected List<FOFormula> mFormulas;
-		SubType mSubType;
+		OrSubType mSubType;
 		
-		FOFormulaBROr(boolean isNegated, List<FOFormula> formulas, SubType type)
+		FOFormulaBROr(boolean isNegated, List<FOFormula> formulas, OrSubType type)
 		{
 			super(isNegated);
 			mFormulas = formulas;
@@ -338,7 +343,7 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 
 		FOFormulaBROr(boolean isNegated, List<FOFormula> formulas)
 		{
-			this(isNegated, formulas, SubType.OR);
+			this(isNegated, formulas, OrSubType.OR);
 		}
 
 		@Override
@@ -349,11 +354,6 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 					return !mNegated; // If we find satisfaction at any point we can quit.
 			
 			return mNegated;
-		}
-		
-		Iterable<FOFormula> getFormulas()
-		{
-			return mFormulas;
 		}
 
 		@Override
@@ -377,7 +377,7 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		 * The type this formula wants to be when presented (e.g. turned to string) is this.
 		 * Subclass this to present other types, e.g. an AND sentence or a HORN clause.
 		 */
-		SubType getSubType()
+		OrSubType getOriginalSubType()
 		{
 			return mSubType;
 		}
@@ -386,10 +386,15 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		 * The type the interface variables work right now is like this. All implementations are presenting as ORs
 		 * in this class since OR is the only implementation defined.
 		 */
-		SubType presentSubType()
+		OrSubType presentSubType()
 		{
-			return SubType.OR;
+			return OrSubType.OR;
 		}
+		
+		Iterable<FOFormula> presentFormulas()
+		{
+			return mFormulas;
+		}		
 	}
 	
 	static class FOFormulaBRForAll extends FOFormulaByRecursionImpl
@@ -476,12 +481,22 @@ public abstract class FOFormulaByRecursionImpl implements FOFormula {
 		@Override
 		public FOFormula negate()
 		{
-			return new FOFormulaByRecursionImpl.FOFormulaBRForAll(!mNegated, mVar, mScopeFormula);
+			return new FOFormulaByRecursionImpl.FOFormulaBRForAll(!mNegated, mVar, mScopeFormula, mSubtype);
 		}
 		
-		ForAllSubtype getSubtype()
+		ForAllSubtype getOriginalSubtype()
 		{
 			return mSubtype;
+		}
+		
+		// How formula is presented.
+		ForAllSubtype presentSubtype()
+		{
+			return ForAllSubtype.FOR_ALL;
+		}
+		FOFormula presentScopeFormula()
+		{
+			return mScopeFormula;
 		}
 	}
 }

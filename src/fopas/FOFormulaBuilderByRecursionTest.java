@@ -342,6 +342,6 @@ public class FOFormulaBuilderByRecursionTest {
 		testFormula(structure, "(exists _v1)(exists _v2)(_v1 = _v2)", true, "¬(forall _v1)(forall _v2)¬(_v1 = _v2)", false);
 
 		testFormula(structure, "(exists _v1)(_v1 = _c1)", true, null);
-}
-
+		testFormula(structure, "(exists _v1)(exists _v2)(_v1 = _v2)", true, null);
+	}
 }

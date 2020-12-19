@@ -6,9 +6,11 @@ import java.util.Map;
 
 import com.google.common.collect.FluentIterable;
 
+import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll;
 import fopas.FOFormulaByRecursionImpl.FOFormulaBROr;
 import fopas.FOFormulaByRecursionImpl.FormulaType;
-import fopas.FOFormulaByRecursionImpl.FOFormulaBROr.SubType;
+import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll.ForAllSubtype;
+import fopas.FOFormulaByRecursionImpl.FOFormulaBROr.OrSubType;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
@@ -25,9 +27,50 @@ import fopas.basics.FOVariable;
  */
 public class FOByRecursionStringiser
 {
-	static class FOFormulaByRecursionPresenter extends FOFormulaBROr
+	static class FOFormulaBRForAllPresenter extends FOFormulaBRForAll
 	{
-		FOFormulaByRecursionPresenter(FOFormulaBROr formOrImpl)
+		FOFormulaBRForAllPresenter(FOFormulaBRForAll fbrfa)
+		{
+			super(fbrfa.isNegated(), fbrfa.getVariable(), fbrfa.getScopeFormula(), fbrfa.getOriginalSubtype());
+		}
+		
+		boolean presentNegated()
+		{
+			if(mSubtype == ForAllSubtype.FOR_ALL)
+				return mNegated;
+			else if(mSubtype == ForAllSubtype.EXISTS)
+				return !mNegated;
+			else
+				throw new FORuntimeException("Unexpected scope command type.");
+		}
+		
+		ForAllSubtype presentSubtype()
+		{
+			return mSubtype;
+		}
+		
+		FOFormula presentScopeFormula()
+		{
+			if(mSubtype == ForAllSubtype.FOR_ALL)
+				return mScopeFormula;
+			else if(mSubtype == ForAllSubtype.EXISTS)
+			{
+				try
+				{
+					return mScopeFormula.negate();
+				} catch (FOConstructionException e)
+				{
+					throw new FORuntimeException("Unexpected exception negating sentence.");
+				}
+			}
+			else
+				throw new FORuntimeException("Unexpected scope command type.");
+		}
+	}
+	
+	static class FOFormulaBROrPresenter extends FOFormulaBROr
+	{
+		FOFormulaBROrPresenter(FOFormulaBROr formOrImpl)
 		{
 			// Ok using implementation level variables isn't good here, but saves us an unnecessary list creation,
 			// and it's only a little bad.
@@ -35,11 +78,11 @@ public class FOByRecursionStringiser
 		}
 		
 		@Override
-		Iterable<FOFormula> getFormulas()
+		Iterable<FOFormula> presentFormulas()
 		{
-			if(getSubType() == SubType.AND)
+			if(getOriginalSubType() == OrSubType.AND)
 			{
-				return FluentIterable.from(super.getFormulas()).transform( form -> {
+				return FluentIterable.from(super.presentFormulas()).transform( form -> {
 					try {
 						return form.negate();
 					} catch (FOConstructionException e) {
@@ -48,7 +91,7 @@ public class FOByRecursionStringiser
 					}
 				});				
 			}
-			else if(getSubType() == SubType.IMP)
+			else if(getOriginalSubType() == OrSubType.IMP)
 			{
 				if(mFormulas.size() != 2)
 					throw new FORuntimeException("Incorrectly created formula found.");
@@ -60,28 +103,30 @@ public class FOByRecursionStringiser
 					throw new FORuntimeException("Incorrectly created formula found - cannot negate.");
 				}
 			}
-			else if(getSubType() == SubType.OR)
+			else if(getOriginalSubType() == OrSubType.OR)
 			{
-				return super.getFormulas();				
+				return super.presentFormulas();				
 			}
 			else
 				throw new FORuntimeException("Unexpected logical op found!");
 		}
 		
 		@Override
-		public boolean isNegated()
+		boolean presentNegated()
 		{
-			if(getSubType() == SubType.AND)
+			if(getOriginalSubType() == OrSubType.AND)
 				return !super.isNegated();
-			else
+			else if(getOriginalSubType() == OrSubType.OR || getOriginalSubType() == OrSubType.IMP)
 				return super.isNegated();
+			else
+				throw new FORuntimeException("Unexpected formula subtype found.");
 		}
 		
 		@Override
-		SubType presentSubType()
+		OrSubType presentSubType()
 		{
 			// Can present as is.
-			return super.getSubType();
+			return super.getOriginalSubType();
 		}
 	}
 	
@@ -117,26 +162,35 @@ public class FOByRecursionStringiser
 		FOFormulaByRecursionImpl recform = (FOFormulaByRecursionImpl) form;
 
 		if(useExtended && recform.getType() == FormulaType.OR)
-			recform = new FOFormulaByRecursionPresenter((FOFormulaByRecursionImpl.FOFormulaBROr) recform);
-
-		if(recform.isNegated())
+			recform = new FOFormulaBROrPresenter((FOFormulaByRecursionImpl.FOFormulaBROr) recform);
+		else if(useExtended && recform.getType() == FormulaType.FOR_ALL)
+			recform = new FOFormulaBRForAllPresenter((FOFormulaBRForAll) recform);
+		
+		if(recform.presentNegated())
 			sb.append("¬");
 
 		switch(recform.getType())
 		{
 		case FOR_ALL:
 			FOFormulaByRecursionImpl.FOFormulaBRForAll recformall = (FOFormulaByRecursionImpl.FOFormulaBRForAll) recform;
-			sb.append("(forall _");
+			sb.append("(");
+			if(recformall.presentSubtype() == ForAllSubtype.FOR_ALL)
+				sb.append(mLang.getForAll());
+			else if(recformall.presentSubtype() == ForAllSubtype.EXISTS)
+				sb.append(mLang.getExists());
+			else
+				throw new FORuntimeException("Unexpected scope command found.");	
+			sb.append(" _");
 			sb.append(recformall.getVariable().getName());
 			sb.append(")");
-			stringiseFOFormula(recformall.getScopeFormula(), maxLen, useExtended, sb);
+			stringiseFOFormula(recformall.presentScopeFormula(), maxLen, useExtended, sb);
 			break;
 		case OR:
 			// We use a presenter formula here which pretends to be an AND or OR sentence.
 			FOFormulaByRecursionImpl.FOFormulaBROr recformor = (FOFormulaByRecursionImpl.FOFormulaBROr) recform;
 			
 			sb.append("(");
-			Iterator<FOFormula> subforms = recformor.getFormulas().iterator();
+			Iterator<FOFormula> subforms = recformor.presentFormulas().iterator();
 			if(!subforms.hasNext())
 				break;
 			FOFormula nextform = subforms.next();
@@ -148,11 +202,11 @@ public class FOByRecursionStringiser
 
 				nextform = subforms.next();
 				sb.append(" ");
-				if(recformor.presentSubType() == SubType.OR)
+				if(recformor.presentSubType() == OrSubType.OR)
 					sb.append(mLang.getOr());
-				else if(recformor.presentSubType() == SubType.IMP)
+				else if(recformor.presentSubType() == OrSubType.IMP)
 					sb.append(mLang.getImp());
-				else if(recformor.presentSubType() == SubType.AND)
+				else if(recformor.presentSubType() == OrSubType.AND)
 					sb.append(mLang.getAnd());
 				else
 				{

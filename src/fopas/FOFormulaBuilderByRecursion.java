@@ -656,7 +656,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				List<FOFormula> listNegatedFormulas = new ArrayList<>(tokFold.args.size());
 				for(FOToken tok : tokFold.args)
 					listNegatedFormulas.add(tok.subformula.negate());
-				form = new FOFormulaByRecursionImpl.FOFormulaBROr(!isNegated, listNegatedFormulas, FOFormulaByRecursionImpl.FOFormulaBROr.SubType.AND);
+				form = new FOFormulaByRecursionImpl.FOFormulaBROr(!isNegated, listNegatedFormulas, FOFormulaByRecursionImpl.FOFormulaBROr.OrSubType.AND);
 			}
 			else if(tokAnchor.value.equals(mLang.getImp()))
 			{
@@ -668,7 +668,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				impPair.add(tokFold.args.get(0).subformula.negate());
 				impPair.add(tokFold.args.get(1).subformula);
 
-				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, impPair, FOFormulaByRecursionImpl.FOFormulaBROr.SubType.IMP);
+				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, impPair, FOFormulaByRecursionImpl.FOFormulaBROr.OrSubType.IMP);
 			}
 			else
 				throw new FOConstructionException("Unexpected logical op found: " + tokAnchor.value); // this should never happen.
