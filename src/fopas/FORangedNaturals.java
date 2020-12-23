@@ -1,6 +1,7 @@
 package fopas;
 
 import java.util.Iterator;
+import java.util.List;
 
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
@@ -8,6 +9,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 
+import fopas.FORelationImpl.FORelationCompare;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOElement.FOInteger;
@@ -16,6 +18,7 @@ import openpas.utils.SimpleRange;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
+import fopas.basics.FOTerm;
 
 // Infinite set for \mathbb{N}.
 public class FORangedNaturals implements FOSet<FOInteger>
@@ -34,7 +37,7 @@ public class FORangedNaturals implements FOSet<FOInteger>
 	
 	FORangedNaturals()
 	{
-		this(-1, -1);
+		this(0, -1);
 	}
 
 	@Override
@@ -65,12 +68,12 @@ public class FORangedNaturals implements FOSet<FOInteger>
 		@Override
 		public boolean hasNext()
 		{
-			boolean rangeEnded =  mIx < mRangeStop;
+			boolean rangeHasNext =  mIx < mRangeStop;
 			
-			if(rangeEnded && mIx == Integer.MAX_VALUE)
+			if(rangeHasNext && mIx == Integer.MAX_VALUE)
 				throw new FORuntimeException("Integer overflow.");
 			
-			return rangeEnded;
+			return rangeHasNext;
 		}
 
 		@Override
@@ -131,6 +134,24 @@ public class FORangedNaturals implements FOSet<FOInteger>
 	@Override
 	public int getSubsetSize(FORelation<FOInteger> relation)
 	{
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public FOSet<FOInteger> constrain(FORelation<FOInteger> relation, List<FOTerm> terms)
+	{
+		if(relation.getClass() == FORelationCompare.class)
+		{
+			assert terms.size() == 2;
+			
+		}
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getConstrainedSize(FORelation<FOInteger> relation, List<FOTerm> terms) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

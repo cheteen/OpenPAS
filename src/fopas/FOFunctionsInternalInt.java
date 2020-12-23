@@ -22,7 +22,12 @@ abstract class FOFunctionsInternalInt extends FOFunctionImpl
 	static class FOInternalSumModulus extends FOFunctionsInternalInt
 	{
 		protected final int mModulus;
-		
+
+		FOInternalSumModulus()
+		{
+			this(-1);
+		}
+
 		FOInternalSumModulus(int modulus)
 		{
 			this(modulus, true);

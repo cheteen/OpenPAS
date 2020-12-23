@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -130,80 +129,25 @@ public class FOFormulaBuilderByRecursionTest {
 			Assert.assertEquals(expectedValues.get(i), tokens.get(i).value);
 	}
 
-	private void printTokens(List<FOToken> tokens)
+	private void testFormula(FOStructure structure, String strFormula,
+			boolean expectSatisfaction, String format) throws FOConstructionException
 	{
-		for(int i = 0; i < tokens.size(); i++)
-		{
-			FOToken token = tokens.get(i);
-			//System.out.println("" + i + ") '" + token.value + "' : " + token.type);
-			System.out.println("\"" + token.value + "\",");
-			//System.out.println("FOToken.Type." + token.type + ",");
-		}
+		FOBRTestUtils.testFormula(builder, sgiser, structure, strFormula, expectSatisfaction, format);
 	}
-
-	private FOStructure createSimpleStructure()
+	private void testFormula(FOStructure structure, String strFormula,
+			boolean expectSatisfaction, String format, boolean useExtended) throws FOConstructionException
 	{
-		FOConstant c0 = new FOConstantImpl("c0");
-		FOConstant c1 = new FOConstantImpl("c1");
-		FOConstant c2 = new FOConstantImpl("c2");
-		FOConstant c3 = new FOConstantImpl("c3");
-		
-		FOInteger zero = new FOElementImpl.FOIntImpl(0);
-		FOInteger one = new FOElementImpl.FOIntImpl(1);
-		FOInteger two = new FOElementImpl.FOIntImpl(2);
-		FOInteger three = new FOElementImpl.FOIntImpl(3);
-		
-		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
-		
-		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);
-		
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
-		structure.setConstantMapping(c0, zero);
-		structure.setConstantMapping(c1, one);
-		structure.setConstantMapping(c2, two);
-		structure.setConstantMapping(c3, three);
-		return structure;
+		FOBRTestUtils.testFormula(builder, sgiser, structure, strFormula, expectSatisfaction, format, useExtended);
 	}
-
-	private void testFormula(FOStructure structure, String strFormula, boolean expectSatisfaction, String format) throws FOConstructionException
-	{
-		testFormula(structure, strFormula, expectSatisfaction, format, true);
-	}
-
-	private void testFormula(FOStructure structure, String strFormula, boolean expectSatisfaction, String format, boolean useExtended) throws FOConstructionException
-	{
-		FOFormula form = builder.buildFormula(strFormula, structure);
-		
-		String strReForm = sgiser.stringiseFOFormula(form, 100, useExtended);
-		if(format == null)
-			Assert.assertEquals(strFormula, strReForm);
-		else
-		{
-			String strReFormReformat = String.format(format, strFormula);
-			Assert.assertEquals(strReFormReformat, strReForm);
-		}			
-		
-		Assert.assertEquals(expectSatisfaction, structure.models(form));
-	}
-	
 	private void testThrows(FOStructure structure, String strFormula, String expContains)
 	{
-		try
-		{
-			builder.buildFormula(strFormula, structure);
-		} catch (FOConstructionException e)
-		{
-			Assert.assertTrue(e.toString().contains(expContains));
-			return;
-		}
-		Assert.fail("Expected exception not found.");
+		FOBRTestUtils.testThrows(builder, sgiser, structure, strFormula, expContains);
 	}
 
 	@Test
 	public void testBuildSimpleFormulas() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
 		testFormula(structure, "c0 = c1", false, "(%s)");
 		testFormula(structure, "(c0 = c1)", false, null);
@@ -221,7 +165,7 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testBuildSimpleOrFormulas() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
 		testFormula(structure, "(c0 = c1) | (c1 = c1)", true, "(%s)");
 		testFormula(structure, "(c0 = c1) | ¬(c1 = c1)", false, "(%s)");
@@ -234,7 +178,7 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testBuildForAllFormulas() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 
 		testFormula(structure, "(forall _v1)(_v1 = c1)", false, null);
 		testFormula(structure, "(forall _v1)(c1 = c1)", true, null);
@@ -262,7 +206,7 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testBuildAndFormulas() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 
 		testFormula(structure, "(c0 = c0) & (c1 = c1)", true, "¬(¬(c0 = c0) | ¬(c1 = c1))", false);
 		testFormula(structure, "(c0 = c0) & (c0 = c1)", false, "(%s)");
@@ -276,7 +220,7 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testBuildAndOrFormulas() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
 		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(¬(¬(c0 = c0) | ¬(c1 = c1)) | (c0 = c1))", false);
 		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
@@ -291,7 +235,7 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testBuildAndOrForAllFormulas() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
 		testFormula(structure, "c0 = c1 & c1 = c0 | ¬(forall _v1)¬(_v1 = c1)", true, "(((c0 = c1) & (c1 = c0)) | ¬(forall _v1)¬(_v1 = c1))");
 	}
@@ -315,7 +259,7 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testBuildImplication() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
 		testFormula(structure, "_v = c0 -> (_v + c1) = c1", true, "(¬(_v = c0) | ((_v + c1) = c1))", false);
 		testFormula(structure, "_v = c0 -> (_v + c1) = c1", true, "((_v = c0) -> ((_v + c1) = c1))");
@@ -325,7 +269,7 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testLogicalFunctionalFormulas() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
 		testFormula(structure, "c1 + c0 = c1 & c1 + c2 = c3 | c1 = c2", true, "((((c1 + c0) = c1) & ((c1 + c2) = c3)) | (c1 = c2))");
 		testFormula(structure, "c1 + c0 = c0 & c1 + c2 = c3 | c1 = c1", true, "((((c1 + c0) = c0) & ((c1 + c2) = c3)) | (c1 = c1))");
@@ -336,12 +280,14 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testExistsFormulas() throws FOConstructionException
 	{
-		FOStructure structure = createSimpleStructure();
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
 		testFormula(structure, "(exists _v1)(_v1 = _c1)", true, "¬(forall _v1)¬(_v1 = _c1)", false);
 		testFormula(structure, "(exists _v1)(exists _v2)(_v1 = _v2)", true, "¬(forall _v1)(forall _v2)¬(_v1 = _v2)", false);
 
 		testFormula(structure, "(exists _v1)(_v1 = _c1)", true, null);
 		testFormula(structure, "(exists _v1)(exists _v2)(_v1 = _v2)", true, null);
+
+		testFormula(structure, "¬(exists _v1)(c1 = c0)", true, null);
 	}
 }

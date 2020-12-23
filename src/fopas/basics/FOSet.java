@@ -1,5 +1,6 @@
 package fopas.basics;
 
+import java.util.List;
 import java.util.Set;
 
 // We're only interested in enumarable sets in computations, so let's assume a set to be iterable up front.
@@ -21,4 +22,7 @@ public interface FOSet<T extends FOElement> extends Iterable<T>
 	 * @return Can return (-1) if size would be unkown, natural number otherwise.
 	 */
 	public int getSubsetSize(FORelation<T> relation);
+	
+	public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms);
+	public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms);
 }

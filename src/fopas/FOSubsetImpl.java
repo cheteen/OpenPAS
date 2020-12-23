@@ -16,6 +16,7 @@ import fopas.basics.FOElement;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
+import fopas.basics.FOTerm;
 
 // This is a key class where runtime optimisation magic happens.
 class FOSubsetImpl<T extends FOElement> implements FOSet<T>
@@ -140,5 +141,17 @@ class FOSubsetImpl<T extends FOElement> implements FOSet<T>
 	{
 		// This generic impl can't tell about hypothetical sizes.
 		return -1;
+	}
+
+	@Override
+	public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

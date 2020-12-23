@@ -2,6 +2,7 @@ package fopas;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -11,6 +12,7 @@ import fopas.basics.FOElement;
 import fopas.basics.FOFiniteSet;
 import fopas.basics.FORelation;
 import fopas.basics.FOSet;
+import fopas.basics.FOTerm;
 import fopas.basics.KnownIterable;
 
 public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
@@ -110,5 +112,18 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
 	public int getSubsetSize(FORelation<T> rel)
 	{
 		return -1; // this is the simplest set impl, so we don't support any help here.
+	}
+
+	@Override
+	public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms)
+	{
+		// Generic set can't deal with generic relations.
+		return this;
+	}
+
+	@Override
+	public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms)
+	{
+		return -1;
 	}
 }

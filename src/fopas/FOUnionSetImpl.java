@@ -14,6 +14,7 @@ import fopas.basics.FOElement;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
+import fopas.basics.FOTerm;
 import fopas.basics.KnownIterable;
 import fopas.basics.FOUnionSet;
 
@@ -101,5 +102,17 @@ public class FOUnionSetImpl implements FOUnionSet
 		
 		// Shouldn't normally be using this.
 		return new FOSubsetImpl<>(this, relation);
+	}
+
+	@Override
+	public FOSet constrain(FORelation relation, List terms) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getConstrainedSize(FORelation relation, List terms) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }
