@@ -11,7 +11,6 @@ import java.util.Set;
 
 import com.google.common.collect.Lists;
 
-import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll;
 import fopas.basics.FOAlias;
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
@@ -82,7 +81,7 @@ class FOStructureImpl implements FOStructure
 	@Override
 	public Iterable<Map<FOVariable, FOElement>> getAssignments(FOFormula form) throws FOConstructionException
 	{
-		return ((FOFormulaByRecursionImpl) form).getAssignments(this);
+		return ((FOFormulaBRImpl) form).getAssignments(this);
 	}
 
 	@Override

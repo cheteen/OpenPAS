@@ -20,9 +20,9 @@ import fopas.basics.FOVariable;
  * Also some simple sanity checks for the alias to make sure the arg variables are in the formula.
  */
 // Definition of an "alias" is on Friendly p.127
-public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements FOAlias
+public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 {
-	protected FOFormulaByRecursionImpl mScopeForm;
+	protected FOFormulaBRImpl mScopeForm;
 	protected final List<FOVariable> mArgs;
 	protected final String mName;
 	FOAliasByRecursionImpl(String name, List<FOVariable> args)
@@ -85,7 +85,7 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 		if(mScopeForm != null)
 			throw new FOConstructionException("Scoped formula already defined for alias: " + mName);
 		
-		mScopeForm = (FOFormulaByRecursionImpl) form;
+		mScopeForm = (FOFormulaBRImpl) form;
 	}
 	
 	@Override
@@ -101,7 +101,7 @@ public class FOAliasByRecursionImpl extends FOFormulaByRecursionImpl implements 
 		return null; // not possible to negate this.
 	}
 	
-	static class FOAliasBindingByRecursionImpl extends FOFormulaByRecursionImpl implements FOAlias
+	static class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	{
 		final List<FOTerm> mTerms;
 		final FOAliasByRecursionImpl mBoundFormula;

@@ -159,7 +159,7 @@ public class FOAliasByRecursionImplTest
 		//printAssignments(structure, (FOFormulaByRecursionImpl) form, false);
 	}
 
-	private void printAssignments(FOStructure structure, FOFormulaByRecursionImpl form, boolean satisfying) throws FOConstructionException 
+	private void printAssignments(FOStructure structure, FOFormulaBRImpl form, boolean satisfying) throws FOConstructionException 
 	{
 		Iterable<Map<FOVariable, FOElement>> assigners;
 		if(satisfying)

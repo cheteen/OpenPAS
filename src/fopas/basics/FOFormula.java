@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import fopas.FOFormulaByRecursionImpl;
+import fopas.FOFormulaBRImpl;
 import openpas.basics.Expressions.Expression;
 import openpas.basics.LogicalOps.LogicalAnd;
 import openpas.basics.LogicalOps.LogicalOr;
@@ -21,9 +21,4 @@ public interface FOFormula
 	void checkFormula(FOStructure structure) throws FOConstructionException;
 	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure) throws FOConstructionException;
 	FOFormula negate() throws FOConstructionException;
-//	Iterator<Expression<LogicalOr>> iterateAsCNF();
-//	Iterator<Expression<LogicalAnd>> iterateAsDNF();
-//	Iterator<FOElement> iterateAssumptions();
-//	Iterator<FOElement> iteratePropositions();
-//	Iterator<FOElement> iterateElements();
 }

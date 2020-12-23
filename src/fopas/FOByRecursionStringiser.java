@@ -6,11 +6,9 @@ import java.util.Map;
 
 import com.google.common.collect.FluentIterable;
 
-import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll;
-import fopas.FOFormulaByRecursionImpl.FOFormulaBROr;
-import fopas.FOFormulaByRecursionImpl.FormulaType;
-import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll.ForAllSubtype;
-import fopas.FOFormulaByRecursionImpl.FOFormulaBROr.OrSubType;
+import fopas.FOFormulaBRForAll.ForAllSubtype;
+import fopas.FOFormulaBROr.OrSubType;
+import fopas.FOFormulaBRImpl.FormulaType;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
@@ -159,10 +157,10 @@ public class FOByRecursionStringiser
 		if(sb.length() >= maxLen)
 			return;
 		
-		FOFormulaByRecursionImpl recform = (FOFormulaByRecursionImpl) form;
+		FOFormulaBRImpl recform = (FOFormulaBRImpl) form;
 
 		if(useExtended && recform.getType() == FormulaType.OR)
-			recform = new FOFormulaBROrPresenter((FOFormulaByRecursionImpl.FOFormulaBROr) recform);
+			recform = new FOFormulaBROrPresenter((FOFormulaBROr) recform);
 		else if(useExtended && recform.getType() == FormulaType.FOR_ALL)
 			recform = new FOFormulaBRForAllPresenter((FOFormulaBRForAll) recform);
 		
@@ -172,7 +170,7 @@ public class FOByRecursionStringiser
 		switch(recform.getType())
 		{
 		case FOR_ALL:
-			FOFormulaByRecursionImpl.FOFormulaBRForAll recformall = (FOFormulaByRecursionImpl.FOFormulaBRForAll) recform;
+			FOFormulaBRForAll recformall = (FOFormulaBRForAll) recform;
 			sb.append("(");
 			if(recformall.presentSubtype() == ForAllSubtype.FOR_ALL)
 				sb.append(mLang.getForAll());
@@ -187,7 +185,7 @@ public class FOByRecursionStringiser
 			break;
 		case OR:
 			// We use a presenter formula here which pretends to be an AND or OR sentence.
-			FOFormulaByRecursionImpl.FOFormulaBROr recformor = (FOFormulaByRecursionImpl.FOFormulaBROr) recform;
+			FOFormulaBROr recformor = (FOFormulaBROr) recform;
 			
 			sb.append("(");
 			Iterator<FOFormula> subforms = recformor.presentFormulas().iterator();
@@ -220,7 +218,7 @@ public class FOByRecursionStringiser
 			break;
 		case RELATION:
 			sb.append("(");
-			FOFormulaByRecursionImpl.FOFormulaBRRelation recformrel = (FOFormulaByRecursionImpl.FOFormulaBRRelation) recform;
+			FOFormulaBRRelation recformrel = (FOFormulaBRRelation) recform;
 			if(recformrel.getRelation().getClass() == FORelationImpl.FORelationImplEquals.class)
 			{
 				Iterator<FOTerm> termit = recformrel.getTerms().iterator();

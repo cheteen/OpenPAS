@@ -77,11 +77,11 @@ public class FOStructureImplTest {
 		// Test free variable success
 		// (_v1 = c1 | _v1 = c2 | _v1 = c3)  
 		{
-			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant1));
-			FOFormula subform2 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant2));
-			FOFormula subform3 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant3));
+			FOFormula subform1 = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant1));
+			FOFormula subform2 = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant2));
+			FOFormula subform3 = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant3));
 
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBROr(false, Arrays.asList(subform1, subform2, subform3));
+			FOFormula form = new FOFormulaBROr(false, Arrays.asList(subform1, subform2, subform3));
 			
 			Assert.assertEquals("((_v1 = c1) | (_v1 = c2) | (_v1 = c3))", sgiser.stringiseFOFormula(form, 100));
 
@@ -91,10 +91,10 @@ public class FOStructureImplTest {
 		// Test free variable fail
 		// (_v1 = c1 | _v1 = c2)  
 		{
-			FOFormula subform1 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant1));
-			FOFormula subform2 = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant2));
+			FOFormula subform1 = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant1));
+			FOFormula subform2 = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_var1, term_constant2));
 
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBROr(false, Arrays.asList(subform1, subform2));
+			FOFormula form = new FOFormulaBROr(false, Arrays.asList(subform1, subform2));
 			
 			Assert.assertEquals("((_v1 = c1) | (_v1 = c2))", sgiser.stringiseFOFormula(form, 100));
 
@@ -144,7 +144,7 @@ public class FOStructureImplTest {
 					new FOTermByRecursionImpl.FOTermFunction(
 							new FOFunctionsInternalInt.FOInternalSumModulus(4), Arrays.asList(term_var1, term_constant0));
 
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant0));
+			FOFormula form = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant0));
 
 			Assert.assertEquals("((_v1 + c0) = c0)", sgiser.stringiseFOFormula(form, 100));
 
@@ -160,7 +160,7 @@ public class FOStructureImplTest {
 					new FOTermByRecursionImpl.FOTermFunction(
 							new FOFunctionsInternalInt.FOInternalSumModulus(4), Arrays.asList(term_var1, term_var2, term_var3));
 
-			FOFormula form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant3));
+			FOFormula form = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant3));
 			
 			Assert.assertEquals("((_v1 + _v2 + _v3) = c3)", sgiser.stringiseFOFormula(form, 100));
 

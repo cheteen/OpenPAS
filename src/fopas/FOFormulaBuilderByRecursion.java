@@ -13,12 +13,9 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+import fopas.FOFormulaBRForAll.ForAllSubtype;
 import fopas.FOFormulaBuilderByRecursion.FOToken.Type;
-import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll;
-import fopas.FOFormulaByRecursionImpl.FOFormulaBRForAll.ForAllSubtype;
-import fopas.FOFormulaByRecursionImpl.FOFormulaBROr;
-import fopas.FOFormulaByRecursionImpl.FOFormulaBRRelation;
-import fopas.FOFormulaByRecursionImpl.FormulaType;
+import fopas.FOFormulaBRImpl.FormulaType;
 import fopas.FOTermByRecursionImpl.FOTermVariable;
 import fopas.basics.FOAlias;
 import fopas.basics.FOConstant;
@@ -600,7 +597,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		}
 		
 		if(isNegated)
-			return new FOToken(new FOFormulaByRecursionImpl.FOFormulaBROr(true, Arrays.asList(formula)));
+			return new FOToken(new FOFormulaBROr(true, Arrays.asList(formula)));
 		else
 			return new FOToken(formula);
 	}
@@ -648,7 +645,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				List<FOFormula> listFormulas = new ArrayList<>(tokFold.args.size());
 				for(FOToken tok : tokFold.args)
 					listFormulas.add(tok.subformula);
-				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, listFormulas);
+				form = new FOFormulaBROr(isNegated, listFormulas);
 			}
 			else if(tokAnchor.value.equals(mLang.getAnd()))
 			{
@@ -656,7 +653,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				List<FOFormula> listNegatedFormulas = new ArrayList<>(tokFold.args.size());
 				for(FOToken tok : tokFold.args)
 					listNegatedFormulas.add(tok.subformula.negate());
-				form = new FOFormulaByRecursionImpl.FOFormulaBROr(!isNegated, listNegatedFormulas, FOFormulaByRecursionImpl.FOFormulaBROr.OrSubType.AND);
+				form = new FOFormulaBROr(!isNegated, listNegatedFormulas, FOFormulaBROr.OrSubType.AND);
 			}
 			else if(tokAnchor.value.equals(mLang.getImp()))
 			{
@@ -668,7 +665,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				impPair.add(tokFold.args.get(0).subformula.negate());
 				impPair.add(tokFold.args.get(1).subformula);
 
-				form = new FOFormulaByRecursionImpl.FOFormulaBROr(isNegated, impPair, FOFormulaByRecursionImpl.FOFormulaBROr.OrSubType.IMP);
+				form = new FOFormulaBROr(isNegated, impPair, FOFormulaBROr.OrSubType.IMP);
 			}
 			else
 				throw new FOConstructionException("Unexpected logical op found: " + tokAnchor.value); // this should never happen.
@@ -716,7 +713,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				}
 				
 				FOVariable variable = tokenScope.scopeVar;
-				subForm = new FOFormulaByRecursionImpl.FOFormulaBRForAll(
+				subForm = new FOFormulaBRForAll(
 						(i == 0 & isNegated) ^ tokenScope.isNegated ^ subtype == ForAllSubtype.EXISTS, variable, subForm, subtype);				
 			}
 			
@@ -743,7 +740,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			for(FOToken tok : tokFold.args)
 				listTerms.add(tok.term);
 
-			form = new FOFormulaByRecursionImpl.FOFormulaBRRelation(isNegated, rel, listTerms);			
+			form = new FOFormulaBRRelation(isNegated, rel, listTerms);			
 		}
 		else if(tokens.get(ixToken).type == Type.FOLD && tokens.get(ixToken).foldAnchor.type == Type.ALIAS)
 		{
