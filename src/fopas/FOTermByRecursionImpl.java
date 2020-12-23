@@ -30,7 +30,7 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		{
 			FOElement elt = assignment.get(mVar);
 			
-			if(!isPartial && elt != null)
+			if(!isPartial && elt == null)
 			{
 				assert false;
 				throw new FORuntimeException("Expected assignment not found for variable."); // This should never happen.
@@ -82,7 +82,7 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 			mAsg = structure.getConstantMapping(mConst);
 			
 			//Partial doesn't apply to this since a constant always has to exist.
-			if(mAsg != null)
+			if(mAsg == null)
 			{
 				assert false; // The structure has to have a mapping for this constant.
 				throw new FORuntimeException("Expected variable assignment not found.");
