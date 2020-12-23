@@ -113,4 +113,10 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 	{
 		return mScopeFormula;
 	}
+
+	@Override
+	public void resetAssignment()
+	{
+		mScopeFormula.resetAssignment();
+	}
 }

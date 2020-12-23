@@ -101,11 +101,17 @@ public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 		return null; // not possible to negate this.
 	}
 	
+	@Override
+	public void resetAssignment()
+	{
+		mScopeForm.resetAssignment();
+	}
+	
 	static class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	{
-		final List<FOTerm> mTerms;
-		final FOAliasByRecursionImpl mBoundFormula;
-		final String mName;
+		protected final List<FOTerm> mTerms;
+		protected final FOAliasByRecursionImpl mBoundFormula;
+		protected final String mName;
 		
 		FOAliasBindingByRecursionImpl(boolean negated, String name, FOAliasByRecursionImpl boundFormula, List<FOTerm> terms) throws FOConstructionException
 		{
@@ -182,6 +188,13 @@ public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 		public FOFormula negate() throws FOConstructionException
 		{
 			return new FOAliasBindingByRecursionImpl(!mNegated, mName, mBoundFormula, mTerms);
+		}
+
+		@Override
+		public void resetAssignment()
+		{
+			for(FOTerm term : mTerms)
+				term.resetAssignment();
 		}
 	}
 }

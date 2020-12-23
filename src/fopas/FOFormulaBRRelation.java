@@ -66,4 +66,11 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	{
 		return new FOFormulaBRRelation(!mNegated, mRel, mTerms);
 	}
+
+	@Override
+	public void resetAssignment()
+	{
+		for(FOTerm term : mTerms)
+			term.resetAssignment();
+	}
 }

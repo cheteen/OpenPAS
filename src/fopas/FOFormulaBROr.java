@@ -21,7 +21,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	}
 	
 	final protected List<FOFormula> mFormulas;
-	FOFormulaBROr.OrSubType mSubType;
+	final FOFormulaBROr.OrSubType mSubType;
 	
 	FOFormulaBROr(boolean isNegated, List<FOFormula> formulas, FOFormulaBROr.OrSubType type)
 	{
@@ -83,5 +83,12 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	Iterable<FOFormula> presentFormulas()
 	{
 		return mFormulas;
+	}
+
+	@Override
+	public void resetAssignment()
+	{
+		for(FOFormula form : mFormulas)
+			form.resetAssignment();
 	}		
 }

@@ -19,6 +19,7 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 	{
 		final protected FOVariable mVar;
 		protected FOElement mAsg;
+		
 		public FOTermVariable(FOVariable var)
 		{
 			mVar = var;
@@ -49,6 +50,12 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		void analyseScope(Set<FOVariable> setVarsSeenInScope)
 		{
 			setVarsSeenInScope.add(mVar);
+		}
+
+		@Override
+		public void resetAssignment()
+		{
+			mAsg = null;
 		}
 	}
 	
@@ -87,6 +94,12 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 
 		@Override
 		void analyseScope(Set<FOVariable> setVarsSeenInScope) {}
+
+		@Override
+		public void resetAssignment()
+		{
+			// I've decided not to reset the assignment for a constant for now - may need a better name for the function if this causes problems.
+		}
 	}
 	
 	static class FOTermFunction extends FOTermByRecursionImpl
@@ -135,6 +148,12 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		{
 			for(FOTerm term : mTerms)
 				((FOTermByRecursionImpl) term).analyseScope(setVarsSeenInScope);
+		}
+
+		@Override
+		public void resetAssignment()
+		{
+			mAsg = null;
 		}
 	}
 }
