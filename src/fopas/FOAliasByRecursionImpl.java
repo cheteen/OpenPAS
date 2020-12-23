@@ -132,7 +132,7 @@ public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 			for(int i = 0; i < mTerms.size(); i++)
 			{
 				FOTerm term = mTerms.get(i);
-				term.assignVariables(structure, assignment);
+				term.assignVariables(structure, assignment, false);
 				FOElement asg = term.getAssignment();
 				assert asg != null; // All variables should be assigned by this point.
 				mappedAssignment.put(mBoundFormula.getListArgs().get(i), asg);

@@ -26,13 +26,17 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		}
 		
 		@Override
-		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public void assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment, boolean isPartial)
 		{
 			FOElement elt = assignment.get(mVar);
-			assert elt != null; // by this point there can't be missing variable in the scope.
+			
+			if(!isPartial && elt != null)
+			{
+				assert false;
+				throw new FORuntimeException("Expected assignment not found for variable."); // This should never happen.
+			}
 			
 			mAsg = elt;
-			return true;
 		}
 
 		@Override
@@ -71,14 +75,18 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		}
 		
 		@Override
-		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public void assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment, boolean isPartial)
 		{
 			if(mAsg != null)
-				return false; // already set
+				return; // already set
 			mAsg = structure.getConstantMapping(mConst);
-			assert mAsg != null; // The structure has to have a mapping for this constant.
 			
-			return false; // this returns false for any further calls, but it does need the first call the set its first constant assignment.
+			//Partial doesn't apply to this since a constant always has to exist.
+			if(mAsg != null)
+			{
+				assert false; // The structure has to have a mapping for this constant.
+				throw new FORuntimeException("Expected variable assignment not found.");
+			}
 		}
 
 		@Override
@@ -114,20 +122,16 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		}
 		
 		@Override
-		public boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment)
+		public void assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment, boolean isPartial)
 		{
-			boolean accepted = false;
-
 			FOElement[] args = new FOElement[mTerms.size()];
 			for(int i = 0; i < mTerms.size(); i++)
 			{
 				FOTerm term = mTerms.get(i);
-				accepted |= term.assignVariables(structure, assignment);
+				term.assignVariables(structure, assignment, isPartial);
 				args[i] = term.getAssignment();
 			}
 			mAsg = mFunc.eval(structure, args);
-			
-			return accepted;
 		}
 
 		@Override

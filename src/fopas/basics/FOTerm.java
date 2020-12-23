@@ -9,7 +9,7 @@ public interface FOTerm {
 	 * @param assignment
 	 * @return True if the term accepts assignments.
 	 */
-	boolean assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment);
+	void assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment, boolean isPartial);
 	
 	FOElement getAssignment();
 	void resetAssignment();
