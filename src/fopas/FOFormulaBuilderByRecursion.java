@@ -250,7 +250,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	{
 		FOVariable fox = new FOVariableImpl("x");
 		FOTerm termX = new FOTermByRecursionImpl.FOTermVariable(fox);
-		FOFormula formEq = new FOFormulaBRRelation(false, new FORelationImpl.FORelationImplEquals(), Arrays.asList(termX, termX));
+		FOFormula formEq = new FOFormulaBRRelation(false, new FORelationOfComparison.FORelationImplEquals(), Arrays.asList(termX, termX));
 		FOFormula formAll = new FOFormulaBRForAll(false, fox, formEq);
 		return formAll;
 	}
@@ -260,7 +260,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	{
 		FOVariable fox = new FOVariableImpl("x");
 		FOTerm termX = new FOTermByRecursionImpl.FOTermVariable(fox);
-		FOFormula formEq = new FOFormulaBRRelation(false, new FORelationImpl.FORelationImplEquals(), Arrays.asList(termX, termX));
+		FOFormula formEq = new FOFormulaBRRelation(false, new FORelationOfComparison.FORelationImplEquals(), Arrays.asList(termX, termX));
 		FOFormula formAll = new FOFormulaBRForAll(false, fox, formEq);
 		FOFormula formNotAll = new FOFormulaBRForAll(true, fox, formEq);
 		FOFormula formAnd = new FOFormulaBROr(true, Arrays.asList(formNotAll, formAll));

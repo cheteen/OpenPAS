@@ -58,7 +58,7 @@ public class FOFormulaByRecursionImplTest {
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("TWOINTS", new HashSet<>(Arrays.asList(one, two)));
 		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
@@ -117,7 +117,7 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)));		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
@@ -167,7 +167,7 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)));
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 				
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
@@ -241,7 +241,7 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(zero, one, two, three)));
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);
 
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));

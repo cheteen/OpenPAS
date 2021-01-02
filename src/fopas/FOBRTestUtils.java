@@ -10,7 +10,7 @@ import org.junit.Assert;
 import fopas.FOElementImpl.FOIntImpl;
 import fopas.FOFormulaBuilderByRecursion.FOToken;
 import fopas.FOFunctionsInternalInt.FOInternalSumModulus;
-import fopas.FORelationImpl.FORelationImplEquals;
+import fopas.FORelationOfComparison.FORelationImplEquals;
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -36,7 +36,7 @@ class FOBRTestUtils {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);
 		

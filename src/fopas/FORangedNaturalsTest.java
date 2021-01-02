@@ -62,7 +62,7 @@ public class FORangedNaturalsTest {
 	
 	private FOStructure createStructureWithN()
 	{
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		FOFunction funadd = new FOFunctionsInternalInt.FOInternalSumModulus();
 		
 		FOConstant c0 = new FOConstantImpl("c0");

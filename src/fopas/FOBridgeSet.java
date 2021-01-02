@@ -11,6 +11,7 @@ import com.google.common.collect.FluentIterable;
 import fopas.basics.FOElement;
 import fopas.basics.FOFiniteSet;
 import fopas.basics.FORelation;
+import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOTerm;
 import fopas.basics.KnownIterable;
@@ -103,18 +104,6 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
 	}
 
 	@Override
-	public FOSet<T> createSubset(FORelation<T> rel)
-	{
-		return new FOSubsetImpl<T>(this, rel);
-	}
-
-	@Override
-	public int getSubsetSize(FORelation<T> rel)
-	{
-		return -1; // this is the simplest set impl, so we don't support any help here.
-	}
-
-	@Override
 	public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms)
 	{
 		// Generic set can't deal with generic relations.
@@ -125,5 +114,18 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
 	public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms)
 	{
 		return -1;
+	}
+
+	@Override
+	public FOSet<T> complement(FOSet<T> relativeSet)
+	{
+		if(relativeSet instanceof FOFiniteSet)
+		{
+			FOFiniteSet<T> finiteSet = (FOFiniteSet<T>) relativeSet; 
+			FOBridgeSet<T> complemented = new FOBridgeSet<T>(String.format("%s\\%s", relativeSet.getName(), getName()), finiteSet);
+			complemented.removeAll(mSet);
+			return complemented;
+		}
+		throw new FORuntimeException("Unsupported complement operation.");
 	}
 }

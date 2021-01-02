@@ -9,6 +9,8 @@ import fopas.FOFormulaBRImpl.FormulaType;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
+import fopas.basics.FORuntimeException;
+import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOVariable;
 
@@ -39,11 +41,14 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 	@Override
 	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
 	{
-		assert !assignment.containsKey(mVar); // variable collision from earlier scope, this is illegal.
+		if(assignment.containsKey(mVar)) // variable collision from earlier scope, this is illegal, should be caught during formula analysis.
+			throw new FORuntimeException("Variable name collision for scope.");
 		
-		//TODO: Call into the structure here to do variable value selection (which will use and iterable hopefully).
+		// This will try t oeliminate all known true cases:
+		FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(structure, structure.getUniverse(), mVar, assignment);
+		
 		boolean failed = false;
-		for(FOElement elt : structure.getUniverse())
+		for(FOElement elt : constrained)
 		{
 			assignment.put(mVar, elt);
 			failed |= !mScopeFormula.checkAssignment(structure, assignment);
@@ -115,8 +120,10 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 	}
 
 	@Override
-	public void resetAssignment()
+	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+			Map<FOVariable, FOElement> assignment)
 	{
-		mScopeFormula.resetAssignment();
+		// The only thing to do is to see is if the scoped formula somehow already constrains our variable.
+		return mScopeFormula.eliminateTrue(structure, universe, var, assignment);
 	}
 }

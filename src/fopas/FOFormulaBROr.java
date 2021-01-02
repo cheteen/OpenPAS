@@ -8,6 +8,7 @@ import fopas.FOFormulaBRImpl.FormulaType;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
+import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOVariable;
 
@@ -86,9 +87,34 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	}
 
 	@Override
-	public void resetAssignment()
+	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+			Map<FOVariable, FOElement> assignment)
 	{
+		// This can work in several ways which probably should be left as parameters to the programmer.
+		// 1) Simple - find the formula that creates the smallest subset: O(N)
+		// 2) Greedy - find the sequence of relations that create the smallest subset by choosing the smallest each iteration: O(N^2)
+		// 3) Comprehensive - use each permutation of relations to find the best subset: O(N^2)
+
+		// This particular method is called during runtime - so (1) and (2) are the likely best options to use here.
+		// Another version of this would be good to consider during check time to look at using (3).
+		
+		// I'll implement only the simple option (1) at this point.
+		
+		// Another thing worth considering is to do another method on the relation to return the size of the subet without creating it.
+
+		// Simple strategy:
+		FOSet<FOElement> fosetSmallest = universe;
 		for(FOFormula form : mFormulas)
-			form.resetAssignment();
-	}		
+		{
+			FOSet<FOElement> subset = form.eliminateTrue(structure, universe, var, assignment);
+			if(subset.size() < fosetSmallest.size())
+			{
+				fosetSmallest = subset;
+				
+				if(fosetSmallest.size() == 0)
+					break;
+			}
+		}
+		return fosetSmallest;
+	}
 }

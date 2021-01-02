@@ -1,5 +1,7 @@
 package fopas;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import fopas.basics.FOConstructionException;
@@ -9,7 +11,9 @@ import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
+import fopas.basics.FOTerm;
 import fopas.basics.FOUnionSet;
+import fopas.basics.FOVariable;
 
 abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 {
@@ -27,40 +31,6 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		return mName;
 	}
 	
-	static class FORelationImplEquals extends FORelationImpl<FOElement>
-	{
-		FORelationImplEquals()
-		{
-			super("Equals");
-		}
-
-		@Override
-		public boolean satisfies(FOElement... args)
-		{
-			if(args.length != 2)
-				throw new FORuntimeException("Expected 2 args, got " + args.length + ".");
-			if(args[0] == null || args[1] == null)
-				throw new FORuntimeException(String.format("Got null arg(s): %s/%s", args[0], args[1]));
-			
-			return args[0].equals(args[1]);
-		}
-
-		@Override
-		public int getCardinality() { return 2; }
-
-		@Override
-		public String getInfix()
-		{
-			return "=";
-		}
-
-		@Override
-		public int getPrecedence()
-		{
-			return 2000;
-		}
-	}
-
 	/**
 	 * This is a special relation that binds to a set to return true
 	 * when an element comes that is in the set.
@@ -106,6 +76,13 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		public int getPrecedence()
 		{
 			return 2250;
+		}
+
+		@Override
+		public FOSet<FOElement> constrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		{
+			// TODO: Actually implement this.
+			return universeSubset.complement(universeSubset, isComplemented);
 		}
 	}
 	
@@ -155,6 +132,13 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		{
 			return 2500;
 		}		
+
+		@Override
+		public FOSet<FOElement> constrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		{
+			// TODO: Actually implement this.
+			return universeSubset.complement(universeSubset, isComplemented);
+		}
 	}
 	
 	static class FORelationAnchoredCompare<T extends FOInteger> extends FORelationImpl<T>
@@ -220,6 +204,13 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		public int getPrecedence() throws FOConstructionException
 		{
 			throw new FOConstructionException("Unexpected operation found.");
+		}
+		
+		@Override
+		public FOSet<FOElement> constrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		{
+			// TODO: Actually implement this.
+			return universeSubset.complement(universeSubset, isComplemented);
 		}
 	}
 }

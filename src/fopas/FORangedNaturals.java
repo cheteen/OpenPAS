@@ -121,24 +121,6 @@ public class FORangedNaturals implements FOSet<FOInteger>
 	}
 
 	@Override
-	public FOSet<FOInteger> createSubset(FORelation<FOInteger> relation)
-	{
-		if(relation.getClass() == FORelationImpl.FORelationAnchoredCompare.class)
-		{
-			
-		}
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int getSubsetSize(FORelation<FOInteger> relation)
-	{
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public FOSet<FOInteger> constrain(FORelation<FOInteger> relation, List<FOTerm> terms)
 	{
 		if(relation.getClass() == FORelationCompare.class)
@@ -156,4 +138,9 @@ public class FORangedNaturals implements FOSet<FOInteger>
 		return 0;
 	}
 
+	@Override
+	public FOSet<FOInteger> complement(FOSet<FOInteger> relativeSet) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

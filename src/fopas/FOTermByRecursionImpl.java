@@ -36,7 +36,7 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 				throw new FORuntimeException("Expected assignment not found for variable."); // This should never happen.
 			}
 			
-			mAsg = elt;
+			mAsg = elt; // may be null if this assignment is partial
 		}
 
 		@Override
@@ -54,12 +54,6 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		void analyseScope(Set<FOVariable> setVarsSeenInScope)
 		{
 			setVarsSeenInScope.add(mVar);
-		}
-
-		@Override
-		public void resetAssignment()
-		{
-			mAsg = null;
 		}
 	}
 	
@@ -102,12 +96,6 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 
 		@Override
 		void analyseScope(Set<FOVariable> setVarsSeenInScope) {}
-
-		@Override
-		public void resetAssignment()
-		{
-			// I've decided not to reset the assignment for a constant for now - may need a better name for the function if this causes problems.
-		}
 	}
 	
 	static class FOTermFunction extends FOTermByRecursionImpl
@@ -129,9 +117,25 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 			{
 				FOTerm term = mTerms.get(i);
 				term.assignVariables(structure, assignment, isPartial);
-				args[i] = term.getAssignment();
+				FOElement assigned = term.getAssignment(); // if partial assignment the value here can be null.
+				if(assigned == null)
+				{
+					if(isPartial)
+					{
+						// can't eval the function since at least one arg is undefined.
+						mAsg = null; // clear any previous assignment
+						return;						
+					}
+					else
+					{
+						assert false; // should never happen
+						throw new FORuntimeException("Expected assignment not found for function.");						
+					}
+				}
+				else
+					args[i] = assigned;
 			}
-			mAsg = mFunc.eval(structure, args);
+			mAsg = mFunc.eval(args);
 		}
 
 		@Override
@@ -152,12 +156,6 @@ public abstract class FOTermByRecursionImpl implements FOTerm
 		{
 			for(FOTerm term : mTerms)
 				((FOTermByRecursionImpl) term).analyseScope(setVarsSeenInScope);
-		}
-
-		@Override
-		public void resetAssignment()
-		{
-			mAsg = null;
 		}
 	}
 }

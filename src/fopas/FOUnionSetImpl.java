@@ -77,34 +77,6 @@ public class FOUnionSetImpl implements FOUnionSet
 	}
 
 	@Override
-	public int getSubsetSize(FORelation relation)
-	{
-		if(relation.getClass() == FORelationImpl.FORelationInSet.class)
-		{
-			FORelationImpl.FORelationInSet inSetRel = (FORelationImpl.FORelationInSet) relation;
-			FOSet<? extends FOElement> subset = mSubsets.get(inSetRel.getSet().getName());
-			assert subset == inSetRel.getSet();
-			return subset.size();
-		}
-		return -1;
-	}
-
-	@Override
-	public FOSet<? extends FOElement> createSubset(FORelation relation)
-	{
-		if(relation.getClass() == FORelationImpl.FORelationInSet.class)
-		{
-			FORelationImpl.FORelationInSet inSetRel = (FORelationImpl.FORelationInSet) relation;
-			FOSet<? extends FOElement> subset = mSubsets.get(inSetRel.getSet().getName());
-			assert subset == inSetRel.getSet();
-			return subset;
-		}
-		
-		// Shouldn't normally be using this.
-		return new FOSubsetImpl<>(this, relation);
-	}
-
-	@Override
 	public FOSet constrain(FORelation relation, List terms) {
 		// TODO Auto-generated method stub
 		return null;
@@ -114,5 +86,12 @@ public class FOUnionSetImpl implements FOUnionSet
 	public int getConstrainedSize(FORelation relation, List terms) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public FOSet complement(FOSet relativeSet)
+	{
+		// TODO Implement this.
+		return null;
 	}
 }

@@ -219,7 +219,7 @@ public class FOByRecursionStringiser
 		case RELATION:
 			sb.append("(");
 			FOFormulaBRRelation recformrel = (FOFormulaBRRelation) recform;
-			if(recformrel.getRelation().getClass() == FORelationImpl.FORelationImplEquals.class)
+			if(recformrel.getRelation().getClass() == FORelationOfComparison.FORelationImplEquals.class)
 			{
 				Iterator<FOTerm> termit = recformrel.getTerms().iterator();
 				FOTerm term = termit.next();

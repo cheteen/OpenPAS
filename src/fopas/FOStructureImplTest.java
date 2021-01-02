@@ -58,7 +58,7 @@ public class FOStructureImplTest {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new HashSet<>(Arrays.asList(one, two, three)));
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
@@ -116,7 +116,7 @@ public class FOStructureImplTest {
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c0, zero);

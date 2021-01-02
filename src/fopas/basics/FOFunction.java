@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface FOFunction
 {
-	FOElement eval(FOStructure structure, FOElement ... args);
+	FOElement eval(FOElement ... args);
 	String getName();
 
 	/**

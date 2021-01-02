@@ -41,7 +41,7 @@ abstract class FOFunctionsInternalInt extends FOFunctionImpl
 		}
 		
 		@Override
-		public FOElement eval(FOStructure structure, FOElement... args)
+		public FOElement eval(FOElement... args)
 		{
 			int sum = 0;
 			for(FOElement arg : args)

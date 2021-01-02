@@ -70,7 +70,7 @@ public class FOAliasByRecursionImplTest
 		FOInteger four = new FOElementImpl.FOIntImpl(4);
 		
 		FOSet<FOElement> universe = new FOBridgeSet<>("SOMEINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three, four)));		
-		FORelation<FOElement> foequals = new FORelationImpl.FORelationImplEquals();
+		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOFunction funaddmod5 = new FOFunctionsInternalInt.FOInternalSumModulus(5);
 		

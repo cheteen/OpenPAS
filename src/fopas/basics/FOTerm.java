@@ -12,7 +12,6 @@ public interface FOTerm {
 	void assignVariables(FOStructure structure, Map<FOVariable, FOElement> assignment, boolean isPartial);
 	
 	FOElement getAssignment();
-	void resetAssignment();
 	
 	enum TermType
 	{

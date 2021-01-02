@@ -8,6 +8,7 @@ import fopas.FOFormulaBRImpl.FormulaType;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
 import fopas.basics.FORelation;
+import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOTerm;
 import fopas.basics.FOVariable;
@@ -68,9 +69,17 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	}
 
 	@Override
-	public void resetAssignment()
+	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+			Map<FOVariable, FOElement> assignment)
 	{
+		// Do a partial assignment to the terms.
 		for(FOTerm term : mTerms)
-			term.resetAssignment();
+			term.assignVariables(structure, assignment, true);
+		
+		// Let's see if the relation can contrain its universe from here.
+		// Constrain tries to return elements of the universe where the relation is true.
+		// We complement this set to eliminate elements that are known to be true.
+		// We don't need to complement it if this formula has a negation of course.
+		return mRel.constrain(var, universe, mTerms, !mNegated);
 	}
 }
