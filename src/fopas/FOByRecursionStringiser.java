@@ -29,7 +29,7 @@ public class FOByRecursionStringiser
 	{
 		FOFormulaBRForAllPresenter(FOFormulaBRForAll fbrfa)
 		{
-			super(fbrfa.isNegated(), fbrfa.getVariable(), fbrfa.getScopeFormula(), fbrfa.getOriginalSubtype());
+			super(fbrfa.isNegated(), fbrfa.getVariable(), (FOFormulaBRImpl) fbrfa.getScopeFormula(), fbrfa.getOriginalSubtype());
 		}
 		
 		boolean presentNegated()
@@ -246,7 +246,7 @@ public class FOByRecursionStringiser
 			sb.append(")");
 			break;
 		case ALIAS_BINDING:
-			FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl foalias = (FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl) recform;
+			FOAliasBindingByRecursionImpl foalias = (FOAliasBindingByRecursionImpl) recform;
 			sb.append(foalias.getName());
 			sb.append("(");
 			Iterator<FOTerm> termit = foalias.getBoundTerms().iterator();

@@ -87,7 +87,7 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 		}
 	
 		@Override
-		public FOSet<FOElement> constrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
 			assert terms.size() == 2;
 			FOTerm other = null;
@@ -97,9 +97,10 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			{
 				if(other != null)
 				{
-					// Empty set means all of the subset is true for this relation.
+					// This will return the universe in the non-complement case, but crucially, in the complemented case,
+					// it'll return an empty set which say for no element of the universe it can be true.
 					return new FOSetUtils.EmptySet<>(String.format("%s|%s", universeSubset.getName(), mName))
-							.complement(universeSubset, isComplemented);
+							.complement(universeSubset, !isComplemented);
 				}
 				
 				other = terms.get(0); 

@@ -80,6 +80,6 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		// Constrain tries to return elements of the universe where the relation is true.
 		// We complement this set to eliminate elements that are known to be true.
 		// We don't need to complement it if this formula has a negation of course.
-		return mRel.constrain(var, universe, mTerms, !mNegated);
+		return mRel.tryConstrain(var, universe, mTerms, !mNegated);
 	}
 }

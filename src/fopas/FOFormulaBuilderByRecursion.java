@@ -250,8 +250,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	{
 		FOVariable fox = new FOVariableImpl("x");
 		FOTerm termX = new FOTermByRecursionImpl.FOTermVariable(fox);
-		FOFormula formEq = new FOFormulaBRRelation(false, new FORelationOfComparison.FORelationImplEquals(), Arrays.asList(termX, termX));
-		FOFormula formAll = new FOFormulaBRForAll(false, fox, formEq);
+		FOFormulaBRImpl formEq = new FOFormulaBRRelation(false, new FORelationOfComparison.FORelationImplEquals(), Arrays.asList(termX, termX));
+		FOFormulaBRImpl formAll = new FOFormulaBRForAll(false, fox, formEq);
 		return formAll;
 	}
 	
@@ -260,10 +260,10 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 	{
 		FOVariable fox = new FOVariableImpl("x");
 		FOTerm termX = new FOTermByRecursionImpl.FOTermVariable(fox);
-		FOFormula formEq = new FOFormulaBRRelation(false, new FORelationOfComparison.FORelationImplEquals(), Arrays.asList(termX, termX));
-		FOFormula formAll = new FOFormulaBRForAll(false, fox, formEq);
-		FOFormula formNotAll = new FOFormulaBRForAll(true, fox, formEq);
-		FOFormula formAnd = new FOFormulaBROr(true, Arrays.asList(formNotAll, formAll));
+		FOFormulaBRImpl formEq = new FOFormulaBRRelation(false, new FORelationOfComparison.FORelationImplEquals(), Arrays.asList(termX, termX));
+		FOFormulaBRImpl formAll = new FOFormulaBRForAll(false, fox, formEq);
+		FOFormulaBRImpl formNotAll = new FOFormulaBRForAll(true, fox, formEq);
+		FOFormulaBRImpl formAnd = new FOFormulaBROr(true, Arrays.asList(formNotAll, formAll));
 		return formAnd;
 	}
 	
@@ -693,7 +693,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			
 			// We apply the outer negation to the first scope only, and need to construct this
 			// from the end back to the front.
-			FOFormula subForm = tokInScope.subformula;
+			FOFormulaBRImpl subForm = (FOFormulaBRImpl) tokInScope.subformula;
 			for(int i = scopes.size() - 1; i >= 0; i--)
 			{
 				FOToken tokScope = scopes.get(i);
@@ -704,7 +704,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				else if(tokScope.value.equals(mLang.getExists()))
 				{
 					subtype = ForAllSubtype.EXISTS;
-					subForm = subForm.negate();
+					subForm = (FOFormulaBRImpl) subForm.negate();
 				}
 				else
 				{
@@ -753,7 +753,7 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			for(FOToken tok : tokFold.args)
 				listTerms.add(tok.term);
 
-			form = new FOAliasByRecursionImpl.FOAliasBindingByRecursionImpl(
+			form = new FOAliasBindingByRecursionImpl(
 					isNegated, tokAnchor.value, (FOAliasByRecursionImpl) mapAliases.get(tokAnchor.value), listTerms);
 		}
 		else

@@ -106,7 +106,8 @@ class FOFormulaBROr extends FOFormulaBRImpl
 		FOSet<FOElement> fosetSmallest = universe;
 		for(FOFormula form : mFormulas)
 		{
-			FOSet<FOElement> subset = form.eliminateTrue(structure, universe, var, assignment);
+			FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
+			FOSet<FOElement> subset = formimpl.eliminateTrue(structure, universe, var, assignment);
 			if(subset.size() < fosetSmallest.size())
 			{
 				fosetSmallest = subset;

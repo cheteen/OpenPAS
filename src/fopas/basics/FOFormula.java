@@ -21,5 +21,4 @@ public interface FOFormula
 	void checkFormula(FOStructure structure) throws FOConstructionException;
 	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure) throws FOConstructionException;
 	FOFormula negate() throws FOConstructionException;
-	FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var, Map<FOVariable, FOElement> assignment);
 }

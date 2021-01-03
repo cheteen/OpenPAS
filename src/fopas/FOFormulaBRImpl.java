@@ -40,6 +40,8 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		ALIAS_BINDING
 	}
 	abstract FormulaType getType(); 
+	abstract FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var, 
+			Map<FOVariable, FOElement> assignment);
 	
 	@Override
 	public boolean models(FOStructure structure) throws FOConstructionException

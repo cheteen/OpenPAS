@@ -26,5 +26,5 @@ public interface FORelation <T extends FOElement>
 	 * @param isComplemented Whether the returned set if a relative complement of the universeSubset (useful when relation is used negated).
 	 * @return
 	 */
-	FOSet<FOElement> constrain(FOVariable var, FOSet<FOElement> universeSubset,  List<FOTerm> terms, boolean isComplemented);
+	FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset,  List<FOTerm> terms, boolean isComplemented);
 }

@@ -79,10 +79,10 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		}
 
 		@Override
-		public FOSet<FOElement> constrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
 			// TODO: Actually implement this.
-			return universeSubset.complement(universeSubset, isComplemented);
+			return universeSubset;
 		}
 	}
 	
@@ -134,10 +134,10 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		}		
 
 		@Override
-		public FOSet<FOElement> constrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
 			// TODO: Actually implement this.
-			return universeSubset.complement(universeSubset, isComplemented);
+			return universeSubset;
 		}
 	}
 	
@@ -207,10 +207,10 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		}
 		
 		@Override
-		public FOSet<FOElement> constrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
 			// TODO: Actually implement this.
-			return universeSubset.complement(universeSubset, isComplemented);
+			return universeSubset;
 		}
 	}
 }

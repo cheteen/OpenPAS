@@ -23,14 +23,14 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 	}
 	final protected FOFormulaBRForAll.ForAllSubtype mSubtype;
 	final protected FOVariable mVar;
-	final protected FOFormula mScopeFormula;
+	final protected FOFormulaBRImpl mScopeFormula;
 
-	FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormula scopeFormula)
+	FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormulaBRImpl scopeFormula)
 	{
 		this(isNegated, var, scopeFormula, ForAllSubtype.FOR_ALL);
 	}
 	
-	FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormula scopeFormula, FOFormulaBRForAll.ForAllSubtype subtype)
+	FOFormulaBRForAll(boolean isNegated, FOVariable var, FOFormulaBRImpl scopeFormula, FOFormulaBRForAll.ForAllSubtype subtype)
 	{
 		super(isNegated);
 		mVar = var;
