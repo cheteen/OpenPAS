@@ -40,7 +40,7 @@ class FOBRTestUtils {
 		
 		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);
 		
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
+		FOStructure structure = new FOStructureImpl(universe, new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);

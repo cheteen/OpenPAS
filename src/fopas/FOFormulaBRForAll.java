@@ -45,9 +45,10 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		if(assignment.containsKey(mVar)) // variable collision from earlier scope, this is illegal, should be caught during formula analysis.
 			throw new FORuntimeException("Variable name collision for scope.");
 		
-		// This will try to eliminate all known true cases:
-		//FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(structure, structure.getUniverse(), mVar, assignment, aliasCalls);
-		FOSet<FOElement> constrained = structure.getUniverse();
+		// This will try to eliminate all known true cases. Note that we shouldn't use mNegate to negate the constrain here because
+		// we need to eliminate the trues as far as this forall formula is concerned, and we'll negate the result as needed in the end.
+		FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(structure, structure.getUniverse(), mVar, false, assignment, aliasCalls);
+		//FOSet<FOElement> constrained = structure.getUniverse();
 
 		FOSettings settings = structure.getSettings();
 		// stringiseFormula is expensive, so do this within if clause for now.
@@ -73,7 +74,7 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		}
 		assignment.remove(mVar); // we need to remove the variable assignment either way.
 
-		settings.trace(2, "FOFormulaBRForAll", hashCode(), "checkAssignment", "satisfaction: %s (negation: %s)", !failed, mNegated);
+		settings.trace(2, "FOFormulaBRForAll", hashCode(), "checkAssignment", "satisfaction: %s (return: %s)", !failed, mNegated ^ !failed);
 
 		return mNegated ^ !failed;
 	}
@@ -136,10 +137,10 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		return mScopeFormula;
 	}
 	@Override
-	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var, boolean complement,
 			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
 		// The only thing to do is to see is if the scoped formula somehow already constrains our variable.
-		return mScopeFormula.eliminateTrue(structure, universe, var, assignment, aliasCalls);
+		return mScopeFormula.eliminateTrue(structure, universe, var, complement ^ mNegated, assignment, aliasCalls);
 	}	
 }

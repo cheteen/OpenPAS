@@ -108,7 +108,7 @@ public class FOSetUtils
 						if(mNext.equals(mElement))
 						{
 							if(mIt.hasNext())
-								mNext = next();
+								mNext = mIt.next();
 							else
 								mNext = null;
 							
@@ -129,7 +129,7 @@ public class FOSetUtils
 		ComplementedSingleElementSet(String singleElementSetName, T singleElement, FOSet<T> relativeSet)
 		{
 			mElement = singleElement;
-			mName = String.format("%s\\%s", relativeSet.getName(), singleElementSetName);
+			mName = String.format("%s\\(%s)", relativeSet.getName(), singleElementSetName);
 			mRelativeSet = relativeSet;
 		}
 

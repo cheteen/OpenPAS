@@ -117,9 +117,11 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var,
+	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var, boolean complement,
 			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
+		FOSettings settings = structure.getSettings();
+
 		Map<FOVariable, FOElement> mappedAssignment = mapAssignments(structure, assignment, true);
 		
 		// When we're trying to constrain for a variable in a potentially infinite forall formula,
@@ -136,7 +138,7 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 			at = new AliasTracker();
 			at.alias = this;
 			at.count = 0;
-			at.limit = -1; //FOSettings.getConstrainLookAheadLimit()
+			at.limit = settings.getConstrainLookAheadLimit(); // TODO: Add tests that'll exercise this!
 			
 			aliasCalls.put(ae, at);
 		}
@@ -150,6 +152,6 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 			}
 		}
 		
-		return mBoundFormula.eliminateTrue(structure, universeSubset, var, mappedAssignment, aliasCalls);
+		return mBoundFormula.eliminateTrue(structure, universeSubset, var, complement ^ mNegated, mappedAssignment, aliasCalls);
 	}
 }

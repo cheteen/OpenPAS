@@ -7,7 +7,7 @@ public class FOSettings
 	protected final int mDefaultStringLen = 100;
 	protected final FOLanguage mLang = new FOLanguage();
 	protected final FOByRecursionStringiser mSgiser = new FOByRecursionStringiser(mLang, mDefaultStringLen);
-	protected int mTraceLevel =  2;
+	protected int mTraceLevel =  0; // Increase this to (2) to turn on debug tracing.
 	
 	int getConstrainLookAheadLimit() { return 4; }
 	

@@ -222,13 +222,14 @@ public class FOFormulaBuilderByRecursionTest {
 	{
 		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
-//		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(¬(¬(c0 = c0) | ¬(c1 = c1)) | (c0 = c1))", false);
-//		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
-//		testFormula(structure, "c0 = c0 & c1 = c1 | c0 = c1", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
-//
-//		testFormula(structure, "¬(forall _v1)¬(_v1 = c1)", true, null);		
-//		testFormula(structure, "c0 = c0 & c1 = c1 | ¬(forall _v1)¬(_v1 = c1)", true, "(((c0 = c0) & (c1 = c1)) | ¬(forall _v1)¬(_v1 = c1))");
-//		testFormula(structure, "¬(forall _v1)(¬(_v1 = c1) & ¬(_v1 = c2))", true, null);
+		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(¬(¬(c0 = c0) | ¬(c1 = c1)) | (c0 = c1))", false);
+		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
+		testFormula(structure, "c0 = c0 & c1 = c1 | c0 = c1", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
+
+		testFormula(structure, "¬(forall _v1)¬(_v1 = c1)", true, null);		
+		testFormula(structure, "c0 = c0 & c1 = c1 | ¬(forall _v1)¬(_v1 = c1)", true, "(((c0 = c0) & (c1 = c1)) | ¬(forall _v1)¬(_v1 = c1))");
+		testFormula(structure, "¬(forall _v1)(¬(_v1 = c1) & ¬(_v1 = c2))", true, null);
+		// TODO: Need more tests like the following that tests multiple negations to exercise eliminateTrue properly (e.g. across aliases etc).
 		testFormula(structure, "¬(forall _v1)¬(¬(_v1 = c1) | (c1 = c0))", true, null);
 	}
 
@@ -282,12 +283,13 @@ public class FOFormulaBuilderByRecursionTest {
 	{
 		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
-		testFormula(structure, "(exists _v1)(_v1 = _c1)", true, "¬(forall _v1)¬(_v1 = _c1)", false);
+		testFormula(structure, "(exists _v1)(_v1 = c1)", true, "¬(forall _v1)¬(_v1 = c1)", false);
 		testFormula(structure, "(exists _v1)(exists _v2)(_v1 = _v2)", true, "¬(forall _v1)(forall _v2)¬(_v1 = _v2)", false);
 
 		testFormula(structure, "(exists _v1)(_v1 = _c1)", true, null);
 		testFormula(structure, "(exists _v1)(exists _v2)(_v1 = _v2)", true, null);
 
 		testFormula(structure, "¬(exists _v1)(c1 = c0)", true, null);
+		testFormula(structure, "(exists _v1)(_v1 = _v2)", true, "¬(forall _v1)¬(_v1 = _v2)", false);
 	}
 }

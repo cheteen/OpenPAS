@@ -50,12 +50,12 @@ class FOFormulaBROr extends FOFormulaBRImpl
 			FOFormulaBRImpl formimpl = (FOFormulaBRImpl)form; 
 			if(formimpl.checkAssignment(structure, assignment, aliasCalls))
 			{
-				settings.trace(2, "FOFormulaBROr", hashCode(), "checkAssignment", "Satisfied (negation: %s).", mNegated);
+				settings.trace(2, "FOFormulaBROr", hashCode(), "checkAssignment", "Satisfied (return: %s).", mNegated);
 				return !mNegated; // If we find satisfaction at any point we can quit.
 			}
 		}
 		
-		settings.trace(1, "FOFormulaBROr", hashCode(), "checkAssignment", "Not satisfied (negation: %s).", mNegated);
+		settings.trace(1, "FOFormulaBROr", hashCode(), "checkAssignment", "Not satisfied (return: %s).", mNegated);
 		
 		return mNegated;
 	}
@@ -101,7 +101,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var, boolean complement,
 			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
 		// This can work in several ways which probably should be left as parameters to the programmer.
@@ -116,12 +116,17 @@ class FOFormulaBROr extends FOFormulaBRImpl
 		
 		// Another thing worth considering is to do another method on the relation to return the size of the subet without creating it.
 
+		FOSettings settings = structure.getSettings();
+		if(settings.getTraceLevel() >= 2)
+			settings.trace(2, "FOFormulaBROr", hashCode(), "eliminateTrue", "variable: %s, complement: %s, formula: %s, universe: %s",
+					var.getName(), complement, settings.getDefaultStringiser().stringiseFormula(this), universe.getName());
+		
 		// Simple strategy:
 		FOSet<FOElement> fosetSmallest = universe;
 		for(FOFormula form : mFormulas)
 		{
 			FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
-			FOSet<FOElement> subset = formimpl.eliminateTrue(structure, universe, var, assignment, aliasCalls);
+			FOSet<FOElement> subset = formimpl.eliminateTrue(structure, universe, var, mNegated, assignment, aliasCalls);
 			if(subset.size() < fosetSmallest.size())
 			{
 				fosetSmallest = subset;
@@ -130,6 +135,10 @@ class FOFormulaBROr extends FOFormulaBRImpl
 					break;
 			}
 		}
+		
+		settings.trace(2, "FOFormulaBROr", hashCode(), "eliminateTrue", "Elimination success: %s, smallest subset: %s", 
+				fosetSmallest != universe, fosetSmallest.getName());
+		
 		return fosetSmallest;
 	}
 }

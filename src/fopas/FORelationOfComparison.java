@@ -110,7 +110,7 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			if(other != null && other.getAssignment() != null)
 			{
 				return new FOSetUtils.SingleElementSet<FOElement>(
-						String.format("%s|%s", universeSubset.getName(), mName), other.getAssignment())
+						String.format("%s|%s[%s]", universeSubset.getName(), mName, other.getAssignment().getElement()), other.getAssignment())
 							.complement(universeSubset, isComplemented);
 			}
 

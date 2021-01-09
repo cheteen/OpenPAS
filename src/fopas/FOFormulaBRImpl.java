@@ -41,7 +41,7 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		ALIAS_BINDING
 	}
 	abstract FormulaType getType(); 
-	abstract FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var, 
+	abstract FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var, boolean complement,
 			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls);
 	abstract boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
 			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls);

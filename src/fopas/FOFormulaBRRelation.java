@@ -93,7 +93,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		}
 		
 		boolean satisfied = mRel.satisfies(args);
-		settings.trace(2, "FOFormulaBRRelation", hashCode(), "checkAssignment", "satisfaction: %s (negation: %s)", satisfied, mNegated);
+		settings.trace(2, "FOFormulaBRRelation", hashCode(), "checkAssignment", "satisfaction: %s (return: %s)", satisfied, mNegated ^ satisfied);
 		
 		return mNegated ^ satisfied;
 	}
@@ -126,17 +126,27 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var, boolean complement,
 			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
+		FOSettings settings = structure.getSettings();
+		if(settings.getTraceLevel() >= 2)
+			settings.trace(2, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "variable: %s, complement: %s, formula: %s, universe: %s",
+					var.getName(), complement, settings.getDefaultStringiser().stringiseFormula(this), universe.getName());
+
 		// Do a partial assignment to the terms.
 		for(FOTerm term : mTerms)
 			term.assignVariables(structure, assignment, true);
 		
-		// Let's see if the relation can contrain its universe from here.
+		// Let's see if the relation can constrain its universe from here.
 		// Constrain tries to return elements of the universe where the relation is true.
 		// We complement this set to eliminate elements that are known to be true.
 		// We don't need to complement it if this formula has a negation of course.
-		return mRel.tryConstrain(var, universe, mTerms, !mNegated);
+		FOSet<FOElement> constrained = mRel.tryConstrain(var, universe, mTerms, complement ^ !mNegated);
+
+		settings.trace(2, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "Elimination success: %s, subset: %s", 
+				constrained != universe, constrained.getName());
+	
+		return constrained;
 	}
 }
