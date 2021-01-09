@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fopas.FOFormulaBRImpl.FormulaType;
+import fopas.FOFormulaBRRelation.AliasTracker;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
 import fopas.basics.FORelation;
@@ -15,6 +16,55 @@ import fopas.basics.FOVariable;
 
 class FOFormulaBRRelation extends FOFormulaBRImpl
 {
+	static class AliasTracker
+	{
+		FOAliasBindingByRecursionImpl alias;
+		FOVariable var;
+		int count;
+		int limit;
+	}
+	static class AliasEntry
+	{
+		final FOVariable var;
+		final FOAliasBindingByRecursionImpl alias;
+		
+		AliasEntry(FOVariable var, FOAliasBindingByRecursionImpl alias)
+		{
+			this.var = var;
+			this.alias = alias;
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 37;
+			int result = 1;
+			result = prime * result + ((alias == null) ? 0 : alias.hashCode());
+			result = prime * result + ((var == null) ? 0 : var.hashCode());
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			AliasEntry other = (AliasEntry) obj;
+			if (alias == null) {
+				if (other.alias != null)
+					return false;
+			} else if (!alias.equals(other.alias))
+				return false;
+			if (var == null) {
+				if (other.var != null)
+					return false;
+			} else if (!var.equals(other.var))
+				return false;
+			return true;
+		}
+	}
+
 	final protected FORelation<FOElement> mRel;
 	final protected List<FOTerm> mTerms;
 	FOFormulaBRRelation(boolean isNegated, FORelation<FOElement> rel, List<FOTerm> terms)
@@ -25,8 +75,13 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	}
 	
 	@Override
-	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
+	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
+			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
+		FOSettings settings = structure.getSettings();
+		if(settings.getTraceLevel() >= 2)
+			settings.trace(2, "FOFormulaBRRelation", hashCode(), "checkAssignment", "formula: %s", settings.getDefaultStringiser().stringiseFormula(this));
+
 		FOElement[] args = new FOElement[mTerms.size()]; 
 		for(int i = 0; i < mTerms.size(); i++)
 		{
@@ -38,6 +93,8 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		}
 		
 		boolean satisfied = mRel.satisfies(args);
+		settings.trace(2, "FOFormulaBRRelation", hashCode(), "checkAssignment", "satisfaction: %s (negation: %s)", satisfied, mNegated);
+		
 		return mNegated ^ satisfied;
 	}
 
@@ -70,7 +127,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 
 	@Override
 	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			Map<FOVariable, FOElement> assignment)
+			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
 		// Do a partial assignment to the terms.
 		for(FOTerm term : mTerms)

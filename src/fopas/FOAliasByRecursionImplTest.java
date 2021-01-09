@@ -87,7 +87,7 @@ public class FOAliasByRecursionImplTest
 	{
 		FOFormula form = builder.buildFormula(strFormula, structure);
 		
-		String strReForm = sgiser.stringiseFOFormula(form, 200);
+		String strReForm = sgiser.stringiseFormula(form, 200);
 		if(format == null)
 			Assert.assertEquals(strFormula, strReForm);
 		else

@@ -43,6 +43,11 @@ abstract class FOElementImpl implements FOElement
 			return false;
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		return "FOElementImpl [" + mElt + "]";
+	}
 
 	static class FOStringImpl extends FOElementImpl implements FOString
 	{

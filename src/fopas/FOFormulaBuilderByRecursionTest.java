@@ -222,13 +222,13 @@ public class FOFormulaBuilderByRecursionTest {
 	{
 		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 		
-		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(¬(¬(c0 = c0) | ¬(c1 = c1)) | (c0 = c1))", false);
-		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
-		testFormula(structure, "c0 = c0 & c1 = c1 | c0 = c1", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
-
-		testFormula(structure, "¬(forall _v1)¬(_v1 = c1)", true, null);		
-		testFormula(structure, "c0 = c0 & c1 = c1 | ¬(forall _v1)¬(_v1 = c1)", true, "(((c0 = c0) & (c1 = c1)) | ¬(forall _v1)¬(_v1 = c1))");
-		testFormula(structure, "¬(forall _v1)(¬(_v1 = c1) & ¬(_v1 = c2))", true, null);
+//		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(¬(¬(c0 = c0) | ¬(c1 = c1)) | (c0 = c1))", false);
+//		testFormula(structure, "(c0 = c0) & (c1 = c1) | (c0 = c1)", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
+//		testFormula(structure, "c0 = c0 & c1 = c1 | c0 = c1", true, "(((c0 = c0) & (c1 = c1)) | (c0 = c1))");
+//
+//		testFormula(structure, "¬(forall _v1)¬(_v1 = c1)", true, null);		
+//		testFormula(structure, "c0 = c0 & c1 = c1 | ¬(forall _v1)¬(_v1 = c1)", true, "(((c0 = c0) & (c1 = c1)) | ¬(forall _v1)¬(_v1 = c1))");
+//		testFormula(structure, "¬(forall _v1)(¬(_v1 = c1) & ¬(_v1 = c2))", true, null);
 		testFormula(structure, "¬(forall _v1)¬(¬(_v1 = c1) | (c1 = c0))", true, null);
 	}
 

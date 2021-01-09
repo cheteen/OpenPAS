@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fopas.FOFormulaBRImpl.FormulaType;
+import fopas.FOFormulaBRRelation.AliasTracker;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
@@ -37,11 +38,24 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	}
 
 	@Override
-	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
+	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
+			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
+		FOSettings settings = structure.getSettings();
+		if(settings.getTraceLevel() >= 2)
+			settings.trace(2, "FOFormulaBROr", hashCode(), "checkAssignment", "formula: %s", settings.getDefaultStringiser().stringiseFormula(this));
+		
 		for(FOFormula form : mFormulas)
-			if(form.checkAssignment(structure, assignment))
+		{
+			FOFormulaBRImpl formimpl = (FOFormulaBRImpl)form; 
+			if(formimpl.checkAssignment(structure, assignment, aliasCalls))
+			{
+				settings.trace(2, "FOFormulaBROr", hashCode(), "checkAssignment", "Satisfied (negation: %s).", mNegated);
 				return !mNegated; // If we find satisfaction at any point we can quit.
+			}
+		}
+		
+		settings.trace(1, "FOFormulaBROr", hashCode(), "checkAssignment", "Not satisfied (negation: %s).", mNegated);
 		
 		return mNegated;
 	}
@@ -88,7 +102,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 
 	@Override
 	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			Map<FOVariable, FOElement> assignment)
+			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
 		// This can work in several ways which probably should be left as parameters to the programmer.
 		// 1) Simple - find the formula that creates the smallest subset: O(N)
@@ -107,7 +121,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 		for(FOFormula form : mFormulas)
 		{
 			FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
-			FOSet<FOElement> subset = formimpl.eliminateTrue(structure, universe, var, assignment);
+			FOSet<FOElement> subset = formimpl.eliminateTrue(structure, universe, var, assignment, aliasCalls);
 			if(subset.size() < fosetSmallest.size())
 			{
 				fosetSmallest = subset;

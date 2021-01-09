@@ -83,7 +83,7 @@ public class FOStructureImplTest {
 
 			FOFormula form = new FOFormulaBROr(false, Arrays.asList(subform1, subform2, subform3));
 			
-			Assert.assertEquals("((_v1 = c1) | (_v1 = c2) | (_v1 = c3))", sgiser.stringiseFOFormula(form, 100));
+			Assert.assertEquals("((_v1 = c1) | (_v1 = c2) | (_v1 = c3))", sgiser.stringiseFormula(form, 100));
 
 			Assert.assertTrue(structure.models(form));			
 		}
@@ -96,7 +96,7 @@ public class FOStructureImplTest {
 
 			FOFormula form = new FOFormulaBROr(false, Arrays.asList(subform1, subform2));
 			
-			Assert.assertEquals("((_v1 = c1) | (_v1 = c2))", sgiser.stringiseFOFormula(form, 100));
+			Assert.assertEquals("((_v1 = c1) | (_v1 = c2))", sgiser.stringiseFormula(form, 100));
 
 			Assert.assertFalse(structure.models(form));			
 		}
@@ -146,7 +146,7 @@ public class FOStructureImplTest {
 
 			FOFormula form = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant0));
 
-			Assert.assertEquals("((_v1 + c0) = c0)", sgiser.stringiseFOFormula(form, 100));
+			Assert.assertEquals("((_v1 + c0) = c0)", sgiser.stringiseFormula(form, 100));
 
 			Assert.assertEquals(4, FluentIterable.from(structure.getAssignments(form)).size());
 			Assert.assertEquals(1, FluentIterable.from(structure.getSatisfyingAssignments(form)).size());
@@ -162,7 +162,7 @@ public class FOStructureImplTest {
 
 			FOFormula form = new FOFormulaBRRelation(false, foequals, Arrays.asList(term_addition, term_constant3));
 			
-			Assert.assertEquals("((_v1 + _v2 + _v3) = c3)", sgiser.stringiseFOFormula(form, 100));
+			Assert.assertEquals("((_v1 + _v2 + _v3) = c3)", sgiser.stringiseFormula(form, 100));
 
 			Assert.assertFalse(structure.models(form));
 

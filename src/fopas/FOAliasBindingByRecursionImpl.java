@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 
 import fopas.FOFormulaBRImpl.FormulaType;
+import fopas.FOFormulaBRRelation.AliasEntry;
+import fopas.FOFormulaBRRelation.AliasTracker;
 import fopas.basics.FOAlias;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -18,6 +20,7 @@ import fopas.basics.FOVariable;
 
 class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 {
+	// The hashCode and equals of this class is intentionally left unimplemented as each instance should be unique.
 	protected final List<FOTerm> mTerms;
 	protected final FOAliasByRecursionImpl mBoundFormula;
 	protected final String mName;
@@ -34,14 +37,15 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	}
 
 	@Override
-	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
+	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
+			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
 		Map<FOVariable, FOElement> mappedAssignment = mapAssignments(structure, assignment, false);
 		
 		//TODO: Need to start a new assignment round here with the free variables given an assignment.
 		//TODO: Should cache the free variables during the bind creation since this is root level at that point.
 		
-		boolean satisfied = mBoundFormula.checkAssignment(structure, mappedAssignment);
+		boolean satisfied = mBoundFormula.checkAssignment(structure, mappedAssignment, aliasCalls);
 		
 		return mNegated ^ satisfied;
 	}
@@ -113,10 +117,39 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			Map<FOVariable, FOElement> assignment)
+	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var,
+			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
 		Map<FOVariable, FOElement> mappedAssignment = mapAssignments(structure, assignment, true);
-		return mBoundFormula.eliminateTrue(structure, universe, var, mappedAssignment);
+		
+		// When we're trying to constrain for a variable in a potentially infinite forall formula,
+		// we track the variable and the aliases we pass through. If we pass throug the same alias with the same
+		// variable over the limit times, then we terminate the recursive calls here.
+		//
+		// This is a rudimentary effort to stop infinite recursions in the constraining effort, the more sophisticated
+		// version of this will come with the cut relation to be implemented.
+		
+		AliasEntry ae = new AliasEntry(var, this); 
+		AliasTracker at = aliasCalls.get(ae);
+		if(at == null)
+		{
+			at = new AliasTracker();
+			at.alias = this;
+			at.count = 0;
+			at.limit = -1; //FOSettings.getConstrainLookAheadLimit()
+			
+			aliasCalls.put(ae, at);
+		}
+		else
+		{
+			at.count++;
+			if(at.count >= at.limit)
+			{
+				aliasCalls.remove(ae);
+				return universeSubset;
+			}
+		}
+		
+		return mBoundFormula.eliminateTrue(structure, universeSubset, var, mappedAssignment, aliasCalls);
 	}
 }

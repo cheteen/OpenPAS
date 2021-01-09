@@ -13,6 +13,7 @@ import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
 import fopas.basics.FORuntimeException;
+import fopas.basics.FOStringiser;
 import fopas.basics.FOStructure;
 import fopas.basics.FOTerm;
 import fopas.basics.FOVariable;
@@ -23,7 +24,7 @@ import fopas.basics.FOVariable;
  * @author Burak Cetin
  *
  */
-public class FOByRecursionStringiser
+public class FOByRecursionStringiser implements FOStringiser
 {
 	static class FOFormulaBRForAllPresenter extends FOFormulaBRForAll
 	{
@@ -128,31 +129,45 @@ public class FOByRecursionStringiser
 		}
 	}
 	
-	final FOLanguage mLang;
+	final protected FOLanguage mLang;
+	final protected int mDefaultMaxLen;
 	public FOByRecursionStringiser()
 	{
 		this(new FOLanguage());
 	}
+
 	FOByRecursionStringiser(FOLanguage lang)
 	{
-		mLang = lang;
+		this(lang, 100);
 	}
-	
-	String stringiseFOFormula(FOFormula form, int maxLen)
+	FOByRecursionStringiser(FOLanguage lang, int defaultMaxLen)
 	{
-		return stringiseFOFormula(form, maxLen, true);
+		mLang = lang;
+		mDefaultMaxLen = defaultMaxLen;
+	}
+
+	@Override
+	public String stringiseFormula(FOFormula form)
+	{
+		return stringiseFormula(form, mDefaultMaxLen);
 	}
 	
-	String stringiseFOFormula(FOFormula form, int maxLen, boolean useExtended)
+	@Override
+	public String stringiseFormula(FOFormula form, int maxLen)
+	{
+		return stringiseFormula(form, maxLen, true);
+	}
+	
+	String stringiseFormula(FOFormula form, int maxLen, boolean useExtended)
 	{
 		StringBuffer sb = new StringBuffer();
-		stringiseFOFormula(form, maxLen, useExtended, sb);
+		stringiseFormula(form, maxLen, useExtended, sb);
 		if(sb.length() > maxLen)
 			return sb.substring(0, maxLen - 3) + "...";
 		return sb.toString();
 	}
 
-	void stringiseFOFormula(FOFormula form, int maxLen, boolean useExtended, StringBuffer sb)
+	void stringiseFormula(FOFormula form, int maxLen, boolean useExtended, StringBuffer sb)
 	{
 		if(sb.length() >= maxLen)
 			return;
@@ -181,7 +196,7 @@ public class FOByRecursionStringiser
 			sb.append(" _");
 			sb.append(recformall.getVariable().getName());
 			sb.append(")");
-			stringiseFOFormula(recformall.presentScopeFormula(), maxLen, useExtended, sb);
+			stringiseFormula(recformall.presentScopeFormula(), maxLen, useExtended, sb);
 			break;
 		case OR:
 			// We use a presenter formula here which pretends to be an AND or OR sentence.
@@ -192,7 +207,7 @@ public class FOByRecursionStringiser
 			if(!subforms.hasNext())
 				break;
 			FOFormula nextform = subforms.next();
-			stringiseFOFormula(nextform, maxLen, useExtended, sb);
+			stringiseFormula(nextform, maxLen, useExtended, sb);
 			while(subforms.hasNext())
 			{
 				if(sb.length() >= maxLen)
@@ -212,7 +227,7 @@ public class FOByRecursionStringiser
 					return;
 				}
 				sb.append(" ");
-				stringiseFOFormula(nextform, maxLen, useExtended, sb);
+				stringiseFormula(nextform, maxLen, useExtended, sb);
 			}
 			sb.append(")");
 			break;

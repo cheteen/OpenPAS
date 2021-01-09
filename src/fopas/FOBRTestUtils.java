@@ -70,7 +70,7 @@ class FOBRTestUtils {
 	{
 		FOFormula form = builder.buildFormula(strFormula, structure);
 		
-		String strReForm = sgiser.stringiseFOFormula(form, 100, useExtended);
+		String strReForm = sgiser.stringiseFormula(form, 100, useExtended);
 		if(format == null)
 			Assert.assertEquals(strFormula, strReForm);
 		else

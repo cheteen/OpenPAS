@@ -32,6 +32,8 @@ class FOStructureImpl implements FOStructure
 	final protected Set<FORelation<FOElement>> mRelations;
 	final protected Set<FOFunction> mFuns;
 	final protected Map<String, FOFormula> mAliasMapping;
+
+	final protected FOSettings mSettings;
 	
 	FOStructureImpl(FOSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
 	{
@@ -41,6 +43,7 @@ class FOStructureImpl implements FOStructure
 		mRelations = relations;
 		mFuns = funs;
 		mAliasMapping = new HashMap<>();
+		mSettings = new FOSettings();
 	}
 
 	@Override
@@ -49,8 +52,12 @@ class FOStructureImpl implements FOStructure
 		// TODO: Find any variable collision (illegal) - can be during execution / nice to at the start.
 		// TODO: Deal with any unassigned constants - can be during execution / nice to at the start.
 		// TODO: Relations / functions wrong cardinality - can be during exeuction / nice to at the start.
+		if(mSettings.getTraceLevel() >= 1)
+			mSettings.trace(1, "FOStructureImpl", hashCode(), "models", "formula: %s", mSettings.getDefaultStringiser().stringiseFormula(form));
 		
-		return form.models(this);
+		boolean models = form.models(this);
+		mSettings.trace(1, "FOStructureImpl", hashCode(), "models", "models: %s", models);
+		return models;
 	}
 
 	@Override
@@ -130,5 +137,11 @@ class FOStructureImpl implements FOStructure
 		for(int i = 0; i < argStrings.length; ++i)
 			listVars.add(new FOVariableImpl(argStrings[i].trim()));
 		return listVars;
+	}
+
+	@Override
+	public FOSettings getSettings()
+	{
+		return mSettings;
 	}
 }

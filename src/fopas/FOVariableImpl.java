@@ -42,4 +42,9 @@ public class FOVariableImpl implements FOVariable
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "FOVariableImpl [" + mName + "]";
+	}
 }

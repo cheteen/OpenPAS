@@ -2,6 +2,8 @@ package fopas.basics;
 
 import java.util.Map;
 
+import fopas.FOSettings;
+
 public interface FOStructure
 {
 	FOSet<FOElement> getUniverse();
@@ -25,4 +27,6 @@ public interface FOStructure
 	
 	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOFormula form) throws FOConstructionException;
 	Iterable<Map<FOVariable, FOElement>> getAssignments(FOFormula form) throws FOConstructionException;
+	
+	FOSettings getSettings();
 }

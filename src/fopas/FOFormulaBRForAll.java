@@ -39,25 +39,42 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 	}
 	
 	@Override
-	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment)
+	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
+			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
 		if(assignment.containsKey(mVar)) // variable collision from earlier scope, this is illegal, should be caught during formula analysis.
 			throw new FORuntimeException("Variable name collision for scope.");
 		
-		// This will try t oeliminate all known true cases:
-		FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(structure, structure.getUniverse(), mVar, assignment);
+		// This will try to eliminate all known true cases:
+		//FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(structure, structure.getUniverse(), mVar, assignment, aliasCalls);
+		FOSet<FOElement> constrained = structure.getUniverse();
+
+		FOSettings settings = structure.getSettings();
+		// stringiseFormula is expensive, so do this within if clause for now.
+		if(settings.getTraceLevel() >= 2)
+		{
+			settings.trace(2, "FOFormulaBRForAll", hashCode(), "checkAssignment", "variable: %s, universeSubset: %s, formula: %s",
+					mVar.getName(), constrained.getName(), settings.getDefaultStringiser().stringiseFormula(this));
+		}
 		
 		boolean failed = false;
 		for(FOElement elt : constrained)
 		{
+			settings.trace(2, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assigned %s=%s", mVar.getName(), elt.getElement());
+			
 			assignment.put(mVar, elt);
-			failed |= !mScopeFormula.checkAssignment(structure, assignment);
+			failed |= !mScopeFormula.checkAssignment(structure, assignment, aliasCalls);
 			
 			if(failed)
+			{
+				settings.trace(2, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assignment failed for %s", elt.getElement());
 				break; // no point going further we know not all subformulas are satified.
+			}
 		}
 		assignment.remove(mVar); // we need to remove the variable assignment either way.
-		
+
+		settings.trace(2, "FOFormulaBRForAll", hashCode(), "checkAssignment", "satisfaction: %s (negation: %s)", !failed, mNegated);
+
 		return mNegated ^ !failed;
 	}
 	
@@ -118,12 +135,11 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 	{
 		return mScopeFormula;
 	}
-
 	@Override
 	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			Map<FOVariable, FOElement> assignment)
+			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
 	{
 		// The only thing to do is to see is if the scoped formula somehow already constrains our variable.
-		return mScopeFormula.eliminateTrue(structure, universe, var, assignment);
-	}
+		return mScopeFormula.eliminateTrue(structure, universe, var, assignment, aliasCalls);
+	}	
 }
