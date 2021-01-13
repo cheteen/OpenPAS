@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import fopas.FOFormulaBRRelation.AliasTracker;
 import fopas.basics.FOAlias;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -50,11 +49,10 @@ public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	}
 
 	@Override
-	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
-			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
+	public boolean checkAssignment(int depth, FOStructure structure, Map<FOVariable, FOElement> assignment)
 	{
 		// Add caching here.
-		return mNegated ^ mScopeForm.checkAssignment(structure, assignment, aliasCalls);
+		return mNegated ^ mScopeForm.checkAssignment(depth + 1, structure, assignment);
 	}
 
 	@Override
@@ -103,10 +101,10 @@ public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var, boolean complement,
-			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
+	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+			boolean complement, Map<FOVariable, FOElement> assignment,  Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
 	{
 		// The only thing at this level to do is to handover the decision to the contained formula.
-		return mScopeForm.eliminateTrue(structure, universe, var, complement, assignment, aliasCalls);
+		return mScopeForm.eliminateTrue(depth + 1, structure, universe, var, complement, assignment, aliasCalls);
 	}
 }

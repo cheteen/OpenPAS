@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 
 import fopas.FOFormulaBRImpl.FormulaType;
-import fopas.FOFormulaBRRelation.AliasTracker;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
@@ -38,24 +37,23 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	}
 
 	@Override
-	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
-			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
+	public boolean checkAssignment(int depth, FOStructure structure, Map<FOVariable, FOElement> assignment)
 	{
 		FOSettings settings = structure.getSettings();
 		if(settings.getTraceLevel() >= 2)
-			settings.trace(2, "FOFormulaBROr", hashCode(), "checkAssignment", "formula: %s", settings.getDefaultStringiser().stringiseFormula(this));
+			settings.trace(2, depth, this, "FOFormulaBROr", hashCode(), "checkAssignment", "formula: %s", settings.getDefaultStringiser().stringiseFormula(this));
 		
 		for(FOFormula form : mFormulas)
 		{
 			FOFormulaBRImpl formimpl = (FOFormulaBRImpl)form; 
-			if(formimpl.checkAssignment(structure, assignment, aliasCalls))
+			if(formimpl.checkAssignment(depth + 1, structure, assignment))
 			{
-				settings.trace(2, "FOFormulaBROr", hashCode(), "checkAssignment", "Satisfied (return: %s).", mNegated);
+				settings.trace(2, depth, this, "FOFormulaBROr", hashCode(), "checkAssignment", "Satisfied (return: %s).", !mNegated);
 				return !mNegated; // If we find satisfaction at any point we can quit.
 			}
 		}
 		
-		settings.trace(1, "FOFormulaBROr", hashCode(), "checkAssignment", "Not satisfied (return: %s).", mNegated);
+		settings.trace(1, depth, this, "FOFormulaBROr", hashCode(), "checkAssignment", "Not satisfied (return: %s).", mNegated);
 		
 		return mNegated;
 	}
@@ -101,8 +99,8 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var, boolean complement,
-			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
+	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
 	{
 		// This can work in several ways which probably should be left as parameters to the programmer.
 		// 1) Simple - find the formula that creates the smallest subset: O(N)
@@ -118,15 +116,15 @@ class FOFormulaBROr extends FOFormulaBRImpl
 
 		FOSettings settings = structure.getSettings();
 		if(settings.getTraceLevel() >= 2)
-			settings.trace(2, "FOFormulaBROr", hashCode(), "eliminateTrue", "variable: %s, complement: %s, formula: %s, universe: %s",
-					var.getName(), complement, settings.getDefaultStringiser().stringiseFormula(this), universe.getName());
+			settings.trace(2, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue",
+					"variable: %s, complement: %s, formula: %s, universe: %s", var.getName(), complement, settings.getDefaultStringiser().stringiseFormula(this), universe.getName());
 		
 		// Simple strategy:
 		FOSet<FOElement> fosetSmallest = universe;
 		for(FOFormula form : mFormulas)
 		{
 			FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
-			FOSet<FOElement> subset = formimpl.eliminateTrue(structure, universe, var, mNegated, assignment, aliasCalls);
+			FOSet<FOElement> subset = formimpl.eliminateTrue(depth + 1, structure, universe, var, mNegated, assignment, aliasCalls);
 			if(subset.size() < fosetSmallest.size())
 			{
 				fosetSmallest = subset;
@@ -136,8 +134,8 @@ class FOFormulaBROr extends FOFormulaBRImpl
 			}
 		}
 		
-		settings.trace(2, "FOFormulaBROr", hashCode(), "eliminateTrue", "Elimination success: %s, smallest subset: %s", 
-				fosetSmallest != universe, fosetSmallest.getName());
+		settings.trace(2, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", 
+				"Elimination variable: %s, success: %s, smallest subset: %s", var.getName(), fosetSmallest != universe, fosetSmallest.getName());
 		
 		return fosetSmallest;
 	}

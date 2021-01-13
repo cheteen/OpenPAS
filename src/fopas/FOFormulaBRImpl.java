@@ -13,7 +13,6 @@ import java.util.Set;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
-import fopas.FOFormulaBRRelation.AliasTracker;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
@@ -41,22 +40,21 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		ALIAS_BINDING
 	}
 	abstract FormulaType getType(); 
-	abstract FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var, boolean complement,
-			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls);
-	abstract boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
-			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls);
+	abstract FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var,
+			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOFormulaBRRelation.AliasEntry> aliasCalls);
+	abstract boolean checkAssignment(int depth, FOStructure structure,
+			Map<FOVariable, FOElement> assignment);
 	
 	@Override
 	public boolean models(FOStructure structure) throws FOConstructionException
 	{	
-		Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls = new HashMap<>();
 		Set<FOVariable> setFreeVars = findFreeVars();
 		if(setFreeVars.size() > 0)
 		{
 			boolean failed = false;
 			for(Map<FOVariable, FOElement> pickings : getAssignments(structure))
 			{
-				failed |= !checkAssignment(structure, pickings, aliasCalls);
+				failed |= !checkAssignment(0, structure, pickings);
 				if(failed)
 					break;
 			}
@@ -66,7 +64,7 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		else
 		{
 			HashMap<FOVariable, FOElement> assignment = new HashMap<>();			
-			return checkAssignment(structure, assignment, aliasCalls);
+			return checkAssignment(0, structure, assignment);
 		}
 	}
 	
@@ -74,9 +72,8 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 	public Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOStructure structure)
 			throws FOConstructionException
 	{
-		Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls = new HashMap<>();
 		return FluentIterable.from(
-				getAssignments(structure)).filter(pickings -> checkAssignment(structure, pickings, aliasCalls)
+				getAssignments(structure)).filter(pickings -> checkAssignment(0, structure, pickings)
 						);
 	}
 

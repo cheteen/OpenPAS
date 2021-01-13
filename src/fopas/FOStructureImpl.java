@@ -55,10 +55,10 @@ class FOStructureImpl implements FOStructure
 		
 		// TODO: Also print the explicit version of the formula here.
 		if(mSettings.getTraceLevel() >= 1)
-			mSettings.trace(1, "FOStructureImpl", hashCode(), "models", "formula: %s", mSettings.getDefaultStringiser().stringiseFormula(form));
+			mSettings.trace(1, 0, form, "FOStructureImpl", hashCode(), "models", "formula: %s", mSettings.getDefaultStringiser().stringiseFormula(form));
 		
 		boolean models = form.models(this);
-		mSettings.trace(1, "FOStructureImpl", hashCode(), "models", "models: %s", models);
+		mSettings.trace(1, 0, form, "FOStructureImpl", hashCode(), "models", "models: %s", models);
 		return models;
 	}
 

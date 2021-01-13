@@ -163,7 +163,7 @@ public class FOByRecursionStringiser implements FOStringiser
 		StringBuffer sb = new StringBuffer();
 		stringiseFormula(form, maxLen, useExtended, sb);
 		if(sb.length() > maxLen)
-			return sb.substring(0, maxLen - 3) + "...";
+			return sb.substring(0, maxLen);
 		return sb.toString();
 	}
 

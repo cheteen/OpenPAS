@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 
 import fopas.FOFormulaBRImpl.FormulaType;
-import fopas.FOFormulaBRRelation.AliasTracker;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
 import fopas.basics.FORelation;
@@ -16,32 +15,27 @@ import fopas.basics.FOVariable;
 
 class FOFormulaBRRelation extends FOFormulaBRImpl
 {
-	static class AliasTracker
-	{
-		FOAliasBindingByRecursionImpl alias;
-		FOVariable var;
-		int count;
-		int limit;
-	}
+	// TODO: Move this to under FOAliasBindingByRecursionImple which is where it belogs.
 	static class AliasEntry
 	{
-		final FOVariable var;
 		final FOAliasBindingByRecursionImpl alias;
+		final Map<FOVariable, FOElement> assignment;
 		
-		AliasEntry(FOVariable var, FOAliasBindingByRecursionImpl alias)
+		AliasEntry(FOAliasBindingByRecursionImpl alias, Map<FOVariable, FOElement> assignment)
 		{
-			this.var = var;
 			this.alias = alias;
+			this.assignment = assignment;
 		}
-		
+
 		@Override
 		public int hashCode() {
 			final int prime = 37;
 			int result = 1;
 			result = prime * result + ((alias == null) ? 0 : alias.hashCode());
-			result = prime * result + ((var == null) ? 0 : var.hashCode());
+			result = prime * result + ((assignment == null) ? 0 : assignment.hashCode());
 			return result;
 		}
+
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -56,10 +50,10 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 					return false;
 			} else if (!alias.equals(other.alias))
 				return false;
-			if (var == null) {
-				if (other.var != null)
+			if (assignment == null) {
+				if (other.assignment != null)
 					return false;
-			} else if (!var.equals(other.var))
+			} else if (!assignment.equals(other.assignment))
 				return false;
 			return true;
 		}
@@ -75,12 +69,11 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	}
 	
 	@Override
-	public boolean checkAssignment(FOStructure structure, Map<FOVariable, FOElement> assignment,
-			Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
+	public boolean checkAssignment(int depth, FOStructure structure, Map<FOVariable, FOElement> assignment)
 	{
 		FOSettings settings = structure.getSettings();
 		if(settings.getTraceLevel() >= 2)
-			settings.trace(2, "FOFormulaBRRelation", hashCode(), "checkAssignment", "formula: %s", settings.getDefaultStringiser().stringiseFormula(this));
+			settings.trace(2, depth, this, "FOFormulaBRRelation", hashCode(), "checkAssignment", "formula: %s", settings.getDefaultStringiser().stringiseFormula(this));
 
 		FOElement[] args = new FOElement[mTerms.size()]; 
 		for(int i = 0; i < mTerms.size(); i++)
@@ -93,7 +86,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		}
 		
 		boolean satisfied = mRel.satisfies(args);
-		settings.trace(2, "FOFormulaBRRelation", hashCode(), "checkAssignment", "satisfaction: %s (return: %s)", satisfied, mNegated ^ satisfied);
+		settings.trace(2, depth, this, "FOFormulaBRRelation", hashCode(), "checkAssignment", "satisfaction: %s (return: %s)", satisfied, mNegated ^ satisfied);
 		
 		return mNegated ^ satisfied;
 	}
@@ -126,13 +119,13 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(FOStructure structure, FOSet<FOElement> universe, FOVariable var, boolean complement,
-			Map<FOVariable, FOElement> assignment, Map<FOFormulaBRRelation.AliasEntry, FOFormulaBRRelation.AliasTracker> aliasCalls)
+	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
 	{
 		FOSettings settings = structure.getSettings();
 		if(settings.getTraceLevel() >= 2)
-			settings.trace(2, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "variable: %s, complement: %s, formula: %s, universe: %s",
-					var.getName(), complement, settings.getDefaultStringiser().stringiseFormula(this), universe.getName());
+			settings.trace(2, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue",
+					"variable: %s, complement: %s, formula: %s, universe: %s", var.getName(), complement, settings.getDefaultStringiser().stringiseFormula(this), universe.getName());
 
 		// Do a partial assignment to the terms.
 		for(FOTerm term : mTerms)
@@ -144,8 +137,8 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		// We don't need to complement it if this formula has a negation of course.
 		FOSet<FOElement> constrained = mRel.tryConstrain(var, universe, mTerms, complement ^ !mNegated);
 
-		settings.trace(2, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "Elimination success: %s, subset: %s", 
-				constrained != universe, constrained.getName());
+		settings.trace(2, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", 
+				"Elimination variable: %s, success: %s, subset: %s", var.getName(), constrained != universe, constrained.getName());
 	
 		return constrained;
 	}
