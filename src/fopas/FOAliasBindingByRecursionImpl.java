@@ -47,7 +47,16 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 		//TODO: Need to start a new assignment round here with the free variables given an assignment.
 		//TODO: Should cache the free variables during the bind creation since this is root level at that point.
 		
-		settings.trace(2, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "checkAssignment", "checkAssignment into alias: %s", mName);
+		if(settings.getTraceLevel() >= 1)
+		{
+			settings.getStats().numL1CheckAsgIntoAlias++;
+			if(settings.getTraceLevel() >= 5)
+			{
+				settings.trace(-5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "checkAssignment", "%s", stringiseAssignments(assignment));
+				settings.trace( 5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "checkAssignment", "checkAssignment into alias: %s", formatAliasCall());							
+			}
+		}
+
 		boolean satisfied = mBoundFormula.checkAssignment(depth + 1, structure, mappedAssignment);
 		
 		return mNegated ^ satisfied;
@@ -139,7 +148,7 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 			else
 			{
 				sb.append(arg.getName());
-				sb.append("=@\"");
+				sb.append("|\"");
 				sb.append(asg.getElement());
 				sb.append('"');
 			}
@@ -158,32 +167,33 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 		// Note that this does more than just mapping the assignments. It also does a partial evaluation of the parameters of an alias
 		// while doing that thereby creating a new assignment.
 		Map<FOVariable, FOElement> mappedAssignment = mapAssignments(structure, assignment, true);
-		if(settings.getTraceLevel() >= 2)
+		if(settings.getTraceLevel() >= 5)
 		{
-			String call = formatAliasCall();
-			settings.trace(2, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "eliminateTrue into alias: %s", call);
+			settings.trace(-5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "(partial for %s) %s", var.getName(), stringiseAssignments(assignment));
+			settings.trace( 5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "eliminateTrue into alias: %s", formatAliasCall());
 		}
 		
-		// When we're trying to constrain for a variable in a potentially infinite forall formula,
-		// we track the variable and the aliases we pass through. If we pass throug the same alias with the same
-		// variable over the limit times, then we terminate the recursive calls here.
-		//
-		// This is a rudimentary effort to stop infinite recursions in the constraining effort, the more sophisticated
-		// version of this will come with the cut relation to be implemented.
-		
+		// We track any calls into an alias with a given list of parameters. This is so that, when the same set of params are used into the alias again
+		// we know we're not going to make progress given that the only assignment that goes into the alias are the mapping assignments we capture here.
+		// So, we capture the state entirely here with the name of the alias and its given list of (mapped) assignments.
 		AliasEntry ae = new AliasEntry(this, mappedAssignment); 
-
+		FOSet<FOElement> returnSet;
 		if(!aliasCalls.contains(ae))
 		{
 			aliasCalls.add(ae);
-			return mBoundFormula.eliminateTrue(depth + 1, structure, universeSubset, var, complement ^ mNegated, mappedAssignment, aliasCalls);
+			returnSet = mBoundFormula.eliminateTrue(depth + 1, structure, universeSubset, var, complement ^ mNegated, mappedAssignment, aliasCalls);
 		}
 		else
 		{
-			settings.trace(1, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "Alias %s call repeat found.", mName);
-			
-			aliasCalls.remove(ae);
-			return universeSubset;
+			if(settings.getTraceLevel() >= 5)
+			{
+				settings.trace(2, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "Alias call %s (partial for %s) %s repeat found.",
+						formatAliasCall(), var.getName(), stringiseAssignments(assignment));
+				settings.getStats().numL0ElimTrueRepeatCall++;				
+			}
+			returnSet = universeSubset;
 		}
+		aliasCalls.remove(ae);
+		return returnSet;
 	}
 }

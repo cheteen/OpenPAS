@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		}
 		else
 		{
-			HashMap<FOVariable, FOElement> assignment = new HashMap<>();			
+			HashMap<FOVariable, FOElement> assignment = new LinkedHashMap<>();			
 			return checkAssignment(0, structure, assignment);
 		}
 	}
@@ -111,7 +112,7 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		FOSatisfactionIterator(FOStructure structure, Set<FOVariable> setFreeVars)
 		{
 			vars = new ArrayList<>(setFreeVars);
-			pickings = new HashMap<>();
+			pickings = new LinkedHashMap<>();
 			pickables = Collections.nCopies(setFreeVars.size(), structure.getUniverse());
 			pickers = new ArrayList<>(setFreeVars.size());
 			for(int i = 0; i < pickables.size(); i++)
@@ -266,5 +267,22 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 	boolean presentNegated()
 	{
 		return mNegated;
+	}
+	
+	String stringiseAssignments(Map<FOVariable, FOElement> assignment)
+	{
+		StringBuffer sb = new StringBuffer();
+		sb.append('{');
+		for(Map.Entry<FOVariable, FOElement> entry : assignment.entrySet())
+		{
+			if(sb.length() > 1)
+				sb.append(", ");
+			
+			sb.append(entry.getKey().getName());
+			sb.append('|');
+			sb.append(entry.getValue().getElement());
+		}
+		sb.append('}');
+		return sb.toString();
 	}
 }

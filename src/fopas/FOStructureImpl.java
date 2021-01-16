@@ -54,11 +54,11 @@ class FOStructureImpl implements FOStructure
 		// TODO: Relations / functions wrong cardinality - can be during exeuction / nice to at the start.
 		
 		// TODO: Also print the explicit version of the formula here.
-		if(mSettings.getTraceLevel() >= 1)
-			mSettings.trace(1, 0, form, "FOStructureImpl", hashCode(), "models", "formula: %s", mSettings.getDefaultStringiser().stringiseFormula(form));
+		mSettings.trace(2, 0, form, "FOStructureImpl", hashCode(), "models", "Start evaluation.");
+		mSettings.getStats().reset();
 		
 		boolean models = form.models(this);
-		mSettings.trace(1, 0, form, "FOStructureImpl", hashCode(), "models", "models: %s", models);
+		mSettings.trace(2, 0, form, "FOStructureImpl", hashCode(), "models", "models: %s", models);
 		return models;
 	}
 

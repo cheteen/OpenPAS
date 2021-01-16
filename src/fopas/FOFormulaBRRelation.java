@@ -72,8 +72,12 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	public boolean checkAssignment(int depth, FOStructure structure, Map<FOVariable, FOElement> assignment)
 	{
 		FOSettings settings = structure.getSettings();
-		if(settings.getTraceLevel() >= 2)
-			settings.trace(2, depth, this, "FOFormulaBRRelation", hashCode(), "checkAssignment", "formula: %s", settings.getDefaultStringiser().stringiseFormula(this));
+		int trace = settings.getTraceLevel();
+		if(trace >= 1)
+		{
+			settings.getStats().numL1CheckAsgRel++;
+			settings.trace(-5, depth, this, "FOFormulaBRRelation", hashCode(), "checkAssignment", "%s", trace >= 5 ? stringiseAssignments(assignment) : "");
+		}
 
 		FOElement[] args = new FOElement[mTerms.size()]; 
 		for(int i = 0; i < mTerms.size(); i++)
@@ -86,7 +90,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		}
 		
 		boolean satisfied = mRel.satisfies(args);
-		settings.trace(2, depth, this, "FOFormulaBRRelation", hashCode(), "checkAssignment", "satisfaction: %s (return: %s)", satisfied, mNegated ^ satisfied);
+		settings.trace(5, depth, this, "FOFormulaBRRelation", hashCode(), "checkAssignment", "satisfaction: %s (return: %s)", satisfied, mNegated ^ satisfied);
 		
 		return mNegated ^ satisfied;
 	}
@@ -123,9 +127,15 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
 	{
 		FOSettings settings = structure.getSettings();
-		if(settings.getTraceLevel() >= 2)
-			settings.trace(2, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue",
-					"variable: %s, complement: %s, formula: %s, universe: %s", var.getName(), complement, settings.getDefaultStringiser().stringiseFormula(this), universe.getName());
+		if(settings.getTraceLevel() >= 1)
+		{
+			settings.getStats().numL1ElimTrueRel++; // We only count this here since it's the only place that truly does elimination.
+			if(settings.getTraceLevel() >= 5)
+			{
+				settings.trace(-5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "(partial for %s) %s", var.getName(), stringiseAssignments(assignment));
+				settings.trace( 5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "variable: %s, complement: %s, universe: %s", var.getName(), complement, universe.getName());				
+			}
+		}
 
 		// Do a partial assignment to the terms.
 		for(FOTerm term : mTerms)

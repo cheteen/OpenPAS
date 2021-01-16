@@ -47,32 +47,56 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 			throw new FORuntimeException("Variable name collision for scope.");
 		
 		FOSettings settings = structure.getSettings();
-
-		settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Start eliminateTrue for variable: %s", mVar.getName());
+		int trace = settings.getTraceLevel();
+		if(trace >= 1)
+		{
+			settings.getStats().numL1CheckAsgAll++;
+			if(trace >= 5)
+			{
+				settings.trace(-5, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "%s", stringiseAssignments(assignment));
+				settings.trace( 5, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Start eliminateTrue for variable: %s", mVar.getName());							
+			}
+		}
+		
 		// This will try to eliminate all known true cases. Note that we shouldn't use mNegate to negate the constrain here because
 		// we need to eliminate the trues as far as this forall formula is concerned, and we'll negate the result as needed in the end.
 		Set<FOFormulaBRRelation.AliasEntry> aliasCalls = new HashSet<>();
 		FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(depth + 1, structure, structure.getUniverse(), mVar, false, assignment, aliasCalls);
-		//FOSet<FOElement> constrained = structure.getUniverse();
 
-		// stringiseFormula is expensive, so do this within if clause for now.
-		if(settings.getTraceLevel() >= 2)
+		if(trace >= 1)
 		{
-			settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment",
-					"variable: %s, universeSubset: %s, formula: %s", mVar.getName(), constrained.getName(), settings.getDefaultStringiser().stringiseFormula(this));
+			if(constrained != structure.getUniverse())
+			{
+				settings.getStats().numL1ElimTrueSuccess++;
+				if(constrained.size() == 1)
+					settings.getStats().numL1ElimTrueSuccess1++;
+				else
+					settings.getStats().numL1ElimTrueSuccess0++;
+			}
+		
+			settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "variable: %s, universeSubset: %s", mVar.getName(), constrained.getName());
 		}
+		assert aliasCalls.size() == 0;
 		
 		boolean failed = false;
 		for(FOElement elt : constrained)
 		{
-			settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assigned %s=%s", mVar.getName(), elt.getElement());
+			if(trace >= 1)
+			{
+				settings.getStats().numL1CheckAsgAllSub++;
+				settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assigned %s=%s", mVar.getName(), elt.getElement());
+			}
 			
 			assignment.put(mVar, elt);
 			failed |= !mScopeFormula.checkAssignment(depth + 1, structure, assignment);
 			
 			if(failed)
 			{
-				settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assignment failed for %s", elt.getElement());
+				if(trace >= 1)
+				{
+					settings.getStats().numL1CheckAsgAllSubFail++;
+					settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assignment failed for %s", elt.getElement());
+				}
 				break; // no point going further we know not all subformulas are satified.
 			}
 		}
