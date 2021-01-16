@@ -15,50 +15,6 @@ import fopas.basics.FOVariable;
 
 class FOFormulaBRRelation extends FOFormulaBRImpl
 {
-	// TODO: Move this to under FOAliasBindingByRecursionImple which is where it belogs.
-	static class AliasEntry
-	{
-		final FOAliasBindingByRecursionImpl alias;
-		final Map<FOVariable, FOElement> assignment;
-		
-		AliasEntry(FOAliasBindingByRecursionImpl alias, Map<FOVariable, FOElement> assignment)
-		{
-			this.alias = alias;
-			this.assignment = assignment;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 37;
-			int result = 1;
-			result = prime * result + ((alias == null) ? 0 : alias.hashCode());
-			result = prime * result + ((assignment == null) ? 0 : assignment.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			AliasEntry other = (AliasEntry) obj;
-			if (alias == null) {
-				if (other.alias != null)
-					return false;
-			} else if (!alias.equals(other.alias))
-				return false;
-			if (assignment == null) {
-				if (other.assignment != null)
-					return false;
-			} else if (!assignment.equals(other.assignment))
-				return false;
-			return true;
-		}
-	}
-
 	final protected FORelation<FOElement> mRel;
 	final protected List<FOTerm> mTerms;
 	FOFormulaBRRelation(boolean isNegated, FORelation<FOElement> rel, List<FOTerm> terms)
@@ -124,7 +80,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 
 	@Override
 	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
+			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		FORuntime settings = structure.getSettings();
 		if(settings.getTraceLevel() >= 1)

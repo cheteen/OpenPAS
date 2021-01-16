@@ -105,7 +105,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 
 	@Override
 	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
+			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		// This can work in several ways which probably should be left as parameters to the programmer.
 		// 1) Simple - find the formula that creates the smallest subset: O(N)

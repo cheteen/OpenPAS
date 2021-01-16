@@ -33,7 +33,7 @@ class FOStructureImpl implements FOStructure
 	final protected Set<FOFunction> mFuns;
 	final protected Map<String, FOFormula> mAliasMapping;
 
-	final protected FORuntime mSettings;
+	final protected FORuntime mRuntime;
 	
 	FOStructureImpl(FOSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
 	{
@@ -43,7 +43,7 @@ class FOStructureImpl implements FOStructure
 		mRelations = relations;
 		mFuns = funs;
 		mAliasMapping = new HashMap<>();
-		mSettings = new FORuntime();
+		mRuntime = new FORuntime(); // this will have to be refactored so that runtime data is split from code so we can do things like multi-threading.
 	}
 
 	@Override
@@ -54,11 +54,11 @@ class FOStructureImpl implements FOStructure
 		// TODO: Relations / functions wrong cardinality - can be during exeuction / nice to at the start.
 		
 		// TODO: Also print the explicit version of the formula here.
-		mSettings.trace(2, 0, form, "FOStructureImpl", hashCode(), "models", "Start evaluation.");
-		mSettings.getStats().reset();
+		mRuntime.trace(2, 0, form, "FOStructureImpl", hashCode(), "models", "Start evaluation.");
+		mRuntime.getStats().reset();
 		
 		boolean models = form.models(this);
-		mSettings.trace(2, 0, form, "FOStructureImpl", hashCode(), "models", "models: %s", models);
+		mRuntime.trace(2, 0, form, "FOStructureImpl", hashCode(), "models", "models: %s", models);
 		return models;
 	}
 
@@ -144,6 +144,6 @@ class FOStructureImpl implements FOStructure
 	@Override
 	public FORuntime getSettings()
 	{
-		return mSettings;
+		return mRuntime;
 	}
 }

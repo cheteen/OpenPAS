@@ -60,7 +60,7 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		
 		// This will try to eliminate all known true cases. Note that we shouldn't use mNegate to negate the constrain here because
 		// we need to eliminate the trues as far as this forall formula is concerned, and we'll negate the result as needed in the end.
-		Set<FOFormulaBRRelation.AliasEntry> aliasCalls = new HashSet<>();
+		Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls = new HashSet<>();
 		FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(depth + 1, structure, structure.getUniverse(), mVar, false, assignment, aliasCalls);
 
 		if(trace >= 1)
@@ -166,7 +166,7 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 	}
 	@Override
 	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
+			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		// The only thing to do is to see is if the scoped formula somehow already constrains our variable.
 		return mScopeFormula.eliminateTrue(depth + 1, structure, universe, var, complement ^ mNegated, assignment, aliasCalls);

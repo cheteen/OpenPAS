@@ -102,7 +102,7 @@ public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 
 	@Override
 	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			boolean complement, Map<FOVariable, FOElement> assignment,  Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
+			boolean complement, Map<FOVariable, FOElement> assignment,  Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		// The only thing at this level to do is to handover the decision to the contained formula.
 		return mScopeForm.eliminateTrue(depth + 1, structure, universe, var, complement, assignment, aliasCalls);

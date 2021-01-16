@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import fopas.FOAliasBindingByRecursionImpl.AliasEntry;
 import fopas.FOFormulaBRImpl.FormulaType;
-import fopas.FOFormulaBRRelation.AliasEntry;
 import fopas.basics.FOAlias;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -21,6 +21,49 @@ import fopas.basics.FOVariable;
 
 class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 {
+	static class AliasEntry
+	{
+		final FOAliasBindingByRecursionImpl alias;
+		final Map<FOVariable, FOElement> assignment;
+		
+		AliasEntry(FOAliasBindingByRecursionImpl alias, Map<FOVariable, FOElement> assignment)
+		{
+			this.alias = alias;
+			this.assignment = assignment;
+		}
+	
+		@Override
+		public int hashCode() {
+			final int prime = 37;
+			int result = 1;
+			result = prime * result + ((alias == null) ? 0 : alias.hashCode());
+			result = prime * result + ((assignment == null) ? 0 : assignment.hashCode());
+			return result;
+		}
+	
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			AliasEntry other = (AliasEntry) obj;
+			if (alias == null) {
+				if (other.alias != null)
+					return false;
+			} else if (!alias.equals(other.alias))
+				return false;
+			if (assignment == null) {
+				if (other.assignment != null)
+					return false;
+			} else if (!assignment.equals(other.assignment))
+				return false;
+			return true;
+		}
+	}
+
 	// The hashCode and equals of this class is intentionally left unimplemented as each instance should be unique.
 	protected final List<FOTerm> mTerms;
 	protected final FOAliasByRecursionImpl mBoundFormula;
@@ -160,7 +203,7 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 
 	@Override
 	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var,
-			boolean complement, Map<FOVariable, FOElement> assignment,  Set<FOFormulaBRRelation.AliasEntry> aliasCalls)
+			boolean complement, Map<FOVariable, FOElement> assignment,  Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		FORuntime settings = structure.getSettings();
 
