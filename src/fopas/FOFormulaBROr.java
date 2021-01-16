@@ -39,7 +39,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	@Override
 	public boolean checkAssignment(int depth, FOStructure structure, Map<FOVariable, FOElement> assignment)
 	{
-		FOSettings settings = structure.getSettings();
+		FORuntime settings = structure.getSettings();
 		int trace = settings.getTraceLevel();
 		if(trace >= 1)
 		{
@@ -119,7 +119,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 		
 		// Another thing worth considering is to do another method on the relation to return the size of the subet without creating it.
 
-		FOSettings settings = structure.getSettings();
+		FORuntime settings = structure.getSettings();
 		if(settings.getTraceLevel() >= 5)
 		{
 			settings.trace(-5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", "(partial for %s) %s", var.getName(), stringiseAssignments(assignment));

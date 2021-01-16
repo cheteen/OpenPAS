@@ -46,7 +46,7 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		if(assignment.containsKey(mVar)) // variable collision from earlier scope, this is illegal, should be caught during formula analysis.
 			throw new FORuntimeException("Variable name collision for scope.");
 		
-		FOSettings settings = structure.getSettings();
+		FORuntime settings = structure.getSettings();
 		int trace = settings.getTraceLevel();
 		if(trace >= 1)
 		{

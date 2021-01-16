@@ -33,7 +33,7 @@ class FOStructureImpl implements FOStructure
 	final protected Set<FOFunction> mFuns;
 	final protected Map<String, FOFormula> mAliasMapping;
 
-	final protected FOSettings mSettings;
+	final protected FORuntime mSettings;
 	
 	FOStructureImpl(FOSet universe, Set<FORelation<FOElement>> relations, Set<FOFunction> funs)
 	{
@@ -43,7 +43,7 @@ class FOStructureImpl implements FOStructure
 		mRelations = relations;
 		mFuns = funs;
 		mAliasMapping = new HashMap<>();
-		mSettings = new FOSettings();
+		mSettings = new FORuntime();
 	}
 
 	@Override
@@ -142,7 +142,7 @@ class FOStructureImpl implements FOStructure
 	}
 
 	@Override
-	public FOSettings getSettings()
+	public FORuntime getSettings()
 	{
 		return mSettings;
 	}

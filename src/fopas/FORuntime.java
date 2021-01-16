@@ -5,7 +5,7 @@ import com.google.common.base.Strings;
 import fopas.basics.FOFormula;
 import fopas.basics.FOStringiser;
 
-public class FOSettings
+public class FORuntime
 {
 	static class FOStats
 	{

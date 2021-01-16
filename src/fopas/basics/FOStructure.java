@@ -2,7 +2,7 @@ package fopas.basics;
 
 import java.util.Map;
 
-import fopas.FOSettings;
+import fopas.FORuntime;
 
 public interface FOStructure
 {
@@ -28,5 +28,5 @@ public interface FOStructure
 	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOFormula form) throws FOConstructionException;
 	Iterable<Map<FOVariable, FOElement>> getAssignments(FOFormula form) throws FOConstructionException;
 	
-	FOSettings getSettings();
+	FORuntime getSettings();
 }
