@@ -93,10 +93,10 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 		if(settings.getTraceLevel() >= 1)
 		{
 			settings.getStats().numL1CheckAsgIntoAlias++;
-			if(settings.getTraceLevel() >= 5)
+			if(settings.getTraceLevel() >= 2)
 			{
 				settings.trace(-5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "checkAssignment", "%s", stringiseAssignments(assignment));
-				settings.trace( 5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "checkAssignment", "checkAssignment into alias: %s", formatAliasCall());							
+				settings.trace( 2, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "checkAssignment", "checkAssignment into alias: %s", formatAliasCall());							
 			}
 		}
 
@@ -210,10 +210,12 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 		// Note that this does more than just mapping the assignments. It also does a partial evaluation of the parameters of an alias
 		// while doing that thereby creating a new assignment.
 		Map<FOVariable, FOElement> mappedAssignment = mapAssignments(structure, assignment, true);
-		if(settings.getTraceLevel() >= 5)
+		if(settings.getTraceLevel() >= 2)
 		{
-			settings.trace(-5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "(partial for %s) %s", var.getName(), stringiseAssignments(assignment));
-			settings.trace( 5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "eliminateTrue into alias: %s", formatAliasCall());
+			String assignmentStr = stringiseAssignments(assignment);
+			settings.trace(-5, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "(partial for %s) %s", var.getName(), assignmentStr);
+			settings.trace( 2, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "eliminateTrue into alias: %s (partial for %s) assignment: %s", 
+					formatAliasCall(), var.getName(), assignmentStr);
 		}
 		
 		// We track any calls into an alias with a given list of parameters. This is so that, when the same set of params are used into the alias again
@@ -228,11 +230,14 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 		}
 		else
 		{
-			if(settings.getTraceLevel() >= 5)
+			if(settings.getTraceLevel() >= 1)
 			{
-				settings.trace(2, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "Alias call %s (partial for %s) %s repeat found.",
-						formatAliasCall(), var.getName(), stringiseAssignments(assignment));
-				settings.getStats().numL0ElimTrueRepeatCall++;				
+				if(settings.getTraceLevel() >= 2)
+				{
+					settings.trace(2, depth, this, "FOAliasBindingByRecursionImpl", hashCode(), "eliminateTrue", "Alias call %s (partial for %s) %s repeat found.",
+							formatAliasCall(), var.getName(), stringiseAssignments(assignment));
+				}
+				settings.getStats().numL1ElimTrueRepeatCall++;				
 			}
 			returnSet = universeSubset;
 		}

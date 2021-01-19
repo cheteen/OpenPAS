@@ -74,7 +74,10 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 					settings.getStats().numL1ElimTrueSuccess0++;
 			}
 		
-			settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "variable: %s, universeSubset: %s", mVar.getName(), constrained.getName());
+			if(constrained != structure.getUniverse())
+				settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "eliminateTrue for %s success new universeSubset: %s", mVar.getName(), constrained.getName());
+			else
+				settings.trace(5, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "eliminateTrue for %s failed. Using existing universeSubset: %s", mVar.getName(), constrained.getName());
 		}
 		assert aliasCalls.size() == 0;
 		
@@ -84,7 +87,7 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 			if(trace >= 1)
 			{
 				settings.getStats().numL1CheckAsgAllSub++;
-				settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assigned %s=%s", mVar.getName(), elt.getElement());
+				settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assigned %s=%s for %s", mVar.getName(), elt.getElement(), settings.stringiseFormulaForTrace(2, this));
 			}
 			
 			assignment.put(mVar, elt);

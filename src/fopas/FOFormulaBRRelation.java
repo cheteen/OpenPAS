@@ -103,7 +103,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		// We don't need to complement it if this formula has a negation of course.
 		FOSet<FOElement> constrained = mRel.tryConstrain(var, universe, mTerms, complement ^ !mNegated);
 
-		settings.trace(2, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", 
+		settings.trace(5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", 
 				"Elimination variable: %s, success: %s, subset: %s", var.getName(), constrained != universe, constrained.getName());
 	
 		return constrained;

@@ -126,6 +126,8 @@ class FOFormulaBROr extends FOFormulaBRImpl
 			settings.trace( 5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", "variable: %s, complement: %s, universe: %s", var.getName(), complement, universe.getName());			
 		}
 		
+		int elimTarget = settings.getTargetElimTrue();
+		
 		// Simple strategy:
 		FOSet<FOElement> fosetSmallest = universe;
 		for(FOFormula form : mFormulas)
@@ -136,12 +138,12 @@ class FOFormulaBROr extends FOFormulaBRImpl
 			{
 				fosetSmallest = subset;
 				
-				if(fosetSmallest.size() == 0)
+				if(fosetSmallest.size() <= elimTarget)
 					break;
 			}
 		}
 		
-		settings.trace(2, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", 
+		settings.trace(5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", 
 				"Elimination variable: %s, success: %s, smallest subset: %s", var.getName(), fosetSmallest != universe, fosetSmallest.getName());
 		
 		return fosetSmallest;
