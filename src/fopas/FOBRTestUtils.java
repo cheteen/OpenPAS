@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 
@@ -20,6 +21,7 @@ import fopas.basics.FOFunction;
 import fopas.basics.FORelation;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
+import fopas.basics.FOVariable;
 
 class FOBRTestUtils {
 
@@ -70,7 +72,7 @@ class FOBRTestUtils {
 	{
 		FOFormula form = builder.buildFormula(strFormula, structure);
 		
-		String strReForm = sgiser.stringiseFormula(form, 100, useExtended);
+		String strReForm = sgiser.stringiseFormula(form, 200, useExtended);
 		if(format == null)
 			Assert.assertEquals(strFormula, strReForm);
 		else
@@ -86,8 +88,9 @@ class FOBRTestUtils {
 	{
 		try
 		{
-			builder.buildFormula(strFormula, structure);
-		} catch (FOConstructionException e)
+			FOFormula form = builder.buildFormula(strFormula, structure);
+			form.models(structure);
+		} catch (Throwable e)
 		{
 			Assert.assertTrue(e.toString().contains(expContains));
 			return;
@@ -95,4 +98,22 @@ class FOBRTestUtils {
 		Assert.fail("Expected exception not found.");
 	}
 
+	static void printAssignments(FOStructure structure, FOFormulaBRImpl form, boolean satisfying) throws FOConstructionException 
+	{
+		Iterable<Map<FOVariable, FOElement>> assigners;
+		if(satisfying)
+			assigners = form.getSatisfyingAssignments(structure);
+		else
+			assigners = form.getAssignments(structure);
+		
+		for(Map<FOVariable, FOElement> asg : assigners)
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.append(":");
+			for(FOVariable var : asg.keySet())
+				sb.append("[" + var.getName() + "=" + asg.get(var).getElement() + "]");
+	
+			System.out.println(sb);
+		}
+	}
 }

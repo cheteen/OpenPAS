@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -49,7 +48,7 @@ public class FOAliasByRecursionImplTest
 	public void setUp() throws Exception
 	{
 		builder = new FOFormulaBuilderByRecursion();
-		sgiser = new FOByRecursionStringiser();
+		sgiser = new FOByRecursionStringiser(200);
 	}
 
 	@After
@@ -92,18 +91,7 @@ public class FOAliasByRecursionImplTest
 
 	private void testFormula(FOStructure structure, String strFormula, boolean expectSatisfaction, String format) throws FOConstructionException
 	{
-		FOFormula form = builder.buildFormula(strFormula, structure);
-		
-		String strReForm = sgiser.stringiseFormula(form, 200);
-		if(format == null)
-			Assert.assertEquals(strFormula, strReForm);
-		else
-		{
-			String strReFormReformat = String.format(format, strFormula);
-			Assert.assertEquals(strReFormReformat, strReForm);
-		}
-		
-		Assert.assertEquals(expectSatisfaction, structure.models(form));
+		FOBRTestUtils.testFormula(builder, sgiser, structure, strFormula, expectSatisfaction, format);
 	}
 	
 	@Test
@@ -166,25 +154,6 @@ public class FOAliasByRecursionImplTest
 		//printAssignments(structure, (FOFormulaByRecursionImpl) form, false);
 	}
 
-	private void printAssignments(FOStructure structure, FOFormulaBRImpl form, boolean satisfying) throws FOConstructionException 
-	{
-		Iterable<Map<FOVariable, FOElement>> assigners;
-		if(satisfying)
-			assigners = form.getSatisfyingAssignments(structure);
-		else
-			assigners = form.getAssignments(structure);
-		
-		for(Map<FOVariable, FOElement> asg : assigners)
-		{
-			StringBuilder sb = new StringBuilder();
-			sb.append(":");
-			for(FOVariable var : asg.keySet())
-				sb.append("[" + var.getName() + "=" + asg.get(var).getElement() + "]");
-
-			System.out.println(sb);
-		}
-	}
-	
 	@Test
 	public void testSimpleImplicationUsingOr() throws FOConstructionException
 	{
@@ -287,7 +256,10 @@ public class FOAliasByRecursionImplTest
 	public void testMultiplyUsingRecursionOneRelation() throws FOConstructionException
 	{
 		FOStructure structure = createSimpleStructure();
-		
+
+		// This will have an elimTrue target size of 1 (by default) unlike the next test.
+		Assert.assertEquals("Unexpected elimTrue size target.", 1, structure.getSettings().getTargetElimTrue());
+
 		// Define: x * y = z as multiply(x, y, z) 
 		// This implements multiplication using only the existing addition function recursively.
 		// But uses a given subtraction function instead of defining it from addition like the above.
@@ -315,9 +287,10 @@ public class FOAliasByRecursionImplTest
 		Assert.assertEquals("Does two rel checks for evaluating the first implication.", 2, stats.numL1CheckAsgRel);
 		// Success
 		testFormula(structure, "multiply(c0, c2, c0)", true, null);
+		stats.printStats(System.out);
 		Assert.assertEquals("Should figure out x1=4 and z1=3 to check the recursive case directly.", 2, stats.numL1ElimTrueSuccess1);
 		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueSuccess);
-		Assert.assertEquals("Should stop due to repeat once for x1 and then for z1.", 2, stats.numL1ElimTrueRepeatCall);
+		Assert.assertEquals("No elimTrue failures since we will accept the first time we get a set of size 1 for x1 and z1.", 0, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1.", 2, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 2, stats.numL1CheckAsgAllSub);
 		Assert.assertEquals("Same as above in checking the failures that should be 0.", 0, stats.numL1CheckAsgAllSubFail);
@@ -327,7 +300,7 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "multiply(c1, c2, c2)", true, null);
 		Assert.assertEquals("Should figure out x1 and z1 values to check the recursive case directly.", 2, stats.numL1ElimTrueSuccess1);
 		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueSuccess);
-		Assert.assertEquals("Should stop due to repeat once for x1 and then for z1.", 2, stats.numL1ElimTrueRepeatCall);
+		Assert.assertEquals("No elimTrue failures since we will accept the first time we get a set of size 1 for x1 and z1.", 0, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1.", 2, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 2, stats.numL1CheckAsgAllSub);
 		Assert.assertEquals("Same as above in checking the failures that should be 0.", 0, stats.numL1CheckAsgAllSubFail);
@@ -340,7 +313,7 @@ public class FOAliasByRecursionImplTest
 		Assert.assertEquals("Should do one level of recursion, so we have (2, 0, 0) as entry point, and then (1, 0, 0).", 2, stats.numL1CheckAsgIntoAlias);
 		Assert.assertEquals("Should figure out x1 and z1 for both cases above to check the recursive case directly, so we have 2x2=4.", 4, stats.numL1ElimTrueSuccess1);
 		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 4, stats.numL1ElimTrueSuccess);
-		Assert.assertEquals("Should stop due to repeat once for x1 and then for z1 for each alias call.", 4, stats.numL1ElimTrueRepeatCall);
+		Assert.assertEquals("No elimTrue failures since we will accept the first time we get a set of size 1 for x1 and z1.", 0, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1 for each alias call.", 4, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 4, stats.numL1CheckAsgAllSub);
 		Assert.assertEquals("Same as above in checking the failures that should be 0.", 0, stats.numL1CheckAsgAllSubFail);
@@ -353,19 +326,7 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "multiply(c4, c4, c0)", false, null); 
 		testFormula(structure, "multiply(c4, c3, c2)", true, null); // 4*3 mode 5=12 mod 5=2
 		testFormula(structure, "multiply(c3, c4, c2)", true, null); // 3*4 mode 5=12 mod 5=2
-
-		
-		// The following creates an infinite loop.		
-//		FOAlias formAlias = builder.buildAlias(structure, 
-//				"multiply",
-//				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-//					"(_x = c0 -> _z = c0)"
-//				+ 	"& (_x = c1 -> _z = _y)"
-//				+   "& (forall _x1)((forall _z1)(¬(_x = c0) & ¬(_x = c1) & _x1 = _x - c1 & multiply(_x1, _y, _z1) -> _z1 = _z - _y))"
-//				);
-//		testFormula(structure, "multiply(c2, c0, c0)", true, null);
-		
-	}	
+	}
 
 	// We force the elimTrue target to be 0 here to see that it spends more time.
 	@Test
@@ -401,6 +362,7 @@ public class FOAliasByRecursionImplTest
 		Assert.assertEquals("Does two rel checks for evaluating the first implication.", 2, stats.numL1CheckAsgRel);
 		// Success
 		testFormula(structure, "multiply(c0, c2, c0)", true, null);
+		stats.printStats(System.out);
 		Assert.assertEquals("Should figure out x1=4 and z1=3 to check the recursive case directly.", 2, stats.numL1ElimTrueSuccess1);
 		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueSuccess);
 		Assert.assertEquals("Should stop due to repeat once for x1 and then for z1.", 2, stats.numL1ElimTrueRepeatCall);
@@ -441,20 +403,23 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "multiply(c4, c4, c0)", false, null); 
 		testFormula(structure, "multiply(c4, c3, c2)", true, null); // 4*3 mode 5=12 mod 5=2
 		testFormula(structure, "multiply(c3, c4, c2)", true, null); // 3*4 mode 5=12 mod 5=2
-
-		
-		// The following creates an infinite loop.		
-//		FOAlias formAlias = builder.buildAlias(structure, 
-//				"multiply",
-//				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-//					"(_x = c0 -> _z = c0)"
-//				+ 	"& (_x = c1 -> _z = _y)"
-//				+   "& (forall _x1)((forall _z1)(¬(_x = c0) & ¬(_x = c1) & _x1 = _x - c1 & multiply(_x1, _y, _z1) -> _z1 = _z - _y))"
-//				);
-//		testFormula(structure, "multiply(c2, c0, c0)", true, null);
-		
 	}
-	
+
+	@Test
+	public void testInfiniteRecursionThrows() throws FOConstructionException
+	{
+		FORuntime runtime = new FORuntime(0);
+		FOStructure structure = createSimpleStructure(runtime);
+		
+		FOAlias formAlias2 = builder.buildAlias(structure, 
+		"infinine",
+		Arrays.asList(new FOVariableImpl("x")),
+			"(forall _x1)(_x = c0 & infinine(_x1))"
+		);
+		structure.addAlias(formAlias2);
+		
+		FOBRTestUtils.testThrows(builder, sgiser, structure, "infinine(c0)", "java.lang.StackOverflowError");
+	}
 	
 	
 	@Test
@@ -525,69 +490,4 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "multiply(c3, c4, c2)", true, null); // 3*4 mode 5=12 mod 5=2
 		Assert.assertEquals("2 recursive alias call +1 regular alias call from c3->c1.", 3, stats.numL1CheckAsgIntoAlias);
 	}
-	
-	@Test
-	public void testSimpleArithmeticsUsingConstructionSequence() throws FOConstructionException
-	{
-//		FOStructure structure = createSimpleStructure();
-//		
-//		// This defines: x - y = z
-//		structure.addAlias(
-//				builder.buildAlias(structure, 
-//						"Substract",
-//						Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")), "_x = (_y + _z)")				
-//				);
-//
-//		structure.addAlias(
-//				builder.buildAlias(structure, 
-//						"MultConstruction",
-//						FOStructureImpl.createVarArgs("y, s1, s2"),
-//						"_s2 = (_s1 + _y)")
-//				);
-//
-//		structure.addAlias(
-//				builder.buildAlias(structure, 
-//						"MultBase",
-//						FOStructureImpl.createVarArgs("s"),
-//						"_s = c0")
-//				);
-//
-//		structure.addAlias(
-//				builder.buildAlias(structure, 
-//						"ConstructionSeq",
-//						FOStructureImpl.createVarArgs("x, y, z"),
-//						"_s2 = (_s1 + _y)")
-//				);
-//
-//		// Define: x * y = z as Multiply(x, y, z) 
-//		// This implements multiplication using only the existing addition function recursively.
-//		FOAlias formAlias = builder.buildAlias(structure, 
-//				"Multiply",
-//				Arrays.asList(new FOVariableImpl("x"), new FOVariableImpl("y"), new FOVariableImpl("z")),
-//					"(_x = c0 -> _z = c0)"
-//				+ 	"& (_x = c1 -> _z = _y)"
-//				+   "& (forall _x1)((forall _z1)(¬(_x = c0) & ¬(_x = c1) & Substract(_x, c1, _x1) & Multiply(_x1, _y, _z1) -> _z = _z1 + _y))"
-//				);
-//		
-//		structure.addAlias(formAlias);
-//	
-//		//Base case 0
-//		testFormula(structure, "Multiply(c0, c2, c0)", true, null);
-//		testFormula(structure, "Multiply(c0, c2, c2)", false, null);
-//
-//		//Base case 1
-//		testFormula(structure, "Multiply(c1, c2, c2)", true, null);
-//		testFormula(structure, "Multiply(c1, c3, c3)", true, null);
-//		testFormula(structure, "Multiply(c1, c2, c1)", false, null);
-//
-//		// Recursive case
-//		testFormula(structure, "Multiply(c2, c0, c0)", true, null);
-//		testFormula(structure, "Multiply(c2, c1, c0)", false, null);
-//		testFormula(structure, "Multiply(c2, c1, c2)", true, null);
-//		testFormula(structure, "Multiply(c2, c2, c4)", true, null);
-//		testFormula(structure, "Multiply(c4, c4, c1)", true, null); // 4*4 mode 5=16 mod 5=1
-//		testFormula(structure, "Multiply(c4, c4, c0)", false, null); 
-//		testFormula(structure, "Multiply(c4, c3, c2)", true, null); // 4*3 mode 5=12 mod 5=2
-//		testFormula(structure, "Multiply(c3, c4, c2)", true, null); // 3*4 mode 5=12 mod 5=2
-	}	
 }

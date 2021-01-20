@@ -77,10 +77,7 @@ public class FOSetUtils
 			{
 				mElement = element;
 				mIt = it;
-				if(mIt.hasNext())
-					mNext = mIt.next();
-				else
-					mNext = null;
+				getNextInternal();
 			}
 			
 			@Override
@@ -94,31 +91,35 @@ public class FOSetUtils
 			{
 				if(mNext == null)
 				{
-					mIt.next(); // throws an excetpion
+					mIt.next(); // throws an exception
 					return null; // should never execute
 				}
 				else
 				{
 					T next = mNext;
-					if(mIt.hasNext())
-					{
-						mNext = mIt.next();
-						
-						// Skip my one element.
-						if(mNext.equals(mElement))
-						{
-							if(mIt.hasNext())
-								mNext = mIt.next();
-							else
-								mNext = null;
-							
-						}
-					}
-					else
-						mNext = null;
+					getNextInternal();
 
 					return next;
 				}
+			}
+
+			private void getNextInternal()
+			{
+				if(mIt.hasNext())
+				{
+					mNext = mIt.next();
+					
+					// Skip my one element.
+					if(mNext.equals(mElement))
+					{
+						if(mIt.hasNext())
+							mNext = mIt.next();
+						else
+							mNext = null;
+					}
+				}
+				else
+					mNext = null;
 			}
 		}
 		

@@ -133,13 +133,14 @@ public class FOByRecursionStringiser implements FOStringiser
 	final protected int mDefaultMaxLen;
 	public FOByRecursionStringiser()
 	{
-		this(new FOLanguage());
+		this(100);
 	}
 
-	FOByRecursionStringiser(FOLanguage lang)
+	FOByRecursionStringiser(int defaultMaxLen)
 	{
-		this(lang, 100);
+		this(new FOLanguage(), 100);
 	}
+	
 	FOByRecursionStringiser(FOLanguage lang, int defaultMaxLen)
 	{
 		mLang = lang;
