@@ -21,12 +21,12 @@ import fopas.basics.FOSet;
 import fopas.basics.FOTerm;
 
 // Infinite set for \mathbb{N}.
-public class FORangedNaturals implements FOSet<FOInteger>
+public class FOSetRangedNaturals implements FOSet<FOInteger>
 {
 	protected int mRangeStart;
 	protected int mRangeEnd;
 	
-	FORangedNaturals(int rangeStart, int rangeEnd)
+	FOSetRangedNaturals(int rangeStart, int rangeEnd)
 	{
 		if(rangeStart < 0)
 			throw new FORuntimeException("Invalid subset requested.");
@@ -35,7 +35,7 @@ public class FORangedNaturals implements FOSet<FOInteger>
 		mRangeEnd = rangeEnd;
 	}
 	
-	FORangedNaturals()
+	FOSetRangedNaturals()
 	{
 		this(0, -1);
 	}

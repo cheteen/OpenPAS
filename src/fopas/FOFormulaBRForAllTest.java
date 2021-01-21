@@ -27,8 +27,9 @@ public class FOFormulaBRForAllTest {
 	}
 
 	@Test
-	public void test() {
-		fail("Not yet implemented");
+	public void test()
+	{
+		
 	}
 
 }

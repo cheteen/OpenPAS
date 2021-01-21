@@ -21,7 +21,7 @@ import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOElement.FOInteger;
 
-public class FORangedNaturalsTest {
+public class FOSetRangedNaturalsTest {
 
 	FOFormulaBuilderByRecursion builder;
 	FOByRecursionStringiser sgiser;
@@ -75,7 +75,7 @@ public class FORangedNaturalsTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger hundred = new FOElementImpl.FOIntImpl(100);
 		
-		FOStructure structure = new FOStructureImpl(new FORangedNaturals(), new HashSet<>(Arrays.asList(foequals)),
+		FOStructure structure = new FOStructureImpl(new FOSetRangedNaturals(), new HashSet<>(Arrays.asList(foequals)),
 				new HashSet<>(Arrays.asList(funadd)));
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
