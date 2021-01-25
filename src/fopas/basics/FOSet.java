@@ -3,7 +3,7 @@ package fopas.basics;
 import java.util.List;
 import java.util.Set;
 
-// We're only interested in enumarable sets in computations, so let's assume a set to be iterable up front.
+// We're only interested in enumarable sets in computations, so let's assume a set to be iterable up front - though this will change.
 public interface FOSet<T extends FOElement> extends Iterable<T>
 {
 	public int size(); // shared with Set
@@ -12,6 +12,11 @@ public interface FOSet<T extends FOElement> extends Iterable<T>
 	
 	public boolean contains(Object o);
 	
+	/**
+	 * This is to give the complement set: relativeSet \ this
+	 * @param relativeSet
+	 * @return A set containing elements that are in the relativeSet but not in this set.
+	 */
 	public FOSet<T> complement(FOSet<T> relativeSet);
 	public default FOSet<T> complement(FOSet<T> relativeSet, boolean isComplement)
 	{
@@ -19,8 +24,5 @@ public interface FOSet<T extends FOElement> extends Iterable<T>
 			return complement(relativeSet);
 		else
 			return this;
-	}
-	
-	public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms);
-	public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms);
+	}	
 }

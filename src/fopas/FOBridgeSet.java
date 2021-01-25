@@ -104,19 +104,6 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
 	}
 
 	@Override
-	public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms)
-	{
-		// Generic set can't deal with generic relations.
-		return this;
-	}
-
-	@Override
-	public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms)
-	{
-		return -1;
-	}
-
-	@Override
 	public FOSet<T> complement(FOSet<T> relativeSet)
 	{
 		if(relativeSet instanceof FOFiniteSet)

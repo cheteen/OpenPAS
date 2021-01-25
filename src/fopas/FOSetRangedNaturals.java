@@ -1,5 +1,6 @@
 package fopas;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import com.google.common.collect.Range;
 import fopas.FORelationImpl.FORelationCompare;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
+import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOElement.Type;
 import openpas.utils.SimpleRange;
@@ -21,37 +23,38 @@ import fopas.basics.FOSet;
 import fopas.basics.FOTerm;
 
 // Infinite set for \mathbb{N}.
-public class FOSetRangedNaturals implements FOSet<FOInteger>
+public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 {
-	protected int mRangeStart;
-	protected int mRangeEnd;
+	protected int mRangeFirst;
+	protected int mRangeLast;
 	
-	FOSetRangedNaturals(int rangeStart, int rangeEnd)
+	FOSetRangedNaturals(int rangeFirst, int rangeLast)
 	{
-		if(rangeStart < 0)
-			throw new FORuntimeException("Invalid subset requested.");
-
-		mRangeStart = rangeStart;
-		mRangeEnd = rangeEnd;
+		mRangeFirst = rangeFirst;
+		mRangeLast = rangeLast;
 	}
 	
 	FOSetRangedNaturals()
 	{
-		this(0, -1);
+		this(0, Integer.MAX_VALUE); // we sacrifice MAX_VALUE and MIN_VALUE to mean infinity.
 	}
 
 	@Override
 	public Iterator<FOInteger> iterator()
 	{
+		if(mRangeFirst == Integer.MIN_VALUE)
+			throw new FORuntimeException("Integer overflow - infinite iteration attempted.");
+
 		int rangeEnd;
-		if(mRangeEnd < 0)
-			rangeEnd = Integer.MAX_VALUE;
+		if(mRangeLast == Integer.MAX_VALUE)
+			rangeEnd = mRangeLast;
 		else
-			rangeEnd = mRangeEnd;
+			rangeEnd = mRangeLast + 1;
 		
-		return new FOIntRange(mRangeStart, rangeEnd);
+		return new FOIntRange(mRangeFirst, rangeEnd);
 	}
 	
+	// TODO: Change this class to use first/last instead.
 	protected static class FOIntRange implements Iterator<FOInteger>
 	{
 		int mRangeStart;
@@ -71,7 +74,7 @@ public class FOSetRangedNaturals implements FOSet<FOInteger>
 			boolean rangeHasNext =  mIx < mRangeStop;
 			
 			if(rangeHasNext && mIx == Integer.MAX_VALUE)
-				throw new FORuntimeException("Integer overflow.");
+				throw new FORuntimeException("Integer overflow - infinite iteration attempted.");
 			
 			return rangeHasNext;
 		}
@@ -91,23 +94,43 @@ public class FOSetRangedNaturals implements FOSet<FOInteger>
 	@Override
 	public int size()
 	{
-		if(mRangeEnd < 0)
+		if(mRangeFirst == Integer.MIN_VALUE)
 			return -1;
-		return mRangeEnd - mRangeStart + 1;
+		if(mRangeLast == Integer.MAX_VALUE)
+			return -1;
+		return mRangeLast - mRangeFirst;
 	}
 
 	@Override
 	public String getName()
 	{
-		if(mRangeEnd < 0)
+		if(mRangeFirst == 0 && mRangeLast == Integer.MAX_VALUE)
+			return "N";
+		
+		StringBuilder sb = new StringBuilder();
+		if(mRangeFirst < 0)
 		{
-			if(mRangeStart == 0)
-				return "N";
+			sb.append("Z ");
+			if(mRangeFirst == Integer.MIN_VALUE)
+				sb.append("(-inf, ");
 			else
-				return "N[" + mRangeStart + ",inf)";
+			{
+				sb.append("(");
+				sb.append(mRangeFirst);
+				sb.append(", ");
+			}
 		}
 		else
-			return "N[" + mRangeStart + "," + mRangeEnd + ")";
+			sb.append("N [0, ");
+		
+		if(mRangeLast == Integer.MAX_VALUE)
+			sb.append("inf)");
+		else
+		{
+			sb.append(mRangeLast);
+			sb.append("]");
+		}
+		return sb.toString();
 	}
 
 	@Override
@@ -117,19 +140,67 @@ public class FOSetRangedNaturals implements FOSet<FOInteger>
 			throw new FORuntimeException("Unexpected object: " + o);
 		
 		int check = ((FOInteger)o).getInteger();
-		return check >= mRangeStart && (mRangeEnd < 0 || check < mRangeEnd);
+		return check >= mRangeFirst && check <= mRangeLast;
+	}
+		
+	@Override
+	public FOSet<FOInteger> complement(FOSet<FOInteger> relativeSet)
+	{
+		// It'd be easy to generalise this to FOEnumerableSet since we use the generic interface FOEnumerableSet to do all the constraining operations which are the key.
+		if(relativeSet instanceof FOSetRangedNaturals)
+		{
+			FOEnumerableSet<FOInteger> relativeEnumSet = (FOEnumerableSet<FOInteger>) relativeSet;
+			FOEnumerableSet<FOInteger> fosetNat1 = null;
+			FOEnumerableSet<FOInteger> fosetNat2 = null;
+			
+			int rsFirst = ((FOInteger) relativeEnumSet.getFirstElement()).getInteger();
+			int rsLast = ((FOInteger) relativeEnumSet.getLastElement()).getInteger();
+			if(rsFirst < mRangeFirst)
+			{
+				int firstComplementLast = Math.min(mRangeFirst -1, rsLast);				
+				fosetNat1 = relativeEnumSet.constrainToRange(relativeEnumSet.getFirstElement(), true, new FOElementImpl.FOIntImpl(firstComplementLast), true);
+			}
+			if(rsLast > mRangeLast)
+			{
+				int secondComplementFirst = Math.max(mRangeLast + 1, rsFirst);
+				fosetNat2 = relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), true, relativeEnumSet.getLastElement(), true);
+			}
+			
+			if(fosetNat1 == null)
+				return fosetNat2;
+			else if(fosetNat2 == null)
+				return fosetNat1;
+			else
+				return new FOSetSequenceOfRanges(relativeSet.getName() + "\\" + getName(),
+						Arrays.asList((FOSetRangedNaturals) fosetNat1, (FOSetRangedNaturals) fosetNat2));
+		}
+		return null;
 	}
 
 	@Override
-	public FOSet<FOInteger> constrain(FORelation<FOInteger> relation, List<FOTerm> terms)
+	public FOEnumerableSet<FOInteger> constrainToRange(FOElement first, boolean includeFirst, FOElement last, boolean includeLast)
 	{
-		if(relation.getClass() == FORelationCompare.class)
+		if(first.getType() != Type.Integer || last.getType() != Type.Integer)
+			throw new FORuntimeException("Unexpected element type found.");
+		
+		int firstInt = ((FOInteger) first).getInteger();
+		int lastInt = ((FOInteger) last).getInteger();
+		// Is there any scenario the following won't work? Need to unit test this stuff.
+		// Small sanity check at start.
+		if(firstInt <= lastInt) // equality is probably not needed - need to unittest this etc.
 		{
-			assert terms.size() == 2;
-			
+			if(!includeFirst)
+				firstInt++;
+			if(!includeLast)
+				lastInt--;
+			if(mRangeFirst != firstInt && mRangeLast != lastInt)
+			{
+				int newFirst = Math.max(firstInt, mRangeFirst);
+				int newLast = Math.max(lastInt, mRangeLast);
+				return new FOSetRangedNaturals(newFirst, newLast);				
+			}
 		}
-		// TODO Auto-generated method stub
-		return null;
+		return this;
 	}
 
 	@Override
@@ -139,8 +210,14 @@ public class FOSetRangedNaturals implements FOSet<FOInteger>
 	}
 
 	@Override
-	public FOSet<FOInteger> complement(FOSet<FOInteger> relativeSet) {
-		// TODO Auto-generated method stub
-		return null;
+	public FOInteger getFirstElement()
+	{
+		return new FOElementImpl.FOIntImpl(mRangeFirst);
+	}
+
+	@Override
+	public FOInteger getLastElement()
+	{
+		return new FOElementImpl.FOIntImpl(mRangeLast);
 	}
 }

@@ -77,18 +77,6 @@ public class FOUnionSetImpl implements FOUnionSet
 	}
 
 	@Override
-	public FOSet constrain(FORelation relation, List terms) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int getConstrainedSize(FORelation relation, List terms) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public FOSet complement(FOSet relativeSet)
 	{
 		// TODO Implement this.

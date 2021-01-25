@@ -7,6 +7,7 @@ import java.util.List;
 import com.google.common.collect.FluentIterable;
 
 import fopas.basics.FOElement;
+import fopas.basics.FOEnumerableSet;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
@@ -14,7 +15,7 @@ import fopas.basics.FOTerm;
 
 public class FOSetUtils
 {
-	static class EmptySet<T extends FOElement> implements FOSet<T>
+	static class EmptySet<T extends FOElement> implements FOEnumerableSet<T>
 	{
 		protected final String mName;
 		EmptySet(String name)
@@ -47,7 +48,7 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms) {
+		public FOEnumerableSet<T> constrainToRange(FOElement start, boolean includeStart, FOElement end, boolean includeEnd) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -63,9 +64,21 @@ public class FOSetUtils
 		{
 			return relativeSet;
 		}
+
+		@Override
+		public T getFirstElement()
+		{
+			return null;
+		}
+
+		@Override
+		public T getLastElement()
+		{
+			return null;
+		}
 	}
 
-	static class ComplementedSingleElementSet<T extends FOElement> implements FOSet<T>
+	static class ComplementedSingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
 	{
 		protected static class ComplementedSingleElementSetIterator<T> implements Iterator<T>
 		{
@@ -164,7 +177,7 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms) {
+		public FOEnumerableSet<T> constrainToRange(FOElement start, boolean includeStart, FOElement end, boolean includeEnd) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -182,9 +195,22 @@ public class FOSetUtils
 				return relativeSet;
 			throw new FORuntimeException("Unimplemented complement operation.");
 		}
+
+		@Override
+		public T getFirstElement()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public T getLastElement() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 	
-	static class SingleElementSet<T extends FOElement> implements FOSet<T>
+	static class SingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
 	{
 		protected static class SingleElementIterator<T> implements Iterator<T>
 		{
@@ -243,7 +269,13 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOSet<T> constrain(FORelation<T> relation, List<FOTerm> terms) {
+		public FOSet<T> complement(FOSet<T> relativeSet)
+		{
+			return new ComplementedSingleElementSet<T>(mName, mElement, relativeSet);
+		}
+
+		@Override
+		public FOEnumerableSet<T> constrainToRange(FOElement start, boolean includeStart, FOElement end, boolean includeEnd) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -255,9 +287,15 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOSet<T> complement(FOSet<T> relativeSet)
-		{
-			return new ComplementedSingleElementSet<T>(mName, mElement, relativeSet);
+		public T getFirstElement() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public T getLastElement() {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 }
