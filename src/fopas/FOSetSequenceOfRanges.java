@@ -2,6 +2,8 @@ package fopas;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,6 +14,7 @@ import fopas.basics.FOElement;
 import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOEnumerableSet;
 import fopas.basics.FORelation;
+import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOTerm;
 
@@ -23,7 +26,7 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges)
 	{
 		mName = name;
-		mRanges = new LinkedList<>();
+		mRanges = new ArrayList<>();
 		Iterables.addAll(mRanges, ranges);
 	}
 	
@@ -57,6 +60,8 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 		// It'd be easy to generalise this to FOEnumerableSet since we use the generic interface FOEnumerableSet to do all the constraining operations which are the key.
 		if(relativeSet instanceof FOSetRangedNaturals)
 		{
+			// There's probably a far more elegant algorithm than the one here to do this,
+			// but it seems to work, and it's not inefficient.
 			FOEnumerableSet<FOInteger> relativeEnumSet = (FOEnumerableSet<FOInteger>) relativeSet;
 			
 			int rsFirst = relativeEnumSet.getFirstElement().getInteger();
@@ -85,7 +90,7 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 					{
 						int firstComplementLast = Math.min(rangeFirst - 1, rsLast);				
 						newRanges.add((FOSetRangedNaturals)
-								relativeEnumSet.constrainToRange(relativeEnumSet.getFirstElement(), true, new FOElementImpl.FOIntImpl(firstComplementLast), true));
+								relativeEnumSet.constrainToRange(relativeEnumSet.getFirstElement(), new FOElementImpl.FOIntImpl(firstComplementLast)));
 						gotFirstPartial = true;
 						if(firstComplementLast == rsLast)
 						{
@@ -99,7 +104,7 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 				{
 					int secondComplementFirst = Math.max(rangeLast + 1, rsFirst);
 					newRanges.add((FOSetRangedNaturals)
-							relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), true, relativeEnumSet.getLastElement(), true));
+							relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getLastElement()));
 					gotSecondPartial = true;
 					break;
 				}
@@ -112,12 +117,13 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 				int rangesLast = getLastElement().getInteger();
 				int secondComplementFirst = Math.max(rangesLast + 1, rsFirst);
 				newRanges.add((FOSetRangedNaturals)
-						relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), true, relativeEnumSet.getLastElement(), true));
+						relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getLastElement()));
 			}
 			
 			if(newRanges.size() == 1)
 				return newRanges.get(0);
-			else return new FOSetSequenceOfRanges(relativeSet.getName() + "\\" + getName(), newRanges);
+			else
+				return new FOSetSequenceOfRanges(relativeSet.getName() + "\\" + getName(), newRanges);
 		}
 		return null;
 	}
@@ -130,9 +136,57 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	}
 
 	@Override
-	public FOEnumerableSet<FOInteger> constrainToRange(FOElement start, boolean includeStart, FOElement end, boolean includeEnd) {
-		// TODO Auto-generated method stub
-		return null;
+	public FOEnumerableSet<FOInteger> constrainToRange(FOInteger first, FOInteger last)
+	{
+		int myFirstInt = getFirstElement().getInteger();
+		int myLastInt = getLastElement().getInteger();
+		int firstInt = first.getInteger();
+		if(firstInt < myFirstInt)
+			firstInt = myFirstInt;
+		int lastInt = last.getInteger();
+		if(lastInt > myLastInt)
+			lastInt = myLastInt;
+
+		if(firstInt == myFirstInt && lastInt == myLastInt)
+			return this;
+		
+		List<FOSetRangedNaturals> newRanges = new ArrayList<>();
+		boolean gotStart = false;
+		boolean gotEnd = false;
+		for(int ix = 0; ix < mRanges.size(); ix++)
+		{
+			FOSetRangedNaturals range = mRanges.get(ix);
+			int rangeFirst = range.getFirstElement().getInteger();
+			int rangeLast = range.getLastElement().getInteger();
+			if(!gotStart)
+			{
+				if(firstInt >= rangeFirst)
+				{
+					int startRangeLast = Math.min(rangeLast, lastInt);
+					if(startRangeLast <= rangeLast)
+						gotEnd = true;
+					newRanges.add(new FOSetRangedNaturals(first.getInteger(), startRangeLast));
+					gotStart = true;
+				}
+			}
+			if(!gotEnd)
+			{
+				if(lastInt >= rangeFirst && lastInt <= rangeLast)
+				{
+					newRanges.add(new FOSetRangedNaturals(rangeFirst, lastInt));
+					gotEnd = true;
+					break;
+				}
+			}
+		}
+		
+		assert gotStart;
+		assert gotEnd;
+
+		if(newRanges.size() == 1)
+			return newRanges.get(0);
+		else
+			return new FOSetSequenceOfRanges(String.format("%s [%d, %d]", mName, firstInt, lastInt), newRanges);
 	}
 
 	@Override

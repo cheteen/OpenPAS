@@ -11,7 +11,7 @@ public interface FOElement {
 	Object getElement();
 	
 	public static interface FOString extends FOElement {}
-	public static interface FOInteger extends FOElement
+	public static interface FOInteger extends FOElement, Comparable<FOInteger>
 	{
 		int getInteger();
 	}

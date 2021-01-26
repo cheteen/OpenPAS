@@ -98,5 +98,11 @@ abstract class FOElementImpl implements FOElement
 		{
 			return (Integer) mElt;
 		}
+
+		@Override
+		public int compareTo(FOInteger o)
+		{
+			return o.getInteger() - (Integer) mElt;
+		}
 	}
 }

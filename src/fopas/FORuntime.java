@@ -72,7 +72,7 @@ public class FORuntime
 	protected final int mDefaultStringLen = 100;
 	protected final FOLanguage mLang = new FOLanguage();
 	protected final FOByRecursionStringiser mSgiser = new FOByRecursionStringiser(mLang, mDefaultStringLen);
-	protected int mTraceLevel =  2; // Increase this to (2) to turn on debug tracing.
+	protected int mTraceLevel =  1; // Increase this to (2) to turn on debug tracing.
 
 	protected final int mFormTraceLen = 100;
 	protected final String mEmptyForm = Strings.repeat(" ", mFormTraceLen);

@@ -48,7 +48,7 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOEnumerableSet<T> constrainToRange(FOElement start, boolean includeStart, FOElement end, boolean includeEnd) {
+		public FOEnumerableSet<T> constrainToRange(FOElement start, FOElement end) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -177,7 +177,7 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOEnumerableSet<T> constrainToRange(FOElement start, boolean includeStart, FOElement end, boolean includeEnd) {
+		public FOEnumerableSet<T> constrainToRange(FOElement start, FOElement end) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -275,7 +275,7 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOEnumerableSet<T> constrainToRange(FOElement start, boolean includeStart, FOElement end, boolean includeEnd) {
+		public FOEnumerableSet<T> constrainToRange(FOElement start, FOElement end) {
 			// TODO Auto-generated method stub
 			return null;
 		}

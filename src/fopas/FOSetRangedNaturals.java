@@ -158,12 +158,12 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 			if(rsFirst < mRangeFirst)
 			{
 				int firstComplementLast = Math.min(mRangeFirst -1, rsLast);				
-				fosetNat1 = relativeEnumSet.constrainToRange(relativeEnumSet.getFirstElement(), true, new FOElementImpl.FOIntImpl(firstComplementLast), true);
+				fosetNat1 = relativeEnumSet.constrainToRange(relativeEnumSet.getFirstElement(), new FOElementImpl.FOIntImpl(firstComplementLast));
 			}
 			if(rsLast > mRangeLast)
 			{
 				int secondComplementFirst = Math.max(mRangeLast + 1, rsFirst);
-				fosetNat2 = relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), true, relativeEnumSet.getLastElement(), true);
+				fosetNat2 = relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getLastElement());
 			}
 			
 			if(fosetNat1 == null)
@@ -178,7 +178,7 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 	}
 
 	@Override
-	public FOEnumerableSet<FOInteger> constrainToRange(FOElement first, boolean includeFirst, FOElement last, boolean includeLast)
+	public FOEnumerableSet<FOInteger> constrainToRange(FOInteger first, FOInteger last)
 	{
 		if(first.getType() != Type.Integer || last.getType() != Type.Integer)
 			throw new FORuntimeException("Unexpected element type found.");
@@ -189,10 +189,6 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 		// Small sanity check at start.
 		if(firstInt <= lastInt) // equality is probably not needed - need to unittest this etc.
 		{
-			if(!includeFirst)
-				firstInt++;
-			if(!includeLast)
-				lastInt--;
 			if(mRangeFirst != firstInt && mRangeLast != lastInt)
 			{
 				int newFirst = Math.max(firstInt, mRangeFirst);
