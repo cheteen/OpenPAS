@@ -138,6 +138,8 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(90, Iterables.size(foset));
 		Assert.assertEquals(10, foset.getStart().getInteger());
 		Assert.assertEquals(99, foset.getEnd().getInteger());
+		Assert.assertTrue(foset.getIncludeStart());
+		Assert.assertTrue(foset.getIncludeEnd());
 	}
 
 	@Test
@@ -150,6 +152,8 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(90, Iterables.size(foset));
 		Assert.assertEquals(10, foset.getStart().getInteger());
 		Assert.assertEquals(99, foset.getEnd().getInteger());
+		Assert.assertTrue(foset.getIncludeStart());
+		Assert.assertFalse(foset.getIncludeEnd());
 	}
 
 	@Test
@@ -162,6 +166,8 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(90, Iterables.size(foset));
 		Assert.assertEquals(10, foset.getStart().getInteger());
 		Assert.assertEquals(99, foset.getEnd().getInteger());
+		Assert.assertFalse(foset.getIncludeStart());
+		Assert.assertTrue(foset.getIncludeEnd());
 	}
 
 	@Test
@@ -174,6 +180,8 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(90, Iterables.size(foset));
 		Assert.assertEquals(10, foset.getStart().getInteger());
 		Assert.assertEquals(99, foset.getEnd().getInteger());
+		Assert.assertFalse(foset.getIncludeStart());
+		Assert.assertFalse(foset.getIncludeEnd());
 	}
 
 	@Test

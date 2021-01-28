@@ -13,4 +13,6 @@ public interface FOEnumerableSet<T extends FOElement> extends FOSet<T>
 	 * @return the last element in this set according to the enumeration order.
 	 */
 	public T getEnd();
+	public boolean getIncludeStart();
+	public boolean getIncludeEnd();
 }

@@ -76,6 +76,18 @@ public class FOSetUtils
 		{
 			return null;
 		}
+
+		@Override
+		public boolean getIncludeStart() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean getIncludeEnd() {
+			// TODO Auto-generated method stub
+			return false;
+		}
 	}
 
 	static class ComplementedSingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
@@ -208,6 +220,18 @@ public class FOSetUtils
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		@Override
+		public boolean getIncludeStart() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean getIncludeEnd() {
+			// TODO Auto-generated method stub
+			return false;
+		}
 	}
 	
 	static class SingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
@@ -296,6 +320,18 @@ public class FOSetUtils
 		public T getEnd() {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		@Override
+		public boolean getIncludeStart() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean getIncludeEnd() {
+			// TODO Auto-generated method stub
+			return false;
 		}
 	}
 }

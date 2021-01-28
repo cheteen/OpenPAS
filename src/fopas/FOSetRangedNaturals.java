@@ -30,6 +30,8 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 	protected final int mRangeLast;
 	protected final boolean mIncEnd;
 
+	// This enforces a different constructor/parameters and checks when creating an infinite range.
+	// This should help with treating these more carefully.
 	FOSetRangedNaturals(int rangeStart, boolean incStart, int rangeEnd, boolean incEnd)
 	{
 		if(rangeStart == Integer.MAX_VALUE || rangeEnd == Integer.MIN_VALUE)
@@ -155,35 +157,24 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 		if(mRangeFirst == 0 && mRangeLast == Integer.MAX_VALUE)
 			return "N";
 		
+		String setName;
 		StringBuilder sb = new StringBuilder();
 		if(mRangeFirst < 0)
+			setName = "Z";
+		else
+			setName = "N";
+
+		if(mRangeFirst == Integer.MIN_VALUE)
 		{
-			sb.append("Z ");
-			if(mRangeFirst == Integer.MIN_VALUE)
-			{
-				if(mRangeLast == Integer.MAX_VALUE)
-					return "Z";
-				assert !mIncStart;
-				sb.append("(-inf, ");
-			}
-			else
-			{
-				if(mIncStart)
-				{
-					sb.append("[");
-					sb.append(mRangeFirst);
-				}
-				else
-				{
-					sb.append("(");
-					sb.append(mRangeFirst - 1);
-				}
-				sb.append(", ");
-			}
+			if(mRangeLast == Integer.MAX_VALUE)
+				return "Z";
+			assert !mIncStart;
+			sb.append("Z (-inf, ");
 		}
 		else
 		{
-			sb.append("N ");
+			sb.append(setName);
+			sb.append(' ');
 			if(mIncStart)
 			{
 				sb.append("[");
@@ -196,7 +187,7 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 			}
 			sb.append(", ");
 		}
-		
+
 		if(mRangeLast == Integer.MAX_VALUE)
 		{
 			assert !mIncEnd;
@@ -293,9 +284,6 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 	@Override
 	public FOInteger getStart()
 	{
-		// TODO: This should throw if returning infinite - or perhaps the finite set should subclass the enumarable one and only then offer getlast/first
-		// Or perhaps I should leave it alone - not sure what's the best here.
-		// Right -> this shoudl be getRangeEnd(), but internally we should do first/last!
 		return new FOElementImpl.FOIntImpl(mRangeFirst);
 	}
 
@@ -310,5 +298,17 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 	public String toString()
 	{
 		return "FOSetRangedNaturals " + getName();		
+	}
+
+	@Override
+	public boolean getIncludeStart()
+	{
+		return mIncStart;
+	}
+
+	@Override
+	public boolean getIncludeEnd()
+	{
+		return mIncEnd;
 	}
 }

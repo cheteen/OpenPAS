@@ -213,4 +213,18 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 		assert mRanges.size() > 0;
 		return mRanges.get(mRanges.size() - 1).getEnd();
 	}
+
+	@Override
+	public boolean getIncludeStart()
+	{
+		assert mRanges.size() > 0;
+		return mRanges.get(0).getIncludeStart();		
+	}
+
+	@Override
+	public boolean getIncludeEnd()
+	{
+		assert mRanges.size() > 0;
+		return mRanges.get(mRanges.size() - 1).getIncludeEnd();
+	}
 }
