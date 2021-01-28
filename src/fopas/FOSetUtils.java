@@ -66,13 +66,13 @@ public class FOSetUtils
 		}
 
 		@Override
-		public T getFirstElement()
+		public T getStart()
 		{
 			return null;
 		}
 
 		@Override
-		public T getLastElement()
+		public T getEnd()
 		{
 			return null;
 		}
@@ -197,14 +197,14 @@ public class FOSetUtils
 		}
 
 		@Override
-		public T getFirstElement()
+		public T getStart()
 		{
 			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
-		public T getLastElement() {
+		public T getEnd() {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -287,13 +287,13 @@ public class FOSetUtils
 		}
 
 		@Override
-		public T getFirstElement() {
+		public T getStart() {
 			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
-		public T getLastElement() {
+		public T getEnd() {
 			// TODO Auto-generated method stub
 			return null;
 		}
