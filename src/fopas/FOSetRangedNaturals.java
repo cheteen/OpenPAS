@@ -14,6 +14,7 @@ import fopas.FORelationImpl.FORelationCompare;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOEnumerableSet;
+import fopas.basics.FORange;
 import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOElement.Type;
 import openpas.utils.SimpleRange;
@@ -22,12 +23,12 @@ import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOTerm;
 
-// Infinite set for \mathbb{N}.
-public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
+// Infinite set for \mathbb{N} amd \mathbb{Z}.
+public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<FOInteger>
 {
-	protected final int mRangeFirst;
+	protected final int mRangeLeft;
 	protected final boolean mIncStart;
-	protected final int mRangeLast;
+	protected final int mRangeRight;
 	protected final boolean mIncEnd;
 
 	// This enforces a different constructor/parameters and checks when creating an infinite range.
@@ -45,30 +46,35 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 		if(!incStart)
 		{
 			if(rangeStart == Integer.MIN_VALUE)
-				mRangeFirst = rangeStart; // We break contract here in our internal representation since infinity can't be the start of a range, but we deal with internally.
+				mRangeLeft = rangeStart; // We break contract here in our internal representation since infinity can't be the start of a range, but we deal with internally.
 			else
-				mRangeFirst = rangeStart + 1;
+				mRangeLeft = rangeStart + 1;
 		}
 		else
-			mRangeFirst = rangeStart;
+			mRangeLeft = rangeStart;
 		
 		if(!incEnd)
 		{
 			if(rangeEnd == Integer.MAX_VALUE)
-				mRangeLast = rangeEnd;
+				mRangeRight = rangeEnd;
 			else
-				mRangeLast = rangeEnd - 1;
+				mRangeRight = rangeEnd - 1;
 		}
 		else
-			mRangeLast = rangeEnd;
+			mRangeRight = rangeEnd;
 		
-		if(mRangeFirst > mRangeLast)
+		if(mRangeLeft > mRangeRight)
 			throw new FORuntimeException("Invalid range parameters.");
 	}
 	
-	FOSetRangedNaturals(int rangeFirst, int rangeLast)
+	/**
+	 * This constructor start and end are inclusive.
+	 * @param rangeStart
+	 * @param rangeEnd
+	 */
+	FOSetRangedNaturals(int rangeStart, int rangeEnd)
 	{
-		this(rangeFirst, true, rangeLast, true);
+		this(rangeStart, true, rangeEnd, true);
 	}
 
 	FOSetRangedNaturals()
@@ -79,20 +85,13 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 	@Override
 	public Iterator<FOInteger> iterator()
 	{
-		int rangeStart = mRangeFirst;
-		int rangeEnd = mRangeLast;
+		int rangeStart = mRangeLeft;
+		int rangeEnd = mRangeRight;
 		
-		int dir;
-		if(rangeEnd < 0) // if this is all a negative range we iterate backwards.
-			dir = -1;
-		else if(rangeStart < 0 && rangeEnd == 0)
-			dir = -1;
-		else
-			dir = 1;
-		
+		int dir = getDir();
 		if(dir > 0)
 		{
-			if(mRangeLast == Integer.MAX_VALUE && mRangeFirst == Integer.MIN_VALUE)
+			if(mRangeRight == Integer.MAX_VALUE && mRangeLeft == Integer.MIN_VALUE)
 				rangeStart = 0; // iterate the positive half for Z - no good other default behaviour I can see
 
 			return new FOIntRange(rangeStart, rangeEnd, dir);
@@ -101,6 +100,18 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 		{
 			return new FOIntRange(rangeEnd, rangeStart, dir);
 		}
+	}
+
+	protected int getDir()
+	{
+		int dir;
+		if(mRangeRight < 0) // if this is all a negative range we iterate backwards.
+			dir = -1;
+		else if(mRangeLeft < 0 && mRangeRight == 0)
+			dir = -1;
+		else
+			dir = 1;
+		return dir;
 	}
 	
 	// TODO: Change this class to use first/last instead.
@@ -144,29 +155,29 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 	@Override
 	public int size()
 	{
-		if(mRangeFirst == Integer.MIN_VALUE)
+		if(mRangeLeft == Integer.MIN_VALUE)
 			return -1;
-		if(mRangeLast == Integer.MAX_VALUE)
+		if(mRangeRight == Integer.MAX_VALUE)
 			return -1;
-		return (mRangeLast - mRangeFirst + 1);
+		return (mRangeRight - mRangeLeft + 1);
 	}
 
 	@Override
 	public String getName()
 	{
-		if(mRangeFirst == 0 && mRangeLast == Integer.MAX_VALUE)
+		if(mRangeLeft == 0 && mRangeRight == Integer.MAX_VALUE)
 			return "N";
 		
 		String setName;
 		StringBuilder sb = new StringBuilder();
-		if(mRangeFirst < 0)
+		if(mRangeLeft < 0)
 			setName = "Z";
 		else
 			setName = "N";
 
-		if(mRangeFirst == Integer.MIN_VALUE)
+		if(mRangeLeft == Integer.MIN_VALUE)
 		{
-			if(mRangeLast == Integer.MAX_VALUE)
+			if(mRangeRight == Integer.MAX_VALUE)
 				return "Z";
 			assert !mIncStart;
 			sb.append("Z (-inf, ");
@@ -178,17 +189,17 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 			if(mIncStart)
 			{
 				sb.append("[");
-				sb.append(mRangeFirst);
+				sb.append(mRangeLeft);
 			}
 			else
 			{
 				sb.append("(");
-				sb.append(mRangeFirst - 1);
+				sb.append(mRangeLeft - 1);
 			}
 			sb.append(", ");
 		}
 
-		if(mRangeLast == Integer.MAX_VALUE)
+		if(mRangeRight == Integer.MAX_VALUE)
 		{
 			assert !mIncEnd;
 			sb.append("inf)");
@@ -197,12 +208,12 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 		{
 			if(mIncEnd)
 			{
-				sb.append(mRangeLast);
+				sb.append(mRangeRight);
 				sb.append("]");
 			}
 			else
 			{
-				sb.append(mRangeLast + 1);
+				sb.append(mRangeRight + 1);
 				sb.append(")");
 			}
 		}
@@ -217,7 +228,7 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 			throw new FORuntimeException("Unexpected object: " + o);
 		
 		int check = ((FOInteger)o).getInteger();
-		return check >= mRangeFirst && check <= mRangeLast;
+		return check >= mRangeLeft && check <= mRangeRight;
 	}
 		
 	@Override
@@ -226,20 +237,20 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 		// It'd be easy to generalise this to FOEnumerableSet since we use the generic interface FOEnumerableSet to do all the constraining operations which are the key.
 		if(relativeSet instanceof FOSetRangedNaturals)
 		{
-			FOEnumerableSet<FOInteger> relativeEnumSet = (FOEnumerableSet<FOInteger>) relativeSet;
+			FOSetRangedNaturals relativeEnumSet = (FOSetRangedNaturals) relativeSet;
 			FOEnumerableSet<FOInteger> fosetNat1 = null;
 			FOEnumerableSet<FOInteger> fosetNat2 = null;
 			
 			int rsFirst = ((FOInteger) relativeEnumSet.getStart()).getInteger();
 			int rsLast = ((FOInteger) relativeEnumSet.getEnd()).getInteger();
-			if(rsFirst < mRangeFirst)
+			if(rsFirst < mRangeLeft)
 			{
-				int firstComplementLast = Math.min(mRangeFirst -1, rsLast);				
+				int firstComplementLast = Math.min(mRangeLeft -1, rsLast);				
 				fosetNat1 = relativeEnumSet.constrainToRange(relativeEnumSet.getStart(), new FOElementImpl.FOIntImpl(firstComplementLast));
 			}
-			if(rsLast > mRangeLast)
+			if(rsLast > mRangeRight)
 			{
-				int secondComplementFirst = Math.max(mRangeLast + 1, rsFirst);
+				int secondComplementFirst = Math.max(mRangeRight + 1, rsFirst);
 				fosetNat2 = relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getEnd());
 			}
 			
@@ -263,11 +274,11 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 		int firstInt = ((FOInteger) first).getInteger();
 		int lastInt = ((FOInteger) last).getInteger();
 
-		if(mRangeFirst != firstInt || mRangeLast != lastInt)
+		if(mRangeLeft != firstInt || mRangeRight != lastInt)
 		{
-			int newFirst = Math.max(firstInt, mRangeFirst);
+			int newFirst = Math.max(firstInt, mRangeLeft);
 			boolean incFirst = newFirst == Integer.MIN_VALUE ? false : true;
-			int newLast = Math.min(lastInt, mRangeLast);
+			int newLast = Math.min(lastInt, mRangeRight);
 			boolean incLast = newLast == Integer.MAX_VALUE ? false : true;
 			return new FOSetRangedNaturals(newFirst, incFirst, newLast, incLast);
 		}
@@ -284,14 +295,33 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 	@Override
 	public FOInteger getStart()
 	{
-		return new FOElementImpl.FOIntImpl(mRangeFirst);
+		int start;
+		if(mIncStart)
+			start = mRangeLeft;
+		else
+		{
+			if(mRangeLeft == Integer.MIN_VALUE)
+				start = Integer.MIN_VALUE;
+			else
+				start = mRangeLeft - 1;
+		}
+		return new FOElementImpl.FOIntImpl(start);
 	}
 
 	@Override
 	public FOInteger getEnd()
 	{
-		// TODO: This should throw if returning infinite.
-		return new FOElementImpl.FOIntImpl(mRangeLast);
+		int end;
+		if(mIncEnd)
+			end = mRangeRight;
+		else
+		{
+			if(mRangeRight == Integer.MAX_VALUE)
+				end = Integer.MAX_VALUE;
+			else
+				end = mRangeRight + 1;
+		}
+		return new FOElementImpl.FOIntImpl(end);
 	}
 	
 	@Override
@@ -310,5 +340,52 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>
 	public boolean getIncludeEnd()
 	{
 		return mIncEnd;
+	}
+
+//	@Override
+//	public FOInteger getFirst()
+//	{
+//		int first;
+//		if(mRangeLeft == Integer.MIN_VALUE) // this is the only exception situation where we start from -inf.
+//			first = 0;
+//		else if(getDir() > 0)
+//			first = mRangeLeft;
+//		else
+//			first = mRangeRight;
+//
+//		return new FOElementImpl.FOIntImpl(first);
+//	}
+//
+//	@Override
+//	public FOInteger getLastOrInfinite()
+//	{
+//		int lastOrInfinite;
+//		if(getDir() > 0)
+//			lastOrInfinite = mRangeRight;
+//		else
+//			lastOrInfinite = mRangeLeft;
+//		return new FOElementImpl.FOIntImpl(lastOrInfinite);
+//	}
+
+	@Override
+	public FOInteger getStartOrInfinite(boolean includeStart)
+	{
+		int start;
+		if(!includeStart && mRangeLeft != Integer.MIN_VALUE)
+			start = mRangeLeft - 1;
+		else
+			start = mRangeLeft;
+		return new FOElementImpl.FOIntImpl(start);
+	}
+
+	@Override
+	public FOInteger getEndOrInfinite(boolean includeEnd)
+	{
+		int end;
+		if(!includeEnd && mRangeRight != Integer.MAX_VALUE)
+			end = mRangeRight + 1;
+		else
+			end = mRangeRight;
+		return new FOElementImpl.FOIntImpl(end);
 	}
 }

@@ -64,30 +64,6 @@ public class FOSetUtils
 		{
 			return relativeSet;
 		}
-
-		@Override
-		public T getStart()
-		{
-			return null;
-		}
-
-		@Override
-		public T getEnd()
-		{
-			return null;
-		}
-
-		@Override
-		public boolean getIncludeStart() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean getIncludeEnd() {
-			// TODO Auto-generated method stub
-			return false;
-		}
 	}
 
 	static class ComplementedSingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
@@ -207,31 +183,6 @@ public class FOSetUtils
 				return relativeSet;
 			throw new FORuntimeException("Unimplemented complement operation.");
 		}
-
-		@Override
-		public T getStart()
-		{
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public T getEnd() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean getIncludeStart() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean getIncludeEnd() {
-			// TODO Auto-generated method stub
-			return false;
-		}
 	}
 	
 	static class SingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
@@ -308,30 +259,6 @@ public class FOSetUtils
 		public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms) {
 			// TODO Auto-generated method stub
 			return 0;
-		}
-
-		@Override
-		public T getStart() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public T getEnd() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean getIncludeStart() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean getIncludeEnd() {
-			// TODO Auto-generated method stub
-			return false;
 		}
 	}
 }

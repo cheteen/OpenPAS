@@ -112,9 +112,12 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals("N", foset.getName());
 		Assert.assertEquals(-1, foset.size());
 		Assert.assertEquals(0, foset.iterator().next().getInteger());
+		Assert.assertEquals(0, foset.getStartOrInfinite(true).getInteger());
 		Assert.assertEquals(0, foset.getStart().getInteger());
-		// TODO: test that getting the last elt throws.
+		Assert.assertEquals(-1, foset.getStartOrInfinite(false).getInteger());
 		Assert.assertEquals(Integer.MAX_VALUE, foset.getEnd().getInteger());
+		Assert.assertEquals(Integer.MAX_VALUE, foset.getEndOrInfinite(true).getInteger());
+		Assert.assertEquals(Integer.MAX_VALUE, foset.getEndOrInfinite(false).getInteger());
 	}
 	
 	@Test
@@ -123,9 +126,13 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
 		Assert.assertEquals("Z", foset.getName());
 		Assert.assertEquals(-1, foset.size());
-		Assert.assertEquals(0, foset.iterator().next().getInteger());
+		Assert.assertEquals(0, foset.iterator().next().getInteger());// this is an exception where we start from 0 instead of the start.
+		Assert.assertEquals(Integer.MIN_VALUE, foset.getStartOrInfinite(true).getInteger());
+		Assert.assertEquals(Integer.MIN_VALUE, foset.getStartOrInfinite(false).getInteger());
 		Assert.assertEquals(Integer.MIN_VALUE, foset.getStart().getInteger());
 		Assert.assertEquals(Integer.MAX_VALUE, foset.getEnd().getInteger());
+		Assert.assertEquals(Integer.MAX_VALUE, foset.getEndOrInfinite(true).getInteger());
+		Assert.assertEquals(Integer.MAX_VALUE, foset.getEndOrInfinite(false).getInteger());
 	}
 	
 	@Test
@@ -135,9 +142,11 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals("N [10, 99]", foset.getName());
 		Assert.assertEquals(90, foset.size());
 		Assert.assertEquals(10, foset.iterator().next().getInteger());
+		Assert.assertEquals(10, foset.getStartOrInfinite(true).getInteger());
 		Assert.assertEquals(90, Iterables.size(foset));
 		Assert.assertEquals(10, foset.getStart().getInteger());
 		Assert.assertEquals(99, foset.getEnd().getInteger());
+		Assert.assertEquals(99, foset.getEndOrInfinite(true).getInteger());
 		Assert.assertTrue(foset.getIncludeStart());
 		Assert.assertTrue(foset.getIncludeEnd());
 	}
@@ -149,9 +158,11 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals("N [10, 100)", foset.getName());
 		Assert.assertEquals(90, foset.size());
 		Assert.assertEquals(10, foset.iterator().next().getInteger());
+		Assert.assertEquals(10, foset.getStartOrInfinite(true).getInteger());
 		Assert.assertEquals(90, Iterables.size(foset));
 		Assert.assertEquals(10, foset.getStart().getInteger());
-		Assert.assertEquals(99, foset.getEnd().getInteger());
+		Assert.assertEquals(100, foset.getEnd().getInteger());
+		Assert.assertEquals(99, foset.getEndOrInfinite(true).getInteger());
 		Assert.assertTrue(foset.getIncludeStart());
 		Assert.assertFalse(foset.getIncludeEnd());
 	}
@@ -163,9 +174,11 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals("N (9, 99]", foset.getName());
 		Assert.assertEquals(90, foset.size());
 		Assert.assertEquals(10, foset.iterator().next().getInteger());
+		Assert.assertEquals(10, foset.getStartOrInfinite(true).getInteger());
 		Assert.assertEquals(90, Iterables.size(foset));
-		Assert.assertEquals(10, foset.getStart().getInteger());
+		Assert.assertEquals(9, foset.getStart().getInteger());
 		Assert.assertEquals(99, foset.getEnd().getInteger());
+		Assert.assertEquals(99, foset.getEndOrInfinite(true).getInteger());
 		Assert.assertFalse(foset.getIncludeStart());
 		Assert.assertTrue(foset.getIncludeEnd());
 	}
@@ -177,9 +190,11 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals("N (9, 100)", foset.getName());
 		Assert.assertEquals(90, foset.size());
 		Assert.assertEquals(10, foset.iterator().next().getInteger());
+		Assert.assertEquals(10, foset.getStartOrInfinite(true).getInteger());
 		Assert.assertEquals(90, Iterables.size(foset));
-		Assert.assertEquals(10, foset.getStart().getInteger());
-		Assert.assertEquals(99, foset.getEnd().getInteger());
+		Assert.assertEquals(9, foset.getStart().getInteger());
+		Assert.assertEquals(100, foset.getEnd().getInteger());
+		Assert.assertEquals(99, foset.getEndOrInfinite(true).getInteger());
 		Assert.assertFalse(foset.getIncludeStart());
 		Assert.assertFalse(foset.getIncludeEnd());
 	}
@@ -190,8 +205,12 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset = new FOSetRangedNaturals(-49, -40);
 		Assert.assertEquals("Z [-49, -40]", foset.getName());
 		Assert.assertEquals(10, foset.size());
-		Assert.assertEquals(-40, foset.iterator().next().getInteger());
 		Assert.assertEquals(10, Iterables.size(foset));
+		Assert.assertEquals(-40, foset.iterator().next().getInteger());
+		Assert.assertEquals(-49, foset.getStartOrInfinite(true).getInteger());
+		Assert.assertEquals(-49, foset.getStart().getInteger());
+		Assert.assertEquals(-40, foset.getEnd().getInteger());
+		Assert.assertEquals(-40, foset.getEndOrInfinite(true).getInteger());
 	}
 
 	@Test
@@ -215,12 +234,31 @@ public class FOSetRangedNaturalsTest {
 	}
 
 	@Test
-	public void testInfNegativeRange()
+	public void testInfNegativeRange1()
 	{
 		FOSetRangedNaturals foset = new FOSetRangedNaturals(Integer.MIN_VALUE, false, -5, true);
 		Assert.assertEquals("Z (-inf, -5]", foset.getName());
 		Assert.assertEquals(-1, foset.size());
 		Assert.assertEquals(-5, foset.iterator().next().getInteger());
+		Assert.assertEquals(Integer.MIN_VALUE, foset.getStartOrInfinite(true).getInteger());
+		Assert.assertEquals(Integer.MIN_VALUE, foset.getStartOrInfinite(false).getInteger());
+		Assert.assertEquals(Integer.MIN_VALUE, foset.getStart().getInteger());
+		Assert.assertEquals(-5, foset.getEnd().getInteger());
+		Assert.assertEquals(-5, foset.getEndOrInfinite(true).getInteger());
+		Assert.assertEquals(-4, foset.getEndOrInfinite(false).getInteger());
+	}
+
+	@Test
+	public void testInfNegativeRange2()
+	{
+		FOSetRangedNaturals foset = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 0, true);
+		Assert.assertEquals("Z (-inf, 0]", foset.getName());
+		Assert.assertEquals(-1, foset.size());
+		Assert.assertEquals(0, foset.iterator().next().getInteger());
+		Assert.assertEquals(Integer.MIN_VALUE, foset.getStartOrInfinite(true).getInteger());
+		Assert.assertEquals(Integer.MIN_VALUE, foset.getStart().getInteger());
+		Assert.assertEquals(0, foset.getEnd().getInteger());
+		Assert.assertEquals(0, foset.getEndOrInfinite(true).getInteger());
 	}
 
 	@Test
@@ -313,8 +351,6 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(20, foset2_1.size());
 		Assert.assertEquals(20, Iterables.size(foset2_1));
 		Assert.assertEquals(0, foset2_1.iterator().next().getInteger());
-		Assert.assertEquals(0, foset2_1.getStart().getInteger());
-		Assert.assertEquals(30, foset2_1.getEnd().getInteger());
 		Assert.assertEquals("N [0, 30] \\ N [10, 20]", foset2_1.getName());
 	}
 	
@@ -327,7 +363,6 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(-1, foset2_1.size());
 		// TODO: test that iterating this throws
 		Assert.assertEquals(5, foset2_1.iterator().next().getInteger());
-		Assert.assertEquals(5, foset2_1.getStart().getInteger());
 		Assert.assertEquals("N [5, inf) \\ N [10, 20]", foset2_1.getName());
 	}
 }

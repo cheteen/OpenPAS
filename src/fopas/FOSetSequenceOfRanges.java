@@ -67,10 +67,11 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 		{
 			// There's probably a far more elegant algorithm than the one here to do this,
 			// but it seems to work, and it's not inefficient.
-			FOEnumerableSet<FOInteger> relativeEnumSet = (FOEnumerableSet<FOInteger>) relativeSet;
+			// TODO: Would be best to introduce an FOSorted interface here so we get things like getLowest() getHighest()
+			FOSetRangedNaturals relativeEnumSet = (FOSetRangedNaturals) relativeSet;
 			
-			int rsFirst = relativeEnumSet.getStart().getInteger();
-			int rsLast = relativeEnumSet.getEnd().getInteger();
+			int rsStartOrInf = relativeEnumSet.getStartOrInfinite(true).getInteger();
+			int rsEndOrInf = relativeEnumSet.getEndOrInfinite(true).getInteger();
 
 			List<FOSetRangedNaturals> newRanges = new ArrayList<>();
 			assert mRanges.size() > 1;
@@ -91,13 +92,13 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 				
 				if(!gotFirstPartial)
 				{
-					if(rsFirst < rangeFirst)
+					if(rsStartOrInf < rangeFirst)
 					{
-						int firstComplementLast = Math.min(rangeFirst - 1, rsLast);				
+						int firstComplementLast = Math.min(rangeFirst - 1, rsEndOrInf);				
 						newRanges.add((FOSetRangedNaturals)
-								relativeEnumSet.constrainToRange(relativeEnumSet.getStart(), new FOElementImpl.FOIntImpl(firstComplementLast)));
+								relativeEnumSet.constrainToRange(relativeEnumSet.getStartOrInfinite(true), new FOElementImpl.FOIntImpl(firstComplementLast)));
 						gotFirstPartial = true;
-						if(firstComplementLast == rsLast)
+						if(firstComplementLast == rsEndOrInf)
 						{
 							gotSecondPartial = true;
 							break;
@@ -105,11 +106,11 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 					}
 				}
 				
-				if(rsLast > rangeLast && rsLast < nextRangeFirst)
+				if(rsEndOrInf > rangeLast && rsEndOrInf < nextRangeFirst)
 				{
-					int secondComplementFirst = Math.max(rangeLast + 1, rsFirst);
+					int secondComplementFirst = Math.max(rangeLast + 1, rsStartOrInf);
 					newRanges.add((FOSetRangedNaturals)
-							relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getEnd()));
+							relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getEndOrInfinite(true)));
 					gotSecondPartial = true;
 					break;
 				}
@@ -119,10 +120,10 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 			
 			if(!gotSecondPartial)
 			{
-				int rangesLast = getEnd().getInteger();
-				int secondComplementFirst = Math.max(rangesLast + 1, rsFirst);
+				int rangesEndOrInf = mRanges.get(mRanges.size() - 1).getEndOrInfinite(true).getInteger();
+				int secondComplementFirst = Math.max(rangesEndOrInf + 1, rsStartOrInf);
 				newRanges.add((FOSetRangedNaturals)
-						relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getEnd()));
+						relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getEndOrInfinite(true)));
 			}
 			
 			if(newRanges.size() == 1)
@@ -143,8 +144,8 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	@Override
 	public FOEnumerableSet<FOInteger> constrainToRange(FOInteger first, FOInteger last)
 	{
-		int myFirstInt = getStart().getInteger();
-		int myLastInt = getEnd().getInteger();
+		int myFirstInt = mRanges.get(0).getStartOrInfinite(true).getInteger();
+		int myLastInt = mRanges.get(mRanges.size() - 1).getEndOrInfinite(true).getInteger();
 		int firstInt = first.getInteger();
 		if(firstInt < myFirstInt)
 			firstInt = myFirstInt;
@@ -198,33 +199,5 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	public int getConstrainedSize(FORelation<FOInteger> relation, List<FOTerm> terms) {
 		// TODO Auto-generated method stub
 		return 0;
-	}
-
-	@Override
-	public FOInteger getStart()
-	{
-		assert mRanges.size() > 0;
-		return mRanges.get(0).getStart();
-	}
-
-	@Override
-	public FOInteger getEnd() 
-	{
-		assert mRanges.size() > 0;
-		return mRanges.get(mRanges.size() - 1).getEnd();
-	}
-
-	@Override
-	public boolean getIncludeStart()
-	{
-		assert mRanges.size() > 0;
-		return mRanges.get(0).getIncludeStart();		
-	}
-
-	@Override
-	public boolean getIncludeEnd()
-	{
-		assert mRanges.size() > 0;
-		return mRanges.get(mRanges.size() - 1).getIncludeEnd();
 	}
 }
