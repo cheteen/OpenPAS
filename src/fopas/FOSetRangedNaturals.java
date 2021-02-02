@@ -224,7 +224,7 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 	@Override
 	public boolean contains(Object o)
 	{
-		if(o == null || !o.getClass().isInstance(FOInteger.class))
+		if(o == null || !(o instanceof FOInteger))
 			throw new FORuntimeException("Unexpected object: " + o);
 		
 		int check = ((FOInteger)o).getInteger();
@@ -293,10 +293,15 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 	}
 
 	@Override
-	public FOInteger getStart()
+	public String toString()
+	{
+		return "FOSetRangedNaturals " + getName();		
+	}
+
+	protected int getStartOrInfInternal(boolean includeStart)
 	{
 		int start;
-		if(mIncStart)
+		if(includeStart)
 			start = mRangeLeft;
 		else
 		{
@@ -305,14 +310,13 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 			else
 				start = mRangeLeft - 1;
 		}
-		return new FOElementImpl.FOIntImpl(start);
+		return start;
 	}
 
-	@Override
-	public FOInteger getEnd()
+	protected int getEndOrInfInternal(boolean includeEnd)
 	{
 		int end;
-		if(mIncEnd)
+		if(includeEnd)
 			end = mRangeRight;
 		else
 		{
@@ -321,13 +325,20 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 			else
 				end = mRangeRight + 1;
 		}
-		return new FOElementImpl.FOIntImpl(end);
+		return end;
 	}
 	
 	@Override
-	public String toString()
+	public FOInteger getStart()
 	{
-		return "FOSetRangedNaturals " + getName();		
+		return new FOElementImpl.FOIntImpl(getStartOrInfInternal(mIncStart));
+	}
+
+	@Override
+	public FOInteger getEnd()
+	{
+		int end = getEndOrInfInternal(mIncEnd);
+		return new FOElementImpl.FOIntImpl(end);
 	}
 
 	@Override
@@ -342,50 +353,48 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 		return mIncEnd;
 	}
 
-//	@Override
-//	public FOInteger getFirst()
-//	{
-//		int first;
-//		if(mRangeLeft == Integer.MIN_VALUE) // this is the only exception situation where we start from -inf.
-//			first = 0;
-//		else if(getDir() > 0)
-//			first = mRangeLeft;
-//		else
-//			first = mRangeRight;
-//
-//		return new FOElementImpl.FOIntImpl(first);
-//	}
-//
-//	@Override
-//	public FOInteger getLastOrInfinite()
-//	{
-//		int lastOrInfinite;
-//		if(getDir() > 0)
-//			lastOrInfinite = mRangeRight;
-//		else
-//			lastOrInfinite = mRangeLeft;
-//		return new FOElementImpl.FOIntImpl(lastOrInfinite);
-//	}
-
 	@Override
 	public FOInteger getStartOrInfinite(boolean includeStart)
 	{
-		int start;
-		if(!includeStart && mRangeLeft != Integer.MIN_VALUE)
-			start = mRangeLeft - 1;
-		else
-			start = mRangeLeft;
-		return new FOElementImpl.FOIntImpl(start);
+		return new FOElementImpl.FOIntImpl(getStartOrInfInternal(includeStart));
 	}
 
 	@Override
 	public FOInteger getEndOrInfinite(boolean includeEnd)
 	{
-		int end;
-		if(!includeEnd && mRangeRight != Integer.MAX_VALUE)
-			end = mRangeRight + 1;
-		else
-			end = mRangeRight;
-		return new FOElementImpl.FOIntImpl(end);
+		return new FOElementImpl.FOIntImpl(getEndOrInfInternal(includeEnd));
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + getStartOrInfInternal(true);
+		result = prime * result + getEndOrInfInternal(true);
+		return result;
+	}
+
+	/**
+	 * It's not obvious whether inclusion should determine equality. For example is this true?: Z [x1, x2] = Z [x1, x2 + 1)
+	 * The decision here was to treat start and end inclusion as cosmetic properties unless they matter for results mathematically.
+	 * Therefore we declare, say, [1, 9] and [1, 10) to be not only equivalent, but equal from a Java point of view since it's
+	 * the mathematical reality we care about.
+	 */
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FOSetRangedNaturals other = (FOSetRangedNaturals) obj;
+		if (getStartOrInfInternal(true) != other.getStartOrInfInternal(true))
+			return false;
+		if (getEndOrInfInternal(true) != other.getEndOrInfInternal(true))
+			return false;
+		return true;
 	}
 }

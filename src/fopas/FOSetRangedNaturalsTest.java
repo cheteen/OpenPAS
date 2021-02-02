@@ -1,5 +1,8 @@
 package fopas;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -295,6 +298,10 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(0, 15);
 		FOSetRangedNaturals foset2_1 = (FOSetRangedNaturals) foset1.complement(foset2);
 		Assert.assertEquals("N [0, 9]", foset2_1.getName());
+		// Now find foset1 \ foset2_1 which should be exactly foset1.
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
 	}
 	
 	@Test
@@ -304,6 +311,10 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(15, 25);
 		FOSetRangedNaturals foset2_1 = (FOSetRangedNaturals) foset1.complement(foset2);
 		Assert.assertEquals("N [21, 25]", foset2_1.getName());
+		// Now find foset1 \ foset2_1 which should be exactly foset1.
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
 	}
 
 	@Test
@@ -313,6 +324,10 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(-15, 15);
 		FOSetRangedNaturals foset2_1 = (FOSetRangedNaturals) foset1.complement(foset2);
 		Assert.assertEquals("Z [-15, -11]", foset2_1.getName());
+		// Now find foset1 \ foset2_1 which should be exactly foset1.
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
 	}
 
 	@Test
@@ -322,6 +337,10 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(0, 15);
 		FOSetRangedNaturals foset2_1 = (FOSetRangedNaturals) foset1.complement(foset2);
 		Assert.assertEquals("N [0, 14]", foset2_1.getName());
+		// Now find foset1 \ foset2_1 which should be exactly foset1.
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
 	}
 	
 	@Test
@@ -331,6 +350,10 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(20, 25);
 		FOSetRangedNaturals foset2_1 = (FOSetRangedNaturals) foset1.complement(foset2);
 		Assert.assertEquals("N [21, 25]", foset2_1.getName());
+		// Now find foset1 \ foset2_1 which should be exactly foset1.
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
 	}
 
 	@Test
@@ -340,6 +363,9 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
 		FOSetRangedNaturals foset2_1 = (FOSetRangedNaturals) foset1.complement(foset2);
 		Assert.assertEquals("Z (-inf, -1]", foset2_1.getName());
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
 	}
 	
 	@Test
@@ -352,6 +378,9 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(20, Iterables.size(foset2_1));
 		Assert.assertEquals(0, foset2_1.iterator().next().getInteger());
 		Assert.assertEquals("N [0, 30] \\ N [10, 20]", foset2_1.getName());
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
 	}
 	
 	@Test
@@ -361,9 +390,41 @@ public class FOSetRangedNaturalsTest {
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(5, true, Integer.MAX_VALUE, false);
 		FOEnumerableSet<FOInteger> foset2_1 = (FOEnumerableSet<FOInteger>) foset1.complement(foset2);
 		Assert.assertEquals(-1, foset2_1.size());
-		// TODO: test that iterating this throws
 		Assert.assertEquals(5, foset2_1.iterator().next().getInteger());
 		Assert.assertEquals("N [5, inf) \\ N [10, 20]", foset2_1.getName());
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
+	}
+	
+	@Test
+	public void testComplement3c()
+	{
+		FOSetRangedNaturals foset1 = new FOSetRangedNaturals(-5, 5);
+		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
+		FOEnumerableSet<FOInteger> foset2_1 = (FOEnumerableSet<FOInteger>) foset1.complement(foset2);
+		Assert.assertEquals(-1, foset2_1.size());
+		Assert.assertEquals(-6, foset2_1.iterator().next().getInteger()); // this will try to go from -6 -> -inf
+		Assert.assertEquals("Z \\ Z [-5, 5]", foset2_1.getName());
+		FOSet<FOInteger> foset1_back = (FOSetRangedNaturals) foset2_1.complement(foset1);
+		assertEquals(foset1, foset1_back);
+		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
+	}
+	@Test
+	public void testEquality()
+	{
+		FOSetRangedNaturals foset1 = new FOSetRangedNaturals(-5, 5);
+		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(-6, false, 5, true);
+		FOSetRangedNaturals foset3 = new FOSetRangedNaturals(-6, false, 6, false);
+		
+		assertEquals(foset1, foset2);
+		assertEquals(foset2, foset1);
+		assertEquals(foset1.hashCode(), foset2.hashCode());
+		assertEquals(foset2, foset3);
+		assertEquals(foset3, foset1);
+		assertEquals(foset2.hashCode(), foset3.hashCode());
+		assertEquals(foset1, foset3);
+		assertEquals(foset3, foset1);
 	}
 }
 

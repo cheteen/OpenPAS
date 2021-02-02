@@ -115,7 +115,10 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 					break;
 				}
 				
-				newRanges.add(new FOSetRangedNaturals(rangeLast + 1, nextRangeFirst - 1));
+				// This checks if two adjacent ranges are contiguous (which is legal if allowed during construction).
+				// If so, there's no "complement" bit to add in the middle, so we skip.
+				if(rangeLast + 1 < nextRangeFirst)
+					newRanges.add(new FOSetRangedNaturals(rangeLast + 1, nextRangeFirst - 1));
 			}
 			
 			if(!gotSecondPartial)
