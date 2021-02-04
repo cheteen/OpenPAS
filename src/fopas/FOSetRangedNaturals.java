@@ -295,7 +295,7 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 	@Override
 	public String toString()
 	{
-		return "FOSetRangedNaturals " + getName();		
+		return "FOSetRangedNaturals [" + getName() + "]";		
 	}
 
 	protected int getStartOrInfInternal(boolean includeStart)

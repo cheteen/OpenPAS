@@ -104,7 +104,7 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 					// This will return the universe in the non-complement case, but crucially, in the complemented case,
 					// it'll return an empty set which say for no element of the universe it can be true.
 					// This does a trick in negating the complement on the empty set to get back the universe set in a different way.
-					return new FOSetUtils.EmptySet<>("Empty")
+					return new FOSetUtils.EmptySet<>()
 							.complement(universeSubset, !isComplemented);
 				}
 				
@@ -212,12 +212,12 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 					// fake universe set).
 					// Case: v1 <= v1
 					if(mEquals) // This mimics the equality case above.
-						return new FOSetUtils.EmptySet<>("Empty") // TODO: Should really have unit tests check the set names.
+						return new FOSetUtils.EmptySet<>() // TODO: Should really have unit tests check the set names.
 							.complement(universeSubset, !isComplemented);
 					else
 						// Case: v1 < v1
 						// Same as above but w/o the negation on the complement.
-						return new FOSetUtils.EmptySet<>("Empty")
+						return new FOSetUtils.EmptySet<>()
 								.complement(universeSubset, isComplemented);					
 				}
 

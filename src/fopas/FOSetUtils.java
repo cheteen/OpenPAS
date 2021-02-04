@@ -17,10 +17,8 @@ public class FOSetUtils
 {
 	static class EmptySet<T extends FOElement> implements FOEnumerableSet<T>
 	{
-		protected final String mName;
-		EmptySet(String name)
+		EmptySet()
 		{
-			mName = name;
 		}
 
 		@Override
@@ -38,7 +36,7 @@ public class FOSetUtils
 		@Override
 		public String getName()
 		{
-			return mName;
+			return "(Empty)";
 		}
 
 		@Override

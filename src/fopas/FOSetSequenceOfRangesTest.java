@@ -13,8 +13,8 @@ import org.junit.Test;
 
 import com.google.common.collect.Iterables;
 
+import fopas.FOSetUtils.EmptySet;
 import fopas.basics.FOElement.FOInteger;
-import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOSet;
 
 public class FOSetSequenceOfRangesTest {
@@ -36,7 +36,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 
 	@Test
-	public void testSingleRange()
+	public void testSingleRangeThrows()
 	{
 		// This is the most pointless use of this class, but we consider it legal.
 		FOSetRangedNaturals forange = new FOSetRangedNaturals(10, 99);
@@ -52,7 +52,8 @@ public class FOSetSequenceOfRangesTest {
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 19);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(30, 39);
-		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("TwoRanges", Arrays.asList(forange1, forange2));
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+		Assert.assertEquals("N [10, 19] U [30, 39]", foseq.getName());
 		Assert.assertEquals(10, foseq.iterator().next().getInteger());
 		Assert.assertEquals(20, foseq.size());
 		Assert.assertEquals(20, Iterables.size(foseq));
@@ -65,28 +66,30 @@ public class FOSetSequenceOfRangesTest {
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
 		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 29);
 		FOSetRangedNaturals forange4 = new FOSetRangedNaturals(30, 39);
-		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("FourRanges", Arrays.asList(forange1, forange2, forange3, forange4));
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2, forange3, forange4));
+		Assert.assertEquals("Z [-19, -10] U [1, 10] U [20, 29] U [30, 39]", foseq.getName());
 		Assert.assertEquals(-10, foseq.iterator().next().getInteger());
 		Assert.assertEquals(40, foseq.size());
 		Assert.assertEquals(40, Iterables.size(foseq));
 	}
 	
 	@Test
-	public void testComplements()
+	public void testComplements1()
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
 		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 29);
 		FOSetRangedNaturals forange4 = new FOSetRangedNaturals(30, 39);
-		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("FourRanges", Arrays.asList(forange1, forange2, forange3, forange4));
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2, forange3, forange4));
+		Assert.assertEquals("Z [-19, -10] U [1, 10] U [20, 29] U [30, 39]", foseq.getName());
 		
 		{
 			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
 			FOSet<FOInteger> fosetc = foseq.complement(forangec);
 			Assert.assertEquals(-20, fosetc.iterator().next().getInteger());
 			Assert.assertEquals(-1, fosetc.size());
-			// This complement should be: (-inf, -20] U [-9, 0] U [11, 19] U [40, inf)
-			// So let's do pinpoint shots to see whether correct parts are included:
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
+			// So let's also do pinpoint shots to see whether correct parts are included:
 			// TODO: Should contain return true for inf? Mathematically no, so check that/do that.
 			assertTrue(fosetc.contains(new FOElementImpl.FOIntImpl(-50)));
 			assertTrue(fosetc.contains(new FOElementImpl.FOIntImpl(-20)));
@@ -106,5 +109,362 @@ public class FOSetSequenceOfRangesTest {
 			assertTrue(fosetc.contains(new FOElementImpl.FOIntImpl(40)));
 			assertTrue(fosetc.contains(new FOElementImpl.FOIntImpl(100)));
 		}
+
+		//------------------------
+		// -inf -> x
+		//------------------------
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, -20, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20]", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, -19, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20]", fosetc.getName());
+		}
+		
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, -15, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20]", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, -10, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20]", fosetc.getName());
+		}				
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, -9, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, -9]", fosetc.getName());
+		}
+		
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 15, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 15]", fosetc.getName());
+		}
+		
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 19, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19]", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 20, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19]", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 29, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19]", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 30, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19]", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 39, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19]", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 45, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19] U [40, 45]", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
+		}
+
+		//------------------------
+		// x -> inf
+		//------------------------
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-35, false, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-34, -20] U [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-20, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-20, -20] U [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-19, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-15, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-10, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-9, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-8, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-8, 0] U [11, 19] U [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(19, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [19, 19] U [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(20, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [40, inf)", fosetc.getName());
+		}
+		
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(21, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [40, inf)", fosetc.getName());
+		}
+		
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(29, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [40, inf)", fosetc.getName());
+		}
+		
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(30, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(31, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(39, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(40, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [40, inf)", fosetc.getName());
+		}
+
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(41, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [41, inf)", fosetc.getName());
+		}
+
+		//------------------------
+		// Other variations
+		//------------------------
+
+		
+		{//Tricky one as there's a contigous range [30, 39] following the complement end at 30.
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-15, true, 30, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-9, 0] U [11, 19]", fosetc.getName());
+		}
+		
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-30, true, 15, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-30, -20] U [-9, 0] U [11, 15]", fosetc.getName());
+		}
+		
+		{
+			// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(-30, true, 50, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z [-30, -20] U [-9, 0] U [11, 19] U [40, 50]", fosetc.getName());
+		}
 	}
+	
+	
+	@Test
+	public void testComplements2()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 10, true);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 30);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+		Assert.assertEquals("Z (-inf, 10] U [20, 30]", foseq.getName());
+
+		{
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [11, 19] U [31, inf)", fosetc.getName());
+		}
+		
+		{
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 15, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [11, 15]", fosetc.getName());
+		}
+		
+		{
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(25, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [31, inf)", fosetc.getName());
+		}
+		
+		{
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(15, true, 19, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [15, 19]", fosetc.getName());
+		}
+	}
+	
+	@Test
+	public void testComplements3()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(20, 30);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(40, true, Integer.MAX_VALUE, false);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+		Assert.assertEquals("N [20, 30] U [40, inf)", foseq.getName());
+
+		{
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, 19] U [31, 39]", fosetc.getName());
+		}
+		
+		{
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 25, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("Z (-inf, 19]", fosetc.getName());
+		}
+
+		{
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(25, true, Integer.MAX_VALUE, false);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [31, 39]", fosetc.getName());
+		}
+
+		{
+			FOSetRangedNaturals forangec = new FOSetRangedNaturals(30, true, 40, true);
+			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			Assert.assertEquals("N [31, 39]", fosetc.getName());
+		}		
+	}
+	
+	@Test
+	public void testComplementSelf()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(20, 30);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(40, true, Integer.MAX_VALUE, false);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+		
+		FOSet<FOInteger> fosetc = foseq.complement(foseq);
+		assertTrue(fosetc instanceof EmptySet);
+	}
+	
+	@Test
+	public void testComplementSelfEffectively1()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(20, 30);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(31, true, Integer.MAX_VALUE, false);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+		
+		// This set below is equivalent to the set foseq.
+		FOSetRangedNaturals forangec = new FOSetRangedNaturals(20, true, Integer.MAX_VALUE, false);
+
+		FOSet<FOInteger> fosetc = foseq.complement(forangec);
+		assertTrue(fosetc instanceof EmptySet);
+	}
+	
+	@Test
+	public void testComplementSelfEffectively2()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 20, true);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 30);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+		
+		FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 30, true);
+
+		FOSet<FOInteger> fosetc = foseq.complement(forangec);
+		assertTrue(fosetc instanceof EmptySet);
+	}
+	
+	@Test
+	public void testComplementSelfEffectively3()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 20);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 30);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(30, 50);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2, forange3));
+		
+		FOSetRangedNaturals forangec = new FOSetRangedNaturals(10, 50);
+
+		FOSet<FOInteger> fosetc = foseq.complement(forangec);
+		assertTrue(fosetc instanceof EmptySet);
+	}
+	
+	//TODO: Test seq of ranges creation: non-contiguous
 }

@@ -23,11 +23,48 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	final protected String mName;
 	final protected List<FOSetRangedNaturals> mRanges;
 	
+
+	FOSetSequenceOfRanges(Iterable<FOSetRangedNaturals> ranges)
+	{
+		this(null, ranges);
+	}
+
 	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges)
+	{
+		this(name, ranges, true);
+	}
+
+	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges, boolean allowContiguous)
 	{
 		mName = name;
 		mRanges = new ArrayList<>();
-		Iterables.addAll(mRanges, ranges);
+		
+		int rangesSize = 0;
+		
+		Integer prevRangeEndOrInf = null;
+		for(FOSetRangedNaturals range : ranges)
+		{
+			rangesSize++;
+			Integer rangeStartOrInf = range.getStartOrInfinite(true).getInteger();
+			if(prevRangeEndOrInf != null)
+			{
+				if(rangeStartOrInf <= prevRangeEndOrInf)
+				{
+					if(rangeStartOrInf.equals(prevRangeEndOrInf))
+					{
+						if(!allowContiguous)
+							throw new FORuntimeException("Contiguous sequence of ranges creation where not allowed.");
+					}
+					else
+						throw new FORuntimeException("Overlapping (invalid) range given during sequence of ranges creation.");						
+				}
+			}
+			mRanges.add(range);
+			prevRangeEndOrInf = rangeStartOrInf;
+		}
+		
+		if(rangesSize < 2)
+			throw new FORuntimeException("Invalid sequence ranges creation - need at least 2 ranges.");
 	}
 	
 	@Override
@@ -47,7 +84,30 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	@Override
 	public String getName()
 	{
-		return mName;
+		if(mName != null)
+			return mName;
+		StringBuilder sb = new StringBuilder();
+		final int MAX_LEN = 100;
+		String setName;
+		if(mRanges.get(0).getStartOrInfinite(true).getInteger() < 0)
+			setName = "Z";
+		else
+			setName = "N";
+		sb.append(setName);
+		sb.append(" ");
+
+		for(FOSetRangedNaturals range : mRanges)
+		{
+			if(sb.length() > 2)
+				sb.append(" U ");
+			sb.append(range.getName().substring(2)); // not the most elegant. skips set name to get the range only.
+			if(sb.length() + 3 > MAX_LEN)
+			{
+				sb.append("...");
+				break;
+			}
+		}
+		return sb.toString();
 	}
 
 	@Override
@@ -62,79 +122,63 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	@Override
 	public FOSet<FOInteger> complement(FOSet<FOInteger> relativeSet)
 	{
+		// Complement of self is empty set.
+		if(relativeSet == this)
+			return new FOSetUtils.EmptySet<>();
+		
 		// It'd be easy to generalise this to FOEnumerableSet since we use the generic interface FOEnumerableSet to do all the constraining operations which are the key.
 		if(relativeSet instanceof FOSetRangedNaturals)
 		{
-			// There's probably a far more elegant algorithm than the one here to do this,
-			// but it seems to work, and it's not inefficient.
 			// TODO: Would be best to introduce an FOSorted interface here so we get things like getLowest() getHighest()
 			FOSetRangedNaturals relativeEnumSet = (FOSetRangedNaturals) relativeSet;
 			
 			int rsStartOrInf = relativeEnumSet.getStartOrInfinite(true).getInteger();
 			int rsEndOrInf = relativeEnumSet.getEndOrInfinite(true).getInteger();
-
+			int rsCursor = rsStartOrInf;
 			List<FOSetRangedNaturals> newRanges = new ArrayList<>();
-			assert mRanges.size() > 1;
-			FOSetRangedNaturals range;
-			FOSetRangedNaturals nextRange;
-			Iterator<FOSetRangedNaturals> itRange = mRanges.iterator();
-			nextRange = itRange.next();
-			boolean gotFirstPartial = false;
-			boolean gotSecondPartial = false;
-			while(itRange.hasNext())
+
+			//Can use binary search here to find the correct start range in the future, this implementation is O(N) with the number of ranges, that would be O(log N).
+			for(FOSetRangedNaturals range : mRanges)
 			{
-				range = nextRange;
-				nextRange = itRange.next();
-				
-				int rangeFirst = range.getStart().getInteger();
-				int rangeLast = range.getEnd().getInteger();
-				int nextRangeFirst = nextRange.getStart().getInteger();
-				
-				if(!gotFirstPartial)
+				int rangeFirstOrInf = range.getStartOrInfinite(true).getInteger();
+				int rangeLastOrInf = range.getEndOrInfinite(true).getInteger();
+
+				if(rsCursor < rangeFirstOrInf)
 				{
-					if(rsStartOrInf < rangeFirst)
+					int complementEnd = rangeFirstOrInf == Integer.MIN_VALUE ? Integer.MIN_VALUE : rangeFirstOrInf - 1;
+					if(rsCursor <= complementEnd && !(complementEnd == Integer.MIN_VALUE && rsCursor == Integer.MIN_VALUE))
 					{
-						int firstComplementLast = Math.min(rangeFirst - 1, rsEndOrInf);				
 						newRanges.add((FOSetRangedNaturals)
-								relativeEnumSet.constrainToRange(relativeEnumSet.getStartOrInfinite(true), new FOElementImpl.FOIntImpl(firstComplementLast)));
-						gotFirstPartial = true;
-						if(firstComplementLast == rsEndOrInf)
-						{
-							gotSecondPartial = true;
-							break;
-						}
+								relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(rsCursor), new FOElementImpl.FOIntImpl(complementEnd)));
 					}
 				}
 				
-				if(rsEndOrInf > rangeLast && rsEndOrInf < nextRangeFirst)
-				{
-					int secondComplementFirst = Math.max(rangeLast + 1, rsStartOrInf);
-					newRanges.add((FOSetRangedNaturals)
-							relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getEndOrInfinite(true)));
-					gotSecondPartial = true;
-					break;
-				}
+				if(rsCursor <= rangeLastOrInf)
+					rsCursor = rangeLastOrInf == Integer.MAX_VALUE ? Integer.MAX_VALUE : rangeLastOrInf + 1;
 				
-				// This checks if two adjacent ranges are contiguous (which is legal if allowed during construction).
-				// If so, there's no "complement" bit to add in the middle, so we skip.
-				if(rangeLast + 1 < nextRangeFirst)
-					newRanges.add(new FOSetRangedNaturals(rangeLast + 1, nextRangeFirst - 1));
+				if(rsCursor > rsEndOrInf)
+					break;
 			}
 			
-			if(!gotSecondPartial)
+			if(rsCursor <= rsEndOrInf && !(rsCursor == Integer.MAX_VALUE && rsEndOrInf == Integer.MAX_VALUE))
 			{
-				int rangesEndOrInf = mRanges.get(mRanges.size() - 1).getEndOrInfinite(true).getInteger();
-				int secondComplementFirst = Math.max(rangesEndOrInf + 1, rsStartOrInf);
 				newRanges.add((FOSetRangedNaturals)
-						relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getEndOrInfinite(true)));
+						relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(rsCursor), relativeEnumSet.getEndOrInfinite(true)));//rsEndOrInf
 			}
 			
 			if(newRanges.size() == 1)
 				return newRanges.get(0);
+			else if(newRanges.size() == 0) // empty set (possible if effectively complemented to self)
+				return new FOSetUtils.EmptySet<FOElement.FOInteger>();
 			else
-				return new FOSetSequenceOfRanges(relativeSet.getName() + " \\ " + getName(), newRanges);
+			{
+				if(mName != null)
+					return new FOSetSequenceOfRanges(relativeSet.getName() + " \\ " + mName, newRanges);
+				else
+					return new FOSetSequenceOfRanges(newRanges);
+			}
 		}
-		return null;
+		throw new FORuntimeException("Unsupported complement operation.");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -202,5 +246,11 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	public int getConstrainedSize(FORelation<FOInteger> relation, List<FOTerm> terms) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "FOSetSequenceOfRanges [" + getName() + "]";
 	}
 }
