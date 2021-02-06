@@ -46,9 +46,9 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOEnumerableSet<T> constrainToRange(FOElement start, FOElement end) {
-			// TODO Auto-generated method stub
-			return null;
+		public FOEnumerableSet<T> constrainToRange(FOElement start, FOElement end)
+		{
+			return this;
 		}
 
 		@Override

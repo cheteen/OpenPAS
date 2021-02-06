@@ -15,6 +15,7 @@ import com.google.common.collect.Iterables;
 
 import fopas.FOSetUtils.EmptySet;
 import fopas.basics.FOElement.FOInteger;
+import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 
 public class FOSetSequenceOfRangesTest {
@@ -38,15 +39,81 @@ public class FOSetSequenceOfRangesTest {
 	@Test
 	public void testSingleRangeThrows()
 	{
-		// This is the most pointless use of this class, but we consider it legal.
 		FOSetRangedNaturals forange = new FOSetRangedNaturals(10, 99);
-		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("SingleRange", Arrays.asList(forange));
-		Assert.assertEquals("SingleRange", foseq.getName());
-		Assert.assertEquals(10, foseq.iterator().next().getInteger());
-		Assert.assertEquals(90, foseq.size());
-		Assert.assertEquals(90, Iterables.size(foseq));
+		FOSetSequenceOfRanges foseq = null;
+		try
+		{
+			foseq = new FOSetSequenceOfRanges(Arrays.asList(forange));
+		}
+		catch(FORuntimeException exp)
+		{
+			assertTrue(exp.getMessage().contains("need at least 2 ranges"));
+		}
+		assertEquals(null, foseq);
 	}
 	
+	@Test
+	public void testContiguousRangeThrows()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 19);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 39);
+		FOSetSequenceOfRanges foseq = null;
+		try
+		{
+			foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2), false);
+		}
+		catch(FORuntimeException exp)
+		{
+			assertTrue(exp.getMessage().contains("Contiguous sequence of ranges creation where not allowed"));
+		}
+		assertEquals(null, foseq);
+	}
+
+	@Test
+	public void testOverlappingRangeThrows()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 20);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 39);
+		FOSetSequenceOfRanges foseq = null;
+		try
+		{
+			foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+		}
+		catch(FORuntimeException exp)
+		{
+			assertTrue(exp.getMessage().contains("Incorrectly ordered or overlapping invalid range given during creation"));
+		}
+		assertEquals(null, foseq);
+	}
+
+	@Test
+	public void testUnorderedRangeThrows()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 20);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(-10, 0);
+		FOSetSequenceOfRanges foseq = null;
+		try
+		{
+			foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+		}
+		catch(FORuntimeException exp)
+		{
+			assertTrue(exp.getMessage().contains("Incorrectly ordered or overlapping invalid range given during creation"));
+		}
+		assertEquals(null, foseq);
+	}
+
+	@Test
+	public void testNamedSeqRange()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 19);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(30, 39);
+		FOSetRangedNaturals forangec = new FOSetRangedNaturals(0, 45);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("MySeqRange", Arrays.asList(forange1, forange2));
+		Assert.assertEquals("MySeqRange", foseq.getName());
+		Assert.assertEquals("N [0, 45] \\ MySeqRange", foseq.complement(forangec).getName());
+	}
+
 	@Test
 	public void testTwoSeparateRanges()
 	{
@@ -443,7 +510,7 @@ public class FOSetSequenceOfRangesTest {
 	public void testComplementSelfEffectively2()
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 20, true);
-		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 30);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(21, 30);
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
 		
 		FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 30, true);
@@ -456,8 +523,8 @@ public class FOSetSequenceOfRangesTest {
 	public void testComplementSelfEffectively3()
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 20);
-		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 30);
-		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(30, 50);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(21, 30);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(31, 50);
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2, forange3));
 		
 		FOSetRangedNaturals forangec = new FOSetRangedNaturals(10, 50);
@@ -466,5 +533,16 @@ public class FOSetSequenceOfRangesTest {
 		assertTrue(fosetc instanceof EmptySet);
 	}
 	
-	//TODO: Test seq of ranges creation: non-contiguous
+	@Test
+	public void testConstrain1()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 29);
+		FOSetRangedNaturals forange4 = new FOSetRangedNaturals(30, 39);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2, forange3, forange4));
+		Assert.assertEquals("Z [-19, -10] U [1, 10] U [20, 29] U [30, 39]", foseq.getName());
+		
+		assertEquals("Z [-15, -10] U [1, 10] U [20, 29] U [30, 35]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(-15), new FOElementImpl.FOIntImpl(35)));
+	}
 }

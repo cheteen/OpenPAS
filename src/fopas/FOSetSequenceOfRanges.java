@@ -29,6 +29,11 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 		this(null, ranges);
 	}
 
+	FOSetSequenceOfRanges(Iterable<FOSetRangedNaturals> ranges, boolean allowContiguous)
+	{
+		this(null, ranges, false);
+	}
+
 	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges)
 	{
 		this(name, ranges, true);
@@ -41,26 +46,32 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 		
 		int rangesSize = 0;
 		
-		Integer prevRangeEndOrInf = null;
+		Integer prevRangeEndOrInfNext = null;
 		for(FOSetRangedNaturals range : ranges)
 		{
 			rangesSize++;
 			Integer rangeStartOrInf = range.getStartOrInfinite(true).getInteger();
-			if(prevRangeEndOrInf != null)
+			if(prevRangeEndOrInfNext != null)
 			{
-				if(rangeStartOrInf <= prevRangeEndOrInf)
+				if(rangeStartOrInf <= prevRangeEndOrInfNext)
 				{
-					if(rangeStartOrInf.equals(prevRangeEndOrInf))
+					if(rangeStartOrInf.equals(prevRangeEndOrInfNext))
 					{
 						if(!allowContiguous)
 							throw new FORuntimeException("Contiguous sequence of ranges creation where not allowed.");
 					}
 					else
-						throw new FORuntimeException("Overlapping (invalid) range given during sequence of ranges creation.");						
+						throw new FORuntimeException("Incorrectly ordered or overlapping invalid range given during creation.");						
 				}
 			}
 			mRanges.add(range);
-			prevRangeEndOrInf = rangeStartOrInf;
+			
+			prevRangeEndOrInfNext = range.getEndOrInfinite(true).getInteger();
+			if(prevRangeEndOrInfNext != Integer.MAX_VALUE)
+			{
+				assert prevRangeEndOrInfNext != Integer.MIN_VALUE;
+				prevRangeEndOrInfNext = prevRangeEndOrInfNext + 1;
+			}
 		}
 		
 		if(rangesSize < 2)

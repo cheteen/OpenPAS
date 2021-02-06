@@ -280,6 +280,7 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 			boolean incFirst = newFirst == Integer.MIN_VALUE ? false : true;
 			int newLast = Math.min(lastInt, mRangeRight);
 			boolean incLast = newLast == Integer.MAX_VALUE ? false : true;
+			//TODO: Return a single item set here if needed, also do I need a contrain that allows returning an empty set?
 			return new FOSetRangedNaturals(newFirst, incFirst, newLast, incLast);
 		}
 		else
