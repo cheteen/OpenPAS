@@ -202,55 +202,48 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	@Override
 	public FOEnumerableSet<FOInteger> constrainToRange(FOInteger first, FOInteger last)
 	{
-		int myFirstInt = mRanges.get(0).getStartOrInfinite(true).getInteger();
-		int myLastInt = mRanges.get(mRanges.size() - 1).getEndOrInfinite(true).getInteger();
-		int firstInt = first.getInteger();
-		if(firstInt < myFirstInt)
-			firstInt = myFirstInt;
-		int lastInt = last.getInteger();
-		if(lastInt > myLastInt)
-			lastInt = myLastInt;
-
-		if(firstInt == myFirstInt && lastInt == myLastInt)
+		// This is fairly wasteful and suboptimal but can live with it for now.
+		
+		int intFirstOrInf = first.getInteger();
+		int intLastOrInf = last.getInteger();
+		
+		if(intFirstOrInf <= mRanges.get(0).getStartOrInfInternal(true) && intLastOrInf >= mRanges.get(mRanges.size() - 1).getEndOrInfInternal(true))
 			return this;
 		
 		List<FOSetRangedNaturals> newRanges = new ArrayList<>();
-		boolean gotStart = false;
-		boolean gotEnd = false;
-		for(int ix = 0; ix < mRanges.size(); ix++)
+
+		for(FOSetRangedNaturals range : mRanges)
 		{
-			FOSetRangedNaturals range = mRanges.get(ix);
-			int rangeFirst = range.getStart().getInteger();
-			int rangeLast = range.getEnd().getInteger();
-			if(!gotStart)
+			int rangeFirstOrInf = range.getStartOrInfinite(true).getInteger();
+			int rangeLastOrInf = range.getEndOrInfinite(true).getInteger();
+
+			if(intFirstOrInf <= rangeFirstOrInf && intLastOrInf >= rangeLastOrInf)
+				newRanges.add(range);
+			else if(intFirstOrInf > rangeFirstOrInf || intLastOrInf < rangeLastOrInf)
 			{
-				if(firstInt >= rangeFirst)
-				{
-					int startRangeLast = Math.min(rangeLast, lastInt);
-					if(startRangeLast <= rangeLast)
-						gotEnd = true;
-					newRanges.add(new FOSetRangedNaturals(first.getInteger(), startRangeLast));
-					gotStart = true;
-				}
-			}
-			if(!gotEnd)
-			{
-				if(lastInt >= rangeFirst && lastInt <= rangeLast)
-				{
-					newRanges.add(new FOSetRangedNaturals(rangeFirst, lastInt));
-					gotEnd = true;
-					break;
-				}
+				int newRangeFirstOrInf = Integer.max(rangeFirstOrInf, intFirstOrInf);
+				int newRangeLastOrInf = Integer.min(rangeLastOrInf, intLastOrInf);
+				
+				if(newRangeFirstOrInf <= newRangeLastOrInf)
+					newRanges.add(new FOSetRangedNaturals(newRangeFirstOrInf, newRangeLastOrInf));
 			}
 		}
-		
-		assert gotStart;
-		assert gotEnd;
 
 		if(newRanges.size() == 1)
 			return newRanges.get(0);
+		else if(newRanges.size() == 0) // empty set (possible if effectively complemented to self)
+			return new FOSetUtils.EmptySet<FOElement.FOInteger>();
 		else
-			return new FOSetSequenceOfRanges(String.format("%s [%d, %d]", mName, firstInt, lastInt), newRanges);
+		{
+			if(mName != null)
+			{
+				String startB = intFirstOrInf == Integer.MIN_VALUE ? "(" : "[";
+				String endB = intFirstOrInf == Integer.MAX_VALUE ? ")" : "]";
+				return new FOSetSequenceOfRanges(String.format("%s %s%d, %d%s", mName, startB, intFirstOrInf, intLastOrInf, endB), newRanges);
+			}
+			else
+				return new FOSetSequenceOfRanges(newRanges);
+		}
 	}
 
 	@Override
