@@ -1,6 +1,7 @@
 package fopas;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -13,7 +14,7 @@ import com.google.common.collect.Range;
 import fopas.FORelationImpl.FORelationCompare;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
-import fopas.basics.FOEnumerableSet;
+import fopas.basics.FOOrderedEnumerableSet;
 import fopas.basics.FORange;
 import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOElement.Type;
@@ -24,7 +25,7 @@ import fopas.basics.FOSet;
 import fopas.basics.FOTerm;
 
 // Infinite set for \mathbb{N} amd \mathbb{Z}.
-public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<FOInteger>
+public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, FORange<FOInteger>
 {
 	protected final int mRangeLeft;
 	protected final boolean mIncStart;
@@ -238,8 +239,8 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 		if(relativeSet instanceof FOSetRangedNaturals)
 		{
 			FOSetRangedNaturals relativeEnumSet = (FOSetRangedNaturals) relativeSet;
-			FOEnumerableSet<FOInteger> fosetNat1 = null;
-			FOEnumerableSet<FOInteger> fosetNat2 = null;
+			FOOrderedEnumerableSet<FOInteger> fosetNat1 = null;
+			FOOrderedEnumerableSet<FOInteger> fosetNat2 = null;
 			
 			int rsFirst = ((FOInteger) relativeEnumSet.getStart()).getInteger();
 			int rsLast = ((FOInteger) relativeEnumSet.getEnd()).getInteger();
@@ -266,7 +267,7 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 	}
 
 	@Override
-	public FOEnumerableSet<FOInteger> constrainToRange(FOInteger first, FOInteger last)
+	public FOOrderedEnumerableSet<FOInteger> constrainToRange(FOInteger first, FOInteger last)
 	{
 		if(first.getType() != Type.Integer || last.getType() != Type.Integer)
 			throw new FORuntimeException("Unexpected element type found.");
@@ -354,12 +355,14 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 		return mIncEnd;
 	}
 
+	// TODO: Remove this to replace it with getFirstOrInf
 	@Override
 	public FOInteger getStartOrInfinite(boolean includeStart)
 	{
 		return new FOElementImpl.FOIntImpl(getStartOrInfInternal(includeStart));
 	}
 
+	// TODO: Remove this to replace it with getLastOrInf
 	@Override
 	public FOInteger getEndOrInfinite(boolean includeEnd)
 	{
@@ -397,5 +400,24 @@ public class FOSetRangedNaturals implements FOEnumerableSet<FOInteger>, FORange<
 		if (getEndOrInfInternal(true) != other.getEndOrInfInternal(true))
 			return false;
 		return true;
+	}
+
+	@Override
+	public Comparator<FOElement> getOrder()
+	{
+		// Range always operates on the "natural" order of integers.
+		return FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR;
+	}
+
+	@Override
+	public FOInteger getFirstOrInfinite()
+	{
+		return getStartOrInfinite(true);
+	}
+
+	@Override
+	public FOInteger getLastOrInfinite()
+	{
+		return getEndOrInfinite(true);
 	}
 }

@@ -30,6 +30,7 @@ import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOVariable;
 import fopas.basics.FOElement.FOInteger;
+import fopas.basics.FOEnumerableSet;
 
 public class FOAliasByRecursionImplTest
 {
@@ -74,13 +75,13 @@ public class FOAliasByRecursionImplTest
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		FOInteger four = new FOElementImpl.FOIntImpl(4);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>("SOMEINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three, four)));		
+		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("SOMEINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three, four)));		
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOFunction funaddmod5 = new FOFunctionsInternalInt.FOInternalSumModulus(5);
 		FOFunction funsubmod5 = new FOFunctionsInternalInt.FOInternalSubtractModulus(5);
 		
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod5, funsubmod5)), runtime);
+		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod5, funsubmod5)), runtime);
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);

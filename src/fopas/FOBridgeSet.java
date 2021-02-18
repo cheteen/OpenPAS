@@ -16,7 +16,8 @@ import fopas.basics.FOSet;
 import fopas.basics.FOTerm;
 import fopas.basics.KnownIterable;
 
-public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
+public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T>, Set<T>
+{
 
 	protected final String mName;
 	protected final Set<T> mSet;
@@ -106,9 +107,9 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T> {
 	@Override
 	public FOSet<T> complement(FOSet<T> relativeSet)
 	{
-		if(relativeSet instanceof FOFiniteSet)
+		if(relativeSet instanceof FOBridgeSet)
 		{
-			FOFiniteSet<T> finiteSet = (FOFiniteSet<T>) relativeSet; 
+			FOBridgeSet<T> finiteSet = (FOBridgeSet<T>) relativeSet; 
 			FOBridgeSet<T> complemented = new FOBridgeSet<T>(String.format("%s\\%s", relativeSet.getName(), getName()), finiteSet);
 			complemented.removeAll(mSet);
 			return complemented;

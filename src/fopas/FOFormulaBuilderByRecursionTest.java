@@ -23,6 +23,7 @@ import fopas.basics.FORelation;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOElement.FOInteger;
+import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOFormula;
 
 public class FOFormulaBuilderByRecursionTest {
@@ -60,10 +61,10 @@ public class FOFormulaBuilderByRecursionTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new HashSet<>(Arrays.asList(one, two, three)));
+		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new HashSet<>(Arrays.asList(one, two, three)));
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 				
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
+		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);

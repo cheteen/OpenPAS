@@ -1,13 +1,18 @@
 package fopas;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.collect.FluentIterable;
 
-import fopas.basics.FOElement;
+import fopas.FOElementImpl.FOIntImpl.FOIntComparator;
 import fopas.basics.FOEnumerableSet;
+import fopas.basics.FOElement;
+import fopas.basics.FOElement.FOInteger;
+import fopas.basics.FOOrderedEnumerableSet;
+import fopas.basics.FOFiniteSet;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
@@ -15,7 +20,7 @@ import fopas.basics.FOTerm;
 
 public class FOSetUtils
 {
-	static class EmptySet<T extends FOElement> implements FOEnumerableSet<T>
+	static class EmptySet<T extends FOElement> implements FOOrderedEnumerableSet<T>
 	{
 		EmptySet()
 		{
@@ -46,7 +51,7 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOEnumerableSet<T> constrainToRange(FOElement start, FOElement end)
+		public FOOrderedEnumerableSet<T> constrainToRange(FOElement start, FOElement end)
 		{
 			return this;
 		}
@@ -61,6 +66,30 @@ public class FOSetUtils
 		public FOSet<T> complement(FOSet<T> relativeSet)
 		{
 			return relativeSet;
+		}
+
+		@Override
+		public Comparator<FOElement> getOrder()
+		{
+			return new Comparator<FOElement>() {
+				@Override
+				public int compare(FOElement arg0, FOElement arg1)
+				{
+					return 0;
+				}
+			};
+		}
+
+		@Override
+		public T getFirstOrInfinite()
+		{
+			throw new FORuntimeException("Empty set has no first element.");
+		}
+
+		@Override
+		public T getLastOrInfinite()
+		{
+			throw new FORuntimeException("Empty set has no last element.");
 		}
 	}
 
@@ -124,10 +153,11 @@ public class FOSetUtils
 		
 		final protected T mElement;
 		final protected String mName;
-		final FOSet<T> mRelativeSet;
+		final FOEnumerableSet<T> mRelativeSet;
 
-		ComplementedSingleElementSet(String singleElementSetName, T singleElement, FOSet<T> relativeSet)
+		ComplementedSingleElementSet(String singleElementSetName, T singleElement, FOEnumerableSet<T> relativeSet)
 		{
+			assert relativeSet.contains(singleElement); // no point in using this set otherwise
 			mElement = singleElement;
 			mName = String.format("%s\\(%s)", relativeSet.getName(), singleElementSetName);
 			mRelativeSet = relativeSet;
@@ -163,18 +193,6 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOEnumerableSet<T> constrainToRange(FOElement start, FOElement end) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms) {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-
-		@Override
 		public FOSet<T> complement(FOSet<T> relativeSet)
 		{
 			if(mRelativeSet.equals(relativeSet))
@@ -183,7 +201,7 @@ public class FOSetUtils
 		}
 	}
 	
-	static class SingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
+	static class SingleElementSet<T extends FOElement> implements FOOrderedEnumerableSet<T>
 	{
 		protected static class SingleElementIterator<T> implements Iterator<T>
 		{
@@ -210,11 +228,15 @@ public class FOSetUtils
 		}
 		
 		protected final T mElement;
-		protected final String mName;
-		SingleElementSet(String name, T element)
+		protected final Comparator<FOElement> mComparator;
+		SingleElementSet(T element)
+		{
+			this(element, element.getDefaultComparator());
+		}
+		SingleElementSet(T element, Comparator<FOElement> comparator)
 		{
 			mElement = element;
-			mName = name;
+			mComparator = comparator;
 		}
 		
 		@Override
@@ -232,7 +254,7 @@ public class FOSetUtils
 		@Override
 		public String getName()
 		{
-			return mName;
+			return String.format("{%s}", mElement.getElement());
 		}
 
 		@Override
@@ -244,19 +266,50 @@ public class FOSetUtils
 		@Override
 		public FOSet<T> complement(FOSet<T> relativeSet)
 		{
-			return new ComplementedSingleElementSet<T>(mName, mElement, relativeSet);
+			if(!relativeSet.contains(mElement))
+				return relativeSet;
+			
+			if(relativeSet instanceof FOEnumerableSet)
+				// We need an enumerable set that has everything but this element:
+				return new ComplementedSingleElementSet<T>(getName(), mElement, (FOEnumerableSet<T>) relativeSet);
+			
+			throw new FORuntimeException("Unsupported complement of single element set.");
+			
+			// This can be implemented for a non-enumerable range when we need it. 
 		}
 
 		@Override
-		public FOEnumerableSet<T> constrainToRange(FOElement start, FOElement end) {
-			// TODO Auto-generated method stub
-			return null;
+		public FOOrderedEnumerableSet<T> constrainToRange(FOElement start, FOElement end)
+		{
+			if(mComparator.compare(mElement, start) <= 0
+					&& mComparator.compare(mElement, end) >= 0)
+				return this;
+			else
+				return new EmptySet<>();
 		}
 
 		@Override
 		public int getConstrainedSize(FORelation<T> relation, List<FOTerm> terms) {
 			// TODO Auto-generated method stub
 			return 0;
+		}
+
+		@Override
+		public Comparator<FOElement> getOrder()
+		{
+			return mComparator;
+		}
+
+		@Override
+		public T getFirstOrInfinite() 
+		{
+			return mElement;
+		}
+
+		@Override
+		public T getLastOrInfinite()
+		{
+			return mElement;
 		}
 	}
 }

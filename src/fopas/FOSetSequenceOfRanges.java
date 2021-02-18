@@ -12,13 +12,13 @@ import com.google.common.collect.Iterables;
 
 import fopas.basics.FOElement;
 import fopas.basics.FOElement.FOInteger;
-import fopas.basics.FOEnumerableSet;
+import fopas.basics.FOOrderedEnumerableSet;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOTerm;
 
-public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
+public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 {
 	final protected String mName;
 	final protected List<FOSetRangedNaturals> mRanges;
@@ -200,7 +200,7 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	}
 
 	@Override
-	public FOEnumerableSet<FOInteger> constrainToRange(FOInteger first, FOInteger last)
+	public FOOrderedEnumerableSet<FOInteger> constrainToRange(FOInteger first, FOInteger last)
 	{
 		// This is fairly wasteful and suboptimal but can live with it for now.
 		
@@ -256,5 +256,23 @@ public class FOSetSequenceOfRanges implements FOEnumerableSet<FOInteger>
 	public String toString()
 	{
 		return "FOSetSequenceOfRanges [" + getName() + "]";
+	}
+
+	@Override
+	public Comparator<FOElement> getOrder()
+	{
+		return FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR;
+	}
+
+	@Override
+	public FOInteger getFirstOrInfinite()
+	{
+		return mRanges.get(0).getFirstOrInfinite();
+	}
+
+	@Override
+	public FOInteger getLastOrInfinite()
+	{
+		return mRanges.get(mRanges.size() - 1).getLastOrInfinite();
 	}
 }

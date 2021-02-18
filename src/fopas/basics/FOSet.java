@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Set;
 
 // We're only interested in enumarable sets in computations, so let's assume a set to be iterable up front - though this will change.
-public interface FOSet<T extends FOElement> extends Iterable<T>
+public interface FOSet<T extends FOElement>
 {
-	public int size(); // shared with Set
+	public int size(); // shared with Set, may return infinite (Integer.MAX_VALUE).
 	
 	public String getName();
 	
@@ -24,5 +24,5 @@ public interface FOSet<T extends FOElement> extends Iterable<T>
 			return complement(relativeSet);
 		else
 			return this;
-	}	
+	}
 }

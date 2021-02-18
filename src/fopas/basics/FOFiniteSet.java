@@ -2,6 +2,8 @@ package fopas.basics;
 
 import java.util.Set;
 
-public interface FOFiniteSet<T extends FOElement> extends Set<T>, FOSet<T> {
+// This is just a marker atm.
+public interface FOFiniteSet<T extends FOElement> extends FOEnumerableSet<T>
+{
 
 }

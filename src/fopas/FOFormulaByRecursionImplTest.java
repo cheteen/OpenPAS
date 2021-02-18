@@ -21,6 +21,7 @@ import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOElement.FOInteger;
+import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOFormula;
 import fopas.basics.FOFunction;
 import fopas.basics.FORelation;
@@ -56,11 +57,11 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger one = new FOElementImpl.FOIntImpl(1);
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>("TWOINTS", new HashSet<>(Arrays.asList(one, two)));
+		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("TWOINTS", new HashSet<>(Arrays.asList(one, two)));
 		
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
+		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		
@@ -116,10 +117,10 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)));		
+		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)));		
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
+		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
@@ -166,10 +167,10 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)));
+		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)));
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 				
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
+		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);
 		structure.setConstantMapping(c3, three);
@@ -240,11 +241,11 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(zero, one, two, three)));
+		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(zero, one, two, three)));
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);
 
-		FOStructure structure = new FOStructureImpl(new FOUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
+		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), new HashSet<>(Arrays.asList(funaddmod4)));
 		structure.setConstantMapping(c0, zero);
 		structure.setConstantMapping(c1, one);
 		structure.setConstantMapping(c2, two);

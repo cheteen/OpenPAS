@@ -1,5 +1,7 @@
 package fopas;
 
+import java.util.Comparator;
+
 import fopas.basics.FOElement;
 
 // Generic element - I don't think this is really ever useful for something, I may need to remove it.
@@ -51,38 +53,89 @@ abstract class FOElementImpl implements FOElement
 
 	static class FOStringImpl extends FOElementImpl implements FOString
 	{
-		final String mStrElt; // this is realy a short-hand reference to the same object but without needing to cast it.
+		static class FOStringComparator implements Comparator<FOElement>
+		{
+			@Override
+			public int compare(FOElement arg0, FOElement arg1)
+			{
+				return ((FOString) arg1).getString().compareTo(((FOString)arg0).getString());
+			}	
+		}
+		static final Comparator<FOElement> DEFAULT_COMPARATOR = new FOStringComparator();
+
 		FOStringImpl(String elt)
 		{
 			super(elt);
-			mStrElt = elt;
 		}
 		
 		@Override
 		public Type getType() {
 			return Type.String;
 		}
+
+		@Override
+		public String getString()
+		{
+			return (String) mElt;
+		}
+
+		@Override
+		public Comparator<FOElement> getDefaultComparator()
+		{
+			return DEFAULT_COMPARATOR;
+		}
 	}
 
 	static class FOSymbolImpl extends FOElementImpl implements FOSymbol
 	{
-		final String mSymElt;
+		static class FOSymComparator implements Comparator<FOElement>
+		{
+			@Override
+			public int compare(FOElement arg0, FOElement arg1)
+			{
+				return ((FOSymbol)arg1).getName().compareTo(((FOSymbol)arg0).getName());
+			}	
+		}
+		static final Comparator<FOElement> DEFAULT_COMPARATOR = new FOSymComparator();
+		
 		// We get the name of the symbol as a parameter, of course it's only conceptually different to String.
 		FOSymbolImpl(String elt)
 		{
 			super(elt);
-			mSymElt = elt;
 		}
 
 		@Override
-		public Type getType() {
+		public Type getType()
+		{
 			return Type.Symbol;
+		}
+
+		@Override
+		public String getName()
+		{
+			return (String) mElt;
+		}
+
+		@Override
+		public Comparator<FOElement> getDefaultComparator()
+		{
+			return DEFAULT_COMPARATOR;
 		}
 	}
 
 	// This is no different to Integer in that it boxes an int.
 	static class FOIntImpl extends FOElementImpl implements FOInteger
-	{
+	{	
+		static class FOIntComparator implements Comparator<FOElement>
+		{
+			@Override
+			public int compare(FOElement arg0, FOElement arg1)
+			{
+				return ((FOInteger) arg1).getInteger() - ((FOInteger) arg0).getInteger();
+			}	
+		}
+		static final Comparator<FOElement> DEFAULT_COMPARATOR = new FOIntComparator();
+		
 		FOIntImpl(int elt)
 		{
 			super(elt);
@@ -104,5 +157,9 @@ abstract class FOElementImpl implements FOElement
 		{
 			return o.getInteger() - (Integer) mElt;
 		}
-	}
+
+		@Override
+		public Comparator<FOElement> getDefaultComparator() { return DEFAULT_COMPARATOR; }
+	}	
 }
+

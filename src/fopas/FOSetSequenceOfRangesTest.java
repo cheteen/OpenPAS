@@ -14,8 +14,9 @@ import org.junit.Test;
 import com.google.common.collect.Iterables;
 
 import fopas.FOSetUtils.EmptySet;
-import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOEnumerableSet;
+import fopas.basics.FOElement.FOInteger;
+import fopas.basics.FOOrderedEnumerableSet;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 
@@ -121,10 +122,12 @@ public class FOSetSequenceOfRangesTest {
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 19);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(30, 39);
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
-		Assert.assertEquals("N [10, 19] U [30, 39]", foseq.getName());
-		Assert.assertEquals(10, foseq.iterator().next().getInteger());
-		Assert.assertEquals(20, foseq.size());
-		Assert.assertEquals(20, Iterables.size(foseq));
+		assertEquals("N [10, 19] U [30, 39]", foseq.getName());
+		assertEquals(10, foseq.iterator().next().getInteger());
+		assertEquals(20, foseq.size());
+		assertEquals(20, Iterables.size(foseq));
+		assertEquals(10, foseq.getFirstOrInfinite().getInteger());
+		assertEquals(39, foseq.getLastOrInfinite().getInteger());
 	}
 	
 	@Test
@@ -135,10 +138,12 @@ public class FOSetSequenceOfRangesTest {
 		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 29);
 		FOSetRangedNaturals forange4 = new FOSetRangedNaturals(30, 39);
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2, forange3, forange4));
-		Assert.assertEquals("Z [-19, -10] U [1, 10] U [20, 29] U [30, 39]", foseq.getName());
-		Assert.assertEquals(-10, foseq.iterator().next().getInteger());
-		Assert.assertEquals(40, foseq.size());
-		Assert.assertEquals(40, Iterables.size(foseq));
+		assertEquals("Z [-19, -10] U [1, 10] U [20, 29] U [30, 39]", foseq.getName());
+		assertEquals(-10, foseq.iterator().next().getInteger());
+		assertEquals(40, foseq.size());
+		assertEquals(40, Iterables.size(foseq));
+		assertEquals(-19, foseq.getFirstOrInfinite().getInteger());
+		assertEquals(39, foseq.getLastOrInfinite().getInteger());
 	}
 	
 	@Test
@@ -153,7 +158,7 @@ public class FOSetSequenceOfRangesTest {
 		
 		{
 			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
-			FOSet<FOInteger> fosetc = foseq.complement(forangec);
+			FOEnumerableSet<FOInteger> fosetc = (FOEnumerableSet<FOInteger>) foseq.complement(forangec);
 			Assert.assertEquals(-20, fosetc.iterator().next().getInteger());
 			Assert.assertEquals(-1, fosetc.size());
 			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
@@ -176,6 +181,10 @@ public class FOSetSequenceOfRangesTest {
 			assertFalse(fosetc.contains(new FOElementImpl.FOIntImpl(39)));
 			assertTrue(fosetc.contains(new FOElementImpl.FOIntImpl(40)));
 			assertTrue(fosetc.contains(new FOElementImpl.FOIntImpl(100)));
+			assertEquals(Integer.MIN_VALUE, ((FOSetSequenceOfRanges) fosetc).getFirstOrInfinite().getInteger());
+			assertEquals(Integer.MAX_VALUE, ((FOSetSequenceOfRanges) fosetc).getLastOrInfinite().getInteger());
+
+			assertTrue(foseq == foseq.complement(forangec, false));
 		}
 
 		//------------------------
@@ -569,11 +578,11 @@ public class FOSetSequenceOfRangesTest {
 		Assert.assertEquals("MySet", foseq.getName());
 		
 		{
-			FOEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(5), new FOElementImpl.FOIntImpl(6)); 
+			FOOrderedEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(5), new FOElementImpl.FOIntImpl(6)); 
 			assertEquals("N [5, 6]", conted.getName()); // Single range doesn't retain name -- too wasteful.
 		}
 		{
-			FOEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(5), new FOElementImpl.FOIntImpl(25)); 
+			FOOrderedEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(5), new FOElementImpl.FOIntImpl(25)); 
 			assertEquals("MySet [5, 25]", conted.getName());			
 			assertFalse(conted.contains(new FOElementImpl.FOIntImpl(4)));
 			assertTrue(conted.contains(new FOElementImpl.FOIntImpl(5)));
@@ -595,19 +604,19 @@ public class FOSetSequenceOfRangesTest {
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("MySet", Arrays.asList(forange1, forange2, forange3, forange4));
 		
 		{
-			FOEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)); 
+			FOOrderedEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)); 
 			Assert.assertTrue(conted == foseq);
 		}
 		{
-			FOEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(39)); 
+			FOOrderedEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(39)); 
 			Assert.assertTrue(conted == foseq);
 		}
 		{
-			FOEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(50)); 
+			FOOrderedEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(50)); 
 			Assert.assertTrue(conted == foseq);
 		}
 		{
-			FOEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(-19), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)); 
+			FOOrderedEnumerableSet<FOInteger> conted = foseq.constrainToRange(new FOElementImpl.FOIntImpl(-19), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)); 
 			Assert.assertTrue(conted == foseq);
 		}
 	}

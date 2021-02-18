@@ -4,6 +4,8 @@ import java.util.List;
 
 import fopas.FOTermByRecursionImpl.FOTermVariable;
 import fopas.basics.FOElement;
+import fopas.basics.FOElement.FOInteger;
+import fopas.basics.FOOrderedEnumerableSet;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
@@ -115,8 +117,7 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			// Check if the other term is not a partial assignment, then we can constrain the subset to a single element.
 			if(other != null && other.getAssignment() != null)
 			{
-				return new FOSetUtils.SingleElementSet<FOElement>(
-						String.format("%s|%s[%s]", universeSubset.getName(), mName, other.getAssignment().getElement()), other.getAssignment())
+				return new FOSetUtils.SingleElementSet<FOElement>(other.getAssignment())
 							.complement(universeSubset, isComplemented);
 			}
 
@@ -193,6 +194,8 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			// We need to figure out which arg is the variable and which one is the "other" (non-variable) arg.
 			// It's possible none of the args related to the variable, in this case other will be null.
 			
+			boolean inverseTermOrder = false;
+			
 			FOTerm other = null;
 			if(terms.get(0).getType() == TermType.VARIABLE && ((FOTermVariable) terms.get(0)).getVariable().equals(var))
 			{
@@ -207,12 +210,12 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 				if(other != null)
 				{
 					// This does a trick in negating the complement on the empty set to get back the universe set in a different way.
-					// Should consider changing the API here to signal the failure to contrain in a different way than returning the universet set
+					// Should consider changing the API here to signal the failure to contsrain in a different way than returning the universet set
 					// so that when we do return the universe set here it means that's what the constrain did instead of having to create another
 					// fake universe set).
 					// Case: v1 <= v1
 					if(mEquals) // This mimics the equality case above.
-						return new FOSetUtils.EmptySet<>() // TODO: Should really have unit tests check the set names.
+						return new FOSetUtils.EmptySet<>()
 							.complement(universeSubset, !isComplemented);
 					else
 						// Case: v1 < v1
@@ -222,21 +225,32 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 				}
 
 				// The first arg is the non-variable arg.
-				other = terms.get(0); 
+				other = terms.get(0);
+				inverseTermOrder = true;
 			}
 			
-			// Check if the other term is not a partial assignment, then we can constrain the subset to a single element.
-			// Case: v1 < Term|x
-			if(other != null && other.getAssignment() != null)
+			// No constraining possible if the variable isn't present in this formula.
+			if(other == null)
+				return universeSubset;
+			
+			// If we have no assignment on the other term, we may be able to get something by solving the equation for var.
+			// We don't support that _yet_, so we need to skip for now.
+			FOElement termAssignment = other.getAssignment(); 
+			if(termAssignment == null)
+				return universeSubset;
+			
+			// If universe subset isn't ordered, we don't have an intrinsic way to constrain the set.
+			// The forall iteration will be constrained by the relation already, so we will need to leave it to that phase.
+			if(!(universeSubset instanceof FOOrderedEnumerableSet))
+				return universeSubset;
+			
+			FOOrderedEnumerableSet<FOElement> fosetOEUniverseSubset = (FOOrderedEnumerableSet<FOElement>) universeSubset; 
+			if(inverseTermOrder ^ mLessThan)
 			{
-				// This is really the "main" case for this constrain you have the variable in question as one of the args in an inequality.
+				if(mEquals)
+					return fosetOEUniverseSubset.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), termAssignment);
 			}
-
-
-			// Case: Term1 < Term2 or v1 < Term (no assigment)
-			// For the first case above, Term1 or Term2 may contain the var in question, so there may be something we can still do here.
-			// But we need a resolver implemented to go there.
-			// We don't have anything better at the moment, return the original set.
+			
 			return universeSubset;
 		}
 	}	

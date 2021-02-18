@@ -14,6 +14,7 @@ import java.util.Set;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
+import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
@@ -104,7 +105,7 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 	{
 		protected final List<FOVariable> vars;
 		protected final HashMap<FOVariable, FOElement> pickings;
-		protected final List<FOSet<FOElement>> pickables;
+		protected final List<FOEnumerableSet<FOElement>> pickables;
 		protected final List<Iterator<FOElement>> pickers;
 		protected Iterator<FOElement> focusIterator;
 		protected int focusIteratorIx; 
@@ -113,7 +114,7 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		{
 			vars = new ArrayList<>(setFreeVars);
 			pickings = new LinkedHashMap<>();
-			pickables = Collections.nCopies(setFreeVars.size(), structure.getUniverse());
+			pickables = Collections.nCopies(setFreeVars.size(), (FOEnumerableSet<FOElement>) structure.getUniverse()); //the cast here may fail for non-enumerable universe and should be prevented earlier by the flow.
 			pickers = new ArrayList<>(setFreeVars.size());
 			for(int i = 0; i < pickables.size(); i++)
 				pickers.add(Collections.emptyIterator());

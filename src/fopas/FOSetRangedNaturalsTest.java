@@ -26,7 +26,7 @@ import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOElement.FOInteger;
-import fopas.basics.FOEnumerableSet;
+import fopas.basics.FOOrderedEnumerableSet;
 
 public class FOSetRangedNaturalsTest {
 
@@ -121,6 +121,8 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(Integer.MAX_VALUE, foset.getEnd().getInteger());
 		Assert.assertEquals(Integer.MAX_VALUE, foset.getEndOrInfinite(true).getInteger());
 		Assert.assertEquals(Integer.MAX_VALUE, foset.getEndOrInfinite(false).getInteger());
+		Assert.assertEquals(foset.getStartOrInfinite(true).getInteger(), foset.getFirstOrInfinite().getInteger());
+		Assert.assertEquals(foset.getEndOrInfinite(true).getInteger(), foset.getLastOrInfinite().getInteger());
 	}
 	
 	@Test
@@ -136,6 +138,8 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(Integer.MAX_VALUE, foset.getEnd().getInteger());
 		Assert.assertEquals(Integer.MAX_VALUE, foset.getEndOrInfinite(true).getInteger());
 		Assert.assertEquals(Integer.MAX_VALUE, foset.getEndOrInfinite(false).getInteger());
+		Assert.assertEquals(foset.getStartOrInfinite(true).getInteger(), foset.getFirstOrInfinite().getInteger());
+		Assert.assertEquals(foset.getEndOrInfinite(true).getInteger(), foset.getLastOrInfinite().getInteger());
 	}
 	
 	@Test
@@ -152,6 +156,8 @@ public class FOSetRangedNaturalsTest {
 		Assert.assertEquals(99, foset.getEndOrInfinite(true).getInteger());
 		Assert.assertTrue(foset.getIncludeStart());
 		Assert.assertTrue(foset.getIncludeEnd());
+		Assert.assertEquals(foset.getStartOrInfinite(true).getInteger(), foset.getFirstOrInfinite().getInteger());
+		Assert.assertEquals(foset.getEndOrInfinite(true).getInteger(), foset.getLastOrInfinite().getInteger());
 	}
 
 	@Test
@@ -373,7 +379,7 @@ public class FOSetRangedNaturalsTest {
 	{
 		FOSetRangedNaturals foset1 = new FOSetRangedNaturals(10, 20);
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(0, 30);
-		FOEnumerableSet<FOInteger> foset2_1 = (FOEnumerableSet<FOInteger>) foset1.complement(foset2);
+		FOOrderedEnumerableSet<FOInteger> foset2_1 = (FOOrderedEnumerableSet<FOInteger>) foset1.complement(foset2);
 		Assert.assertEquals(20, foset2_1.size());
 		Assert.assertEquals(20, Iterables.size(foset2_1));
 		Assert.assertEquals(0, foset2_1.iterator().next().getInteger());
@@ -388,7 +394,7 @@ public class FOSetRangedNaturalsTest {
 	{
 		FOSetRangedNaturals foset1 = new FOSetRangedNaturals(10, 20);
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(5, true, Integer.MAX_VALUE, false);
-		FOEnumerableSet<FOInteger> foset2_1 = (FOEnumerableSet<FOInteger>) foset1.complement(foset2);
+		FOOrderedEnumerableSet<FOInteger> foset2_1 = (FOOrderedEnumerableSet<FOInteger>) foset1.complement(foset2);
 		Assert.assertEquals(-1, foset2_1.size());
 		Assert.assertEquals(5, foset2_1.iterator().next().getInteger());
 		Assert.assertEquals("N [5, inf) \\ N [10, 20]", foset2_1.getName());
@@ -402,7 +408,7 @@ public class FOSetRangedNaturalsTest {
 	{
 		FOSetRangedNaturals foset1 = new FOSetRangedNaturals(-5, 5);
 		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
-		FOEnumerableSet<FOInteger> foset2_1 = (FOEnumerableSet<FOInteger>) foset1.complement(foset2);
+		FOOrderedEnumerableSet<FOInteger> foset2_1 = (FOOrderedEnumerableSet<FOInteger>) foset1.complement(foset2);
 		Assert.assertEquals(-1, foset2_1.size());
 		Assert.assertEquals(-6, foset2_1.iterator().next().getInteger()); // this will try to go from -6 -> -inf
 		Assert.assertEquals("Z \\ Z [-5, 5]", foset2_1.getName());

@@ -11,6 +11,7 @@ import com.google.common.collect.Iterables;
 
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
+import fopas.basics.FOEnumerableSet;
 import fopas.basics.FORelation;
 import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
@@ -18,20 +19,21 @@ import fopas.basics.FOTerm;
 import fopas.basics.KnownIterable;
 import fopas.basics.FOUnionSet;
 
-public class FOUnionSetImpl implements FOUnionSet
+//TODO: Bring some order to this set impl.
+public class FOEnumerableUnionSetImpl implements FOUnionSet
 {
-	protected Map<String, FOSet<? extends FOElement>> mSubsets;
+	protected Map<String, FOEnumerableSet<? extends FOElement>> mSubsets;
 	
-	FOUnionSetImpl(FOSet<FOElement> defaultSet)
+	FOEnumerableUnionSetImpl(FOEnumerableSet<FOElement> defaultSet)
 	{
 		mSubsets = new HashMap<>(2);
 		mSubsets.put(defaultSet.getName(), defaultSet);
 	}
 
-	FOUnionSetImpl(Set<FOSet<? extends FOElement>> subsets)
+	FOEnumerableUnionSetImpl(Set<FOEnumerableSet<? extends FOElement>> subsets)
 	{
 		mSubsets = new LinkedHashMap<>();
-		for(FOSet<? extends FOElement> foset : subsets)
+		for(FOEnumerableSet<? extends FOElement> foset : subsets)
 			mSubsets.put(foset.getName(), foset);
 	}
 

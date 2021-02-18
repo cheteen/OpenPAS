@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fopas.FOFormulaBRImpl.FormulaType;
+import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
@@ -62,7 +63,7 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		// we need to eliminate the trues as far as this forall formula is concerned, and we'll negate the result as needed in the end.
 		Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls = new HashSet<>();
 		FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(depth + 1, structure, structure.getUniverse(), mVar, false, assignment, aliasCalls);
-
+		
 		if(trace >= 1)
 		{
 			if(constrained != structure.getUniverse())
@@ -81,8 +82,15 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		}
 		assert aliasCalls.size() == 0;
 		
+		if(!(constrained instanceof FOEnumerableSet))
+			throw new FORuntimeException("Attempting to iterate non-emumerable set."); // TODO: Unit test this.
+		if(constrained.size() == Integer.MAX_VALUE)
+			throw new FORuntimeException("Attempting to iterate infinite set."); // TODO: Unit test this.
+		
+		FOEnumerableSet<FOElement> enumerableConstrained = (FOEnumerableSet<FOElement>) constrained; 
+
 		boolean failed = false;
-		for(FOElement elt : constrained)
+		for(FOElement elt : enumerableConstrained)
 		{
 			if(trace >= 1)
 			{

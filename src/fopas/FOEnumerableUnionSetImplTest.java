@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class FOUnionSetImplTest {
+public class FOEnumerableUnionSetImplTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
