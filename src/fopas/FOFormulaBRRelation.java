@@ -27,7 +27,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	@Override
 	public boolean checkAssignment(int depth, FOStructure structure, Map<FOVariable, FOElement> assignment)
 	{
-		FORuntime settings = structure.getSettings();
+		FORuntime settings = structure.getRuntime();
 		int trace = settings.getTraceLevel();
 		if(trace >= 1)
 		{
@@ -82,7 +82,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
-		FORuntime settings = structure.getSettings();
+		FORuntime settings = structure.getRuntime();
 		if(settings.getTraceLevel() >= 1)
 		{
 			settings.getStats().numL1ElimTrueRel++; // We only count this here since it's the only place that truly does elimination.

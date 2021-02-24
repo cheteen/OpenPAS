@@ -286,4 +286,10 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		sb.append('}');
 		return sb.toString();
 	}
+	
+	@Override
+	public String toString()
+	{
+		return "FOFormulaBRImpl [" + FOByRecursionStringiser.getDefaultStringiser().stringiseFormula(this) + "]";
+	}
 }

@@ -28,5 +28,5 @@ public interface FOStructure
 	Iterable<Map<FOVariable, FOElement>> getSatisfyingAssignments(FOFormula form) throws FOConstructionException;
 	Iterable<Map<FOVariable, FOElement>> getAssignments(FOFormula form) throws FOConstructionException;
 	
-	FORuntime getSettings(); // This will come out of here later when I implement a proper runtime system, it's left here for convenience for now.
+	FORuntime getRuntime(); // This will come out of here later when I implement a proper runtime system, it's left here for convenience for now.
 }

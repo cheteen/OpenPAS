@@ -27,9 +27,9 @@ import fopas.basics.FOTerm;
 // Infinite set for \mathbb{N} amd \mathbb{Z}.
 public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, FORange<FOInteger>
 {
-	protected final int mRangeLeft;
+	protected final int mRangeFirst;
 	protected final boolean mIncStart;
-	protected final int mRangeRight;
+	protected final int mRangeLast;
 	protected final boolean mIncEnd;
 
 	// This enforces a different constructor/parameters and checks when creating an infinite range.
@@ -47,24 +47,24 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 		if(!incStart)
 		{
 			if(rangeStart == Integer.MIN_VALUE)
-				mRangeLeft = rangeStart; // We break contract here in our internal representation since infinity can't be the start of a range, but we deal with internally.
+				mRangeFirst = rangeStart; // We break contract here in our internal representation since infinity can't be the start of a range, but we deal with internally.
 			else
-				mRangeLeft = rangeStart + 1;
+				mRangeFirst = rangeStart + 1;
 		}
 		else
-			mRangeLeft = rangeStart;
+			mRangeFirst = rangeStart;
 		
 		if(!incEnd)
 		{
 			if(rangeEnd == Integer.MAX_VALUE)
-				mRangeRight = rangeEnd;
+				mRangeLast = rangeEnd;
 			else
-				mRangeRight = rangeEnd - 1;
+				mRangeLast = rangeEnd - 1;
 		}
 		else
-			mRangeRight = rangeEnd;
+			mRangeLast = rangeEnd;
 		
-		if(mRangeLeft > mRangeRight)
+		if(mRangeFirst > mRangeLast)
 			throw new FORuntimeException("Invalid range parameters.");
 	}
 	
@@ -86,13 +86,13 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	@Override
 	public Iterator<FOInteger> iterator()
 	{
-		int rangeStart = mRangeLeft;
-		int rangeEnd = mRangeRight;
+		int rangeStart = mRangeFirst;
+		int rangeEnd = mRangeLast;
 		
 		int dir = getDir();
 		if(dir > 0)
 		{
-			if(mRangeRight == Integer.MAX_VALUE && mRangeLeft == Integer.MIN_VALUE)
+			if(mRangeLast == Integer.MAX_VALUE && mRangeFirst == Integer.MIN_VALUE)
 				rangeStart = 0; // iterate the positive half for Z - no good other default behaviour I can see
 
 			return new FOIntRange(rangeStart, rangeEnd, dir);
@@ -106,9 +106,9 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	protected int getDir()
 	{
 		int dir;
-		if(mRangeRight < 0) // if this is all a negative range we iterate backwards.
+		if(mRangeLast < 0) // if this is all a negative range we iterate backwards.
 			dir = -1;
-		else if(mRangeLeft < 0 && mRangeRight == 0)
+		else if(mRangeFirst < 0 && mRangeLast == 0)
 			dir = -1;
 		else
 			dir = 1;
@@ -156,29 +156,29 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	@Override
 	public int size()
 	{
-		if(mRangeLeft == Integer.MIN_VALUE)
+		if(mRangeFirst == Integer.MIN_VALUE)
 			return -1;
-		if(mRangeRight == Integer.MAX_VALUE)
+		if(mRangeLast == Integer.MAX_VALUE)
 			return -1;
-		return (mRangeRight - mRangeLeft + 1);
+		return (mRangeLast - mRangeFirst + 1);
 	}
 
 	@Override
 	public String getName()
 	{
-		if(mRangeLeft == 0 && mRangeRight == Integer.MAX_VALUE)
+		if(mRangeFirst == 0 && mRangeLast == Integer.MAX_VALUE)
 			return "N";
 		
 		String setName;
 		StringBuilder sb = new StringBuilder();
-		if(mRangeLeft < 0)
+		if(mRangeFirst < 0)
 			setName = "Z";
 		else
 			setName = "N";
 
-		if(mRangeLeft == Integer.MIN_VALUE)
+		if(mRangeFirst == Integer.MIN_VALUE)
 		{
-			if(mRangeRight == Integer.MAX_VALUE)
+			if(mRangeLast == Integer.MAX_VALUE)
 				return "Z";
 			assert !mIncStart;
 			sb.append("Z (-inf, ");
@@ -190,17 +190,17 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 			if(mIncStart)
 			{
 				sb.append("[");
-				sb.append(mRangeLeft);
+				sb.append(mRangeFirst);
 			}
 			else
 			{
 				sb.append("(");
-				sb.append(mRangeLeft - 1);
+				sb.append(mRangeFirst - 1);
 			}
 			sb.append(", ");
 		}
 
-		if(mRangeRight == Integer.MAX_VALUE)
+		if(mRangeLast == Integer.MAX_VALUE)
 		{
 			assert !mIncEnd;
 			sb.append("inf)");
@@ -209,12 +209,12 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 		{
 			if(mIncEnd)
 			{
-				sb.append(mRangeRight);
+				sb.append(mRangeLast);
 				sb.append("]");
 			}
 			else
 			{
-				sb.append(mRangeRight + 1);
+				sb.append(mRangeLast + 1);
 				sb.append(")");
 			}
 		}
@@ -229,12 +229,13 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 			throw new FORuntimeException("Unexpected object: " + o);
 		
 		int check = ((FOInteger)o).getInteger();
-		return check >= mRangeLeft && check <= mRangeRight;
+		return check >= mRangeFirst && check <= mRangeLast;
 	}
 		
 	@Override
 	public FOSet<FOInteger> complement(FOSet<FOInteger> relativeSet)
 	{
+		// TODO: Consider moving this (and constrain below) to a common abstract implementation, and perhaps do a concrete implementation here for efficiency (avoiding boxing).
 		// It'd be easy to generalise this to FOEnumerableSet since we use the generic interface FOEnumerableSet to do all the constraining operations which are the key.
 		if(relativeSet instanceof FOSetRangedNaturals)
 		{
@@ -244,14 +245,14 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 			
 			int rsFirst = ((FOInteger) relativeEnumSet.getStart()).getInteger();
 			int rsLast = ((FOInteger) relativeEnumSet.getEnd()).getInteger();
-			if(rsFirst < mRangeLeft)
+			if(rsFirst < mRangeFirst)
 			{
-				int firstComplementLast = Math.min(mRangeLeft -1, rsLast);				
+				int firstComplementLast = Math.min(mRangeFirst -1, rsLast);				
 				fosetNat1 = relativeEnumSet.constrainToRange(relativeEnumSet.getStart(), new FOElementImpl.FOIntImpl(firstComplementLast));
 			}
-			if(rsLast > mRangeRight)
+			if(rsLast > mRangeLast)
 			{
-				int secondComplementFirst = Math.max(mRangeRight + 1, rsFirst);
+				int secondComplementFirst = Math.max(mRangeLast + 1, rsFirst);
 				fosetNat2 = relativeEnumSet.constrainToRange(new FOElementImpl.FOIntImpl(secondComplementFirst), relativeEnumSet.getEnd());
 			}
 			
@@ -275,11 +276,11 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 		int firstInt = ((FOInteger) first).getInteger();
 		int lastInt = ((FOInteger) last).getInteger();
 
-		if(mRangeLeft != firstInt || mRangeRight != lastInt)
+		if(mRangeFirst != firstInt || mRangeLast != lastInt)
 		{
-			int newFirst = Math.max(firstInt, mRangeLeft);
+			int newFirst = Math.max(firstInt, mRangeFirst);
 			boolean incFirst = newFirst == Integer.MIN_VALUE ? false : true;
-			int newLast = Math.min(lastInt, mRangeRight);
+			int newLast = Math.min(lastInt, mRangeLast);
 			boolean incLast = newLast == Integer.MAX_VALUE ? false : true;
 			//TODO: Return a single item set here if needed, also do I need a contrain that allows returning an empty set?
 			return new FOSetRangedNaturals(newFirst, incFirst, newLast, incLast);
@@ -304,13 +305,13 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	{
 		int start;
 		if(includeStart)
-			start = mRangeLeft;
+			start = mRangeFirst;
 		else
 		{
-			if(mRangeLeft == Integer.MIN_VALUE)
+			if(mRangeFirst == Integer.MIN_VALUE)
 				start = Integer.MIN_VALUE;
 			else
-				start = mRangeLeft - 1;
+				start = mRangeFirst - 1;
 		}
 		return start;
 	}
@@ -319,13 +320,13 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	{
 		int end;
 		if(includeEnd)
-			end = mRangeRight;
+			end = mRangeLast;
 		else
 		{
-			if(mRangeRight == Integer.MAX_VALUE)
+			if(mRangeLast == Integer.MAX_VALUE)
 				end = Integer.MAX_VALUE;
 			else
-				end = mRangeRight + 1;
+				end = mRangeLast + 1;
 		}
 		return end;
 	}
@@ -339,8 +340,7 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	@Override
 	public FOInteger getEnd()
 	{
-		int end = getEndOrInfInternal(mIncEnd);
-		return new FOElementImpl.FOIntImpl(end);
+		return new FOElementImpl.FOIntImpl(getEndOrInfInternal(mIncEnd));
 	}
 
 	@Override
@@ -419,5 +419,37 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	public FOInteger getLastOrInfinite()
 	{
 		return getEndOrInfinite(true);
+	}
+
+	@Override
+	public FOInteger getNextOrNull(FOInteger element)
+	{
+		int eltInt = element.getInteger();
+		if(eltInt < mRangeFirst || eltInt > mRangeLast)
+			throw new FORuntimeException("Can't get next of element not in the range.");
+		else if(eltInt == mRangeLast)
+		{
+			if(eltInt == Integer.MAX_VALUE)
+				return element; // MAX_VALUE
+			else
+				return null;
+		}
+		return new FOElementImpl.FOIntImpl(eltInt + 1);
+	}
+
+	@Override
+	public FOInteger getPreviousOrNull(FOInteger element)
+	{
+		int eltInt = element.getInteger();
+		if(eltInt < mRangeFirst || eltInt > mRangeLast)
+			throw new FORuntimeException("Can't get previous of element not in the range.");
+		else if(eltInt == mRangeFirst)
+		{
+			if(eltInt == Integer.MIN_VALUE)
+				return element; // MIN_VALUE
+			else
+				return null;
+		}
+		return new FOElementImpl.FOIntImpl(eltInt - 1);
 	}
 }

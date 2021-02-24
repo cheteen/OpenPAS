@@ -91,6 +91,18 @@ public class FOSetUtils
 		{
 			throw new FORuntimeException("Empty set has no last element.");
 		}
+
+		@Override
+		public T getNextOrNull(T element)
+		{
+			throw new FORuntimeException("Empty set has no next element.");
+		}
+
+		@Override
+		public T getPreviousOrNull(T element)
+		{
+			throw new FORuntimeException("Empty set has no previous element.");
+		}
 	}
 
 	static class ComplementedSingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
@@ -310,6 +322,20 @@ public class FOSetUtils
 		public T getLastOrInfinite()
 		{
 			return mElement;
+		}
+		@Override
+		public T getNextOrNull(T element)
+		{
+			if(mElement.equals(element))
+				return null;
+			throw new FORuntimeException("Can't get next of element not in the set.");
+		}
+		@Override
+		public T getPreviousOrNull(T element)
+		{
+			if(mElement.equals(element))
+				return null;
+			throw new FORuntimeException("Can't get previous of element not in the set.");
 		}
 	}
 }

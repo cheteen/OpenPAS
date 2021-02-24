@@ -620,4 +620,69 @@ public class FOSetSequenceOfRangesTest {
 			Assert.assertTrue(conted == foseq);
 		}
 	}
+	
+	@Test
+	public void testNextAndPrev1()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 29);
+		FOSetRangedNaturals forange4 = new FOSetRangedNaturals(30, 39);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("MySet", Arrays.asList(forange1, forange2, forange3, forange4));
+		// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
+
+		assertEquals(new FOElementImpl.FOIntImpl(6), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(5)));
+		assertEquals(new FOElementImpl.FOIntImpl(20), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(10)));
+		assertEquals(null, foseq.getNextOrNull(new FOElementImpl.FOIntImpl(39)));
+		
+		assertEquals(new FOElementImpl.FOIntImpl(-16), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(-15)));
+		assertEquals(new FOElementImpl.FOIntImpl(-10), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(1)));
+		assertEquals(null, foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(-19)));
+
+		{
+			String exMsg = null;
+			try {
+				foseq.getNextOrNull(new FOElementImpl.FOIntImpl(15));
+			} catch(FORuntimeException e) {
+				exMsg = e.getMessage();
+			}
+			assertTrue(exMsg.contains("Element not in set."));			
+		}
+		{
+			String exMsg = null;
+			try {
+				foseq.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE));
+			} catch(FORuntimeException e) {
+				exMsg = e.getMessage();
+			}
+			assertTrue(exMsg.contains("Element not in set."));			
+		}
+
+		{
+			String exMsg = null;
+			try {
+				foseq.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE));
+			} catch(FORuntimeException e) {
+				exMsg = e.getMessage();
+			}
+			assertTrue(exMsg.contains("Element not in set."));			
+		}
+	}	
+
+	@Test
+	public void testNextAndPrev2()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, -10, true);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 29);
+		FOSetRangedNaturals forange4 = new FOSetRangedNaturals(30, true, Integer.MAX_VALUE, false);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("MySet", Arrays.asList(forange1, forange2, forange3, forange4));
+		// Main set: [-inf, -10] U [1, 10] U [20, 29] U [30, inf]
+
+		assertEquals(new FOElementImpl.FOIntImpl(35), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(34)));
+		assertEquals(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
+		
+		assertEquals(new FOElementImpl.FOIntImpl(-15), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(-14)));
+		assertEquals(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+	}	
 }

@@ -235,12 +235,14 @@ public class FOByRecursionStringiser implements FOStringiser
 		case RELATION:
 			sb.append("(");
 			FOFormulaBRRelation recformrel = (FOFormulaBRRelation) recform;
-			if(recformrel.getRelation().getClass() == FORelationOfComparison.FORelationImplEquals.class)
+			if(recformrel.getRelation().getInfix() != null) // this always prefers in-fix where present, can to a presentInfix like the functions at some later point.
 			{
 				Iterator<FOTerm> termit = recformrel.getTerms().iterator();
 				FOTerm term = termit.next();
 				stringiseFOTerm(term, maxLen, sb);
-				sb.append(" = ");
+				sb.append(" ");
+				sb.append(recformrel.getRelation().getInfix());
+				sb.append(" ");
 				term = termit.next();
 				stringiseFOTerm(term, maxLen, sb);				
 			}
@@ -334,5 +336,11 @@ public class FOByRecursionStringiser implements FOStringiser
 			sb.append("ERROR!"); // should never happen.
 			break;		
 		}		
+	}
+	
+	static protected FOStringiser sDefaultStg = new FOByRecursionStringiser();
+	static FOStringiser getDefaultStringiser()
+	{
+		return sDefaultStg;
 	}
 }

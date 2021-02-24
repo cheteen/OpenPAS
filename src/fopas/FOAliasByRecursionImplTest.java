@@ -218,7 +218,7 @@ public class FOAliasByRecursionImplTest
 		
 		structure.addAlias(formAlias);
 				
-		FOStats stats = structure.getSettings().getStats();
+		FOStats stats = structure.getRuntime().getStats();
 	
 		// This set of formulas fail in the worst possible way. elimTrue fails completely, therefore a full
 		// assignment is done for both forall's.
@@ -258,7 +258,7 @@ public class FOAliasByRecursionImplTest
 		FOStructure structure = createSimpleStructure();
 
 		// This will have an elimTrue target size of 1 (by default) unlike the next test.
-		Assert.assertEquals("Unexpected elimTrue size target.", 1, structure.getSettings().getTargetElimTrue());
+		Assert.assertEquals("Unexpected elimTrue size target.", 1, structure.getRuntime().getTargetElimTrue());
 
 		// Define: x * y = z as multiply(x, y, z) 
 		// This implements multiplication using only the existing addition function recursively.
@@ -275,7 +275,7 @@ public class FOAliasByRecursionImplTest
 	
 		structure.addAlias(formAlias);
 
-		FOStats stats = structure.getSettings().getStats();
+		FOStats stats = structure.getRuntime().getStats();
 
 		//Base case 0
 		// Fail
@@ -349,7 +349,7 @@ public class FOAliasByRecursionImplTest
 	
 		structure.addAlias(formAlias);
 
-		FOStats stats = structure.getSettings().getStats();
+		FOStats stats = structure.getRuntime().getStats();
 
 		//Base case 0
 		// Fail
@@ -438,7 +438,7 @@ public class FOAliasByRecursionImplTest
 	
 		structure.addAlias(formAlias);
 
-		FOStats stats = structure.getSettings().getStats();
+		FOStats stats = structure.getRuntime().getStats();
 
 		//Base case 0
 		// Fail

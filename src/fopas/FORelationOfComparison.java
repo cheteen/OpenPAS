@@ -1,5 +1,6 @@
 package fopas;
 
+import java.util.Comparator;
 import java.util.List;
 
 import fopas.FOTermByRecursionImpl.FOTermVariable;
@@ -55,17 +56,6 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 		super(name);
 	}
 	
-	@Override
-	public boolean satisfies(FOElement... args)
-	{
-		if(args.length != 2)
-			throw new FORuntimeException("Expected 2 args, got " + args.length + ".");
-		if(args[0] == null || args[1] == null)
-			throw new FORuntimeException(String.format("Got null arg(s): %s/%s", args[0], args[1]));
-		
-		return args[0].equals(args[1]);
-	}
-
 	static class FORelationImplEquals extends FORelationOfComparison<FOElement>
 	{
 		FORelationImplEquals()
@@ -88,6 +78,17 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			return 2000;
 		}
 	
+		@Override
+		public boolean satisfies(FOElement... args)
+		{
+			if(args.length != 2)
+				throw new FORuntimeException("Expected 2 args, got " + args.length + ".");
+			if(args[0] == null || args[1] == null)
+				throw new FORuntimeException(String.format("Got null arg(s): %s/%s", args[0], args[1]));
+			
+			return args[0].equals(args[1]);
+		}
+
 		@Override
 		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
@@ -131,9 +132,11 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 	{
 		protected final boolean mLessThan;
 		protected final boolean mEquals;
-		FORelationImplInequality(boolean lessThan, boolean equals)
+		protected final Comparator<FOElement> mOrder;
+		FORelationImplInequality(Comparator<FOElement> order, boolean lessThan, boolean equals)
 		{
 			super(createName(lessThan, equals));
+			mOrder = order;
 			mLessThan = lessThan;
 			mEquals = equals;
 		}
@@ -187,6 +190,21 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 					return 2008;
 		}
 	
+		@Override
+		public boolean satisfies(FOElement... args)
+		{
+			if(args.length != 2)
+				throw new FORuntimeException("Expected 2 args, got " + args.length + ".");
+			if(args[0] == null || args[1] == null)
+				throw new FORuntimeException(String.format("Got null arg(s): %s/%s", args[0], args[1]));
+
+			int compare = mOrder.compare(args[0], args[1]);
+			if(compare == 0)
+				return mEquals;
+
+			return mLessThan ^ compare < 0;
+		}
+		
 		@Override
 		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
@@ -244,14 +262,37 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			if(!(universeSubset instanceof FOOrderedEnumerableSet))
 				return universeSubset;
 			
-			FOOrderedEnumerableSet<FOElement> fosetOEUniverseSubset = (FOOrderedEnumerableSet<FOElement>) universeSubset; 
+			FOOrderedEnumerableSet<FOElement> fosetOEUniverseSubset = (FOOrderedEnumerableSet<FOElement>) universeSubset;
+			// Check if the universe subset has the same order this inequality expects.
+			if(!fosetOEUniverseSubset.getOrder().equals(mOrder))
+				return universeSubset;
+			
 			if(inverseTermOrder ^ mLessThan)
 			{
 				if(mEquals)
-					return fosetOEUniverseSubset.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), termAssignment);
+					return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), termAssignment);
+				else
+				{
+					FOElement prev = fosetOEUniverseSubset.getPreviousOrNull(termAssignment);
+					if(prev == null)
+						return new FOSetUtils.EmptySet<>();
+					else
+						return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), prev);
+				}
 			}
-			
-			return universeSubset;
+			else
+			{
+				if(mEquals)
+					return fosetOEUniverseSubset.constrainToRange(termAssignment, fosetOEUniverseSubset.getLastOrInfinite());
+				else
+				{
+					FOElement next = fosetOEUniverseSubset.getNextOrNull(termAssignment);
+					if(next == null)
+						return new FOSetUtils.EmptySet<>();
+					else
+						return fosetOEUniverseSubset.constrainToRange(next, fosetOEUniverseSubset.getLastOrInfinite());
+				}
+			}
 		}
 	}	
 }

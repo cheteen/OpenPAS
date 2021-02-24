@@ -146,8 +146,9 @@ class FOStructureImpl implements FOStructure
 		return listVars;
 	}
 
+	// This doesn't really belong here.
 	@Override
-	public FORuntime getSettings()
+	public FORuntime getRuntime()
 	{
 		return mRuntime;
 	}

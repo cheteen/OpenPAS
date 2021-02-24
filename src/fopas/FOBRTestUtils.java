@@ -1,5 +1,8 @@
 package fopas;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -19,6 +22,7 @@ import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOFormula;
 import fopas.basics.FOFunction;
 import fopas.basics.FORelation;
+import fopas.basics.FORuntimeException;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
 import fopas.basics.FOVariable;
@@ -115,5 +119,20 @@ class FOBRTestUtils {
 	
 			System.out.println(sb);
 		}
+	}
+
+	static void assertThrows(Runnable r, String containsMsg)
+	{
+		String exceptionCaught = null;
+		try
+		{
+			r.run();
+		}
+		catch(FORuntimeException ex)
+		{
+			exceptionCaught = ex.getMessage();
+		}
+		assertFalse("Expected exception not found.", exceptionCaught == null);
+		assertTrue(exceptionCaught.contains(containsMsg));
 	}
 }

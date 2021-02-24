@@ -12,6 +12,6 @@ public interface FOOrderedEnumerableSet<T extends FOElement> extends FOEnumerabl
 	public T getFirstOrInfinite();
 	public T getLastOrInfinite();
 	
-	//public T getNextOrInfinite(T element);
-	//public T getPreviousOrInfinite(T element);
+	public T getNextOrNull(T element);
+	public T getPreviousOrNull(T element);
 }

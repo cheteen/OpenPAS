@@ -83,7 +83,7 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	@Override
 	public boolean checkAssignment(int depth, FOStructure structure, Map<FOVariable, FOElement> assignment)
 	{
-		FORuntime settings = structure.getSettings();
+		FORuntime settings = structure.getRuntime();
 
 		Map<FOVariable, FOElement> mappedAssignment = mapAssignments(structure, assignment, false);
 		
@@ -205,7 +205,7 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment,  Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
-		FORuntime settings = structure.getSettings();
+		FORuntime settings = structure.getRuntime();
 
 		// Note that this does more than just mapping the assignments. It also does a partial evaluation of the parameters of an alias
 		// while doing that thereby creating a new assignment.

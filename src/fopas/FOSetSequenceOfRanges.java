@@ -124,6 +124,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 	@Override
 	public boolean contains(Object o)
 	{
+		// TODO: This should really be a binary search.
 		for(FOSetRangedNaturals range : mRanges)
 			if(range.contains(o))
 				return true;
@@ -148,7 +149,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 			int rsCursor = rsStartOrInf;
 			List<FOSetRangedNaturals> newRanges = new ArrayList<>();
 
-			//Can use binary search here to find the correct start range in the future, this implementation is O(N) with the number of ranges, that would be O(log N).
+			// TODO: This should really be a binary search.
 			for(FOSetRangedNaturals range : mRanges)
 			{
 				int rangeFirstOrInf = range.getStartOrInfinite(true).getInteger();
@@ -212,6 +213,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		
 		List<FOSetRangedNaturals> newRanges = new ArrayList<>();
 
+		// TODO: This should really be a binary search.
 		for(FOSetRangedNaturals range : mRanges)
 		{
 			int rangeFirstOrInf = range.getStartOrInfinite(true).getInteger();
@@ -274,5 +276,46 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 	public FOInteger getLastOrInfinite()
 	{
 		return mRanges.get(mRanges.size() - 1).getLastOrInfinite();
+	}
+
+	@Override
+	public FOInteger getNextOrNull(FOInteger element)
+	{
+		// TODO: This should really be a binary search.
+		Iterator<FOSetRangedNaturals> it = mRanges.iterator();
+		while(it.hasNext())
+		{
+			FOSetRangedNaturals range = it.next();
+			if(range.contains(element))
+			{
+				FOInteger next = range.getNextOrNull(element);
+				if(next == null && it.hasNext())
+					return it.next().getFirstOrInfinite();
+				return next;
+			}
+		}
+		throw new FORuntimeException("Element not in set.");
+	}
+
+	@Override
+	public FOInteger getPreviousOrNull(FOInteger element)
+	{
+		// TODO: This should really be a binary search.
+		Iterator<FOSetRangedNaturals> it = mRanges.iterator();
+		FOSetRangedNaturals range = null;
+		FOSetRangedNaturals prevRange = null;
+		while(it.hasNext())
+		{
+			prevRange = range;
+			range = it.next();
+			if(range.contains(element))
+			{
+				FOInteger next = range.getPreviousOrNull(element);
+				if(next == null && prevRange != null)
+					return prevRange.getLastOrInfinite();
+				return next;
+			}
+		}
+		throw new FORuntimeException("Element not in set.");
 	}
 }

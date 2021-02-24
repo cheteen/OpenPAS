@@ -2,6 +2,8 @@ package fopas;
 
 import static org.junit.Assert.*;
 
+import java.util.function.Function;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,7 +48,11 @@ public class FOSetUtilsTest {
 		assertEquals(0, emptySet.size());
 		assertFalse(emptySet.contains(new FOElementImpl.FOIntImpl(0)));
 		assertFalse(emptySet.iterator().hasNext());
-		assertTrue(emptySet == emptySet.constrainToRange(new FOElementImpl.FOIntImpl(0), new FOElementImpl.FOIntImpl(19)));		
+		assertTrue(emptySet == emptySet.constrainToRange(new FOElementImpl.FOIntImpl(0), new FOElementImpl.FOIntImpl(19)));
+		FOBRTestUtils.assertThrows(() -> {emptySet.getFirstOrInfinite(); }, "Empty set has no first element");
+		FOBRTestUtils.assertThrows(() -> {emptySet.getLastOrInfinite(); }, "Empty set has no last element");
+		FOBRTestUtils.assertThrows(() -> {emptySet.getNextOrNull(new FOElementImpl.FOIntImpl(0)); }, "Empty set has no next element");
+		FOBRTestUtils.assertThrows(() -> {emptySet.getPreviousOrNull(new FOElementImpl.FOIntImpl(0)); }, "Empty set has no previous element");
 	}
 
 	@Test
