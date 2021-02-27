@@ -283,10 +283,14 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 	{
 		// TODO: This should really be a binary search.
 		Iterator<FOSetRangedNaturals> it = mRanges.iterator();
+		FOSetRangedNaturals range = null;
+		int eltInt = element.getInteger(); 
 		while(it.hasNext())
 		{
-			FOSetRangedNaturals range = it.next();
-			if(range.contains(element))
+			range = it.next();
+			if(eltInt < range.getFirstOrInfinite().getInteger())
+				return range.getFirstOrInfinite();
+			else if(range.contains(element))
 			{
 				FOInteger next = range.getNextOrNull(element);
 				if(next == null && it.hasNext())
@@ -294,7 +298,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 				return next;
 			}
 		}
-		throw new FORuntimeException("Element not in set.");
+		return range.getNextOrNull(element);
 	}
 
 	@Override
@@ -302,20 +306,24 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 	{
 		// TODO: This should really be a binary search.
 		Iterator<FOSetRangedNaturals> it = mRanges.iterator();
-		FOSetRangedNaturals range = null;
+		FOSetRangedNaturals range = it.next();
 		FOSetRangedNaturals prevRange = null;
+		int eltInt = element.getInteger();
+		
+		if(eltInt <= range.getLastOrInfinite().getInteger())
+			return range.getPreviousOrNull(element);
 		while(it.hasNext())
 		{
 			prevRange = range;
 			range = it.next();
-			if(range.contains(element))
+			if(eltInt <= range.getLastOrInfinite().getInteger())
 			{
-				FOInteger next = range.getPreviousOrNull(element);
-				if(next == null && prevRange != null)
+				FOInteger prev = range.getPreviousOrNull(element);
+				if(prev == null)
 					return prevRange.getLastOrInfinite();
-				return next;
+				return prev;
 			}
 		}
-		throw new FORuntimeException("Element not in set.");
+		return range.getPreviousOrNull(element);
 	}
 }

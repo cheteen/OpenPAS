@@ -107,18 +107,6 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
-		// This can work in several ways which probably should be left as parameters to the programmer.
-		// 1) Simple - find the formula that creates the smallest subset: O(N)
-		// 2) Greedy - find the sequence of relations that create the smallest subset by choosing the smallest each iteration: O(N^2)
-		// 3) Comprehensive - use each permutation of relations to find the best subset: O(N^2)
-
-		// This particular method is called during runtime - so (1) and (2) are the likely best options to use here.
-		// Another version of this would be good to consider during check time to look at using (3).
-		
-		// I'll implement only the simple option (1) at this point.
-		
-		// Another thing worth considering is to do another method on the relation to return the size of the subet without creating it.
-
 		FORuntime settings = structure.getRuntime();
 		if(settings.getTraceLevel() >= 5)
 		{
@@ -128,24 +116,27 @@ class FOFormulaBROr extends FOFormulaBRImpl
 		
 		int elimTarget = settings.getTargetElimTrue();
 		
+		// There are three possible strategies that I can think of:
+		// (1) Simple O(N): iteratively constrain the universe subset one by one. As long as there's one order and ordered sets this should create the ideal solution.
+		// (2) Greedy O(NxN): This can pick up one layer find out the best, take the best, and repeat.
+		// (3) Exhaustive O(N!): Follow any possible lineage to find the absolute best combination.
+		
+		// Not sure where (2) and (3) would be needed at this point.
+		
 		// Simple strategy:
-		FOSet<FOElement> fosetSmallest = universe;
+		FOSet<FOElement> fosetSubset = universe;
 		for(FOFormula form : mFormulas)
 		{
 			FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
-			FOSet<FOElement> subset = formimpl.eliminateTrue(depth + 1, structure, universe, var, mNegated, assignment, aliasCalls);
-			if(subset.size() < fosetSmallest.size())
-			{
-				fosetSmallest = subset;
-				
-				if(fosetSmallest.size() <= elimTarget)
-					break;
-			}
+			fosetSubset = formimpl.eliminateTrue(depth + 1, structure, fosetSubset, var, mNegated, assignment, aliasCalls);
+			if(fosetSubset.size() <= elimTarget)
+				break;
 		}
+		// Should we count something here?
 		
 		settings.trace(5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", 
-				"Elimination variable: %s, success: %s, smallest subset: %s", var.getName(), fosetSmallest != universe, fosetSmallest.getName());
+				"Elimination variable: %s, success: %s, smallest subset: %s", var.getName(), fosetSubset != universe, fosetSubset.getName());
 		
-		return fosetSmallest;
+		return fosetSubset;
 	}
 }

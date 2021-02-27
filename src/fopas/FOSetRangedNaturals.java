@@ -257,7 +257,11 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 			}
 			
 			if(fosetNat1 == null)
+			{
+				if(fosetNat2 == null)
+					return new FOSetUtils.EmptySet<FOElement.FOInteger>();
 				return fosetNat2;
+			}
 			else if(fosetNat2 == null)
 				return fosetNat1;
 			else
@@ -425,8 +429,8 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	public FOInteger getNextOrNull(FOInteger element)
 	{
 		int eltInt = element.getInteger();
-		if(eltInt < mRangeFirst || eltInt > mRangeLast)
-			throw new FORuntimeException("Can't get next of element not in the range.");
+		if(eltInt > mRangeLast)
+			return null;
 		else if(eltInt == mRangeLast)
 		{
 			if(eltInt == Integer.MAX_VALUE)
@@ -434,6 +438,11 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 			else
 				return null;
 		}
+		else if(eltInt == mRangeFirst && eltInt == Integer.MIN_VALUE)
+			return element; // MIN_VALUE
+		else if(eltInt < mRangeFirst)
+			return getFirstOrInfinite();
+
 		return new FOElementImpl.FOIntImpl(eltInt + 1);
 	}
 
@@ -441,8 +450,8 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	public FOInteger getPreviousOrNull(FOInteger element)
 	{
 		int eltInt = element.getInteger();
-		if(eltInt < mRangeFirst || eltInt > mRangeLast)
-			throw new FORuntimeException("Can't get previous of element not in the range.");
+		if(eltInt < mRangeFirst)
+			return null;
 		else if(eltInt == mRangeFirst)
 		{
 			if(eltInt == Integer.MIN_VALUE)
@@ -450,6 +459,11 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 			else
 				return null;
 		}
+		else if(eltInt == mRangeLast && eltInt == Integer.MAX_VALUE)
+			return element; // MAX_VALUE
+		else if (eltInt > mRangeLast)
+			return getLastOrInfinite();
+		
 		return new FOElementImpl.FOIntImpl(eltInt - 1);
 	}
 }

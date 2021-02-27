@@ -270,27 +270,33 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			if(inverseTermOrder ^ mLessThan)
 			{
 				if(mEquals)
-					return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), termAssignment);
+					return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), termAssignment)
+							.complement(universeSubset, isComplemented);
 				else
 				{
 					FOElement prev = fosetOEUniverseSubset.getPreviousOrNull(termAssignment);
 					if(prev == null)
-						return new FOSetUtils.EmptySet<>();
+						return new FOSetUtils.EmptySet<>()
+								.complement(universeSubset, isComplemented);
 					else
-						return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), prev);
+						return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), prev)
+								.complement(universeSubset, isComplemented);
 				}
 			}
 			else
 			{
 				if(mEquals)
-					return fosetOEUniverseSubset.constrainToRange(termAssignment, fosetOEUniverseSubset.getLastOrInfinite());
+					return fosetOEUniverseSubset.constrainToRange(termAssignment, fosetOEUniverseSubset.getLastOrInfinite())
+							.complement(universeSubset, isComplemented);
 				else
 				{
 					FOElement next = fosetOEUniverseSubset.getNextOrNull(termAssignment);
 					if(next == null)
-						return new FOSetUtils.EmptySet<>();
+						return new FOSetUtils.EmptySet<>()
+								.complement(universeSubset, isComplemented);
 					else
-						return fosetOEUniverseSubset.constrainToRange(next, fosetOEUniverseSubset.getLastOrInfinite());
+						return fosetOEUniverseSubset.constrainToRange(next, fosetOEUniverseSubset.getLastOrInfinite())
+								.complement(universeSubset, isComplemented);
 				}
 			}
 		}

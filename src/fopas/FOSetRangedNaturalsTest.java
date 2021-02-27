@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import com.google.common.collect.Iterables;
 
+import fopas.FOSetUtils.EmptySet;
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -417,6 +418,17 @@ public class FOSetRangedNaturalsTest {
 		assertEquals(foset1, foset1_back);
 		assertTrue("A new set shouldn't haven't created.", foset1 == foset1_back);
 	}
+
+	@Test
+	public void testComplement4()
+	{
+		// Test complement self.
+		FOSetRangedNaturals foset1 = new FOSetRangedNaturals(-5, 5);
+		FOSetRangedNaturals foset2 = new FOSetRangedNaturals(-5, 5);
+		FOOrderedEnumerableSet<FOInteger> foset2_1 = (FOOrderedEnumerableSet<FOInteger>) foset1.complement(foset2);
+		assertTrue(foset2_1 instanceof EmptySet);
+	}
+	
 	@Test
 	public void testEquality()
 	{
@@ -438,34 +450,26 @@ public class FOSetRangedNaturalsTest {
 	public void testNextAndPrev1()
 	{
 		FOSetRangedNaturals foset = new FOSetRangedNaturals(10, true, 100, true);
-		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getNextOrNull(new FOElementImpl.FOIntImpl(10)));
-		assertEquals(new FOElementImpl.FOIntImpl(21), foset.getNextOrNull(new FOElementImpl.FOIntImpl(20)));
-		assertEquals(new FOElementImpl.FOIntImpl(100), foset.getNextOrNull(new FOElementImpl.FOIntImpl(99)));
-		assertEquals(null, foset.getNextOrNull(new FOElementImpl.FOIntImpl(100)));
-		
-		assertEquals(new FOElementImpl.FOIntImpl(99), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(100)));
-		assertEquals(new FOElementImpl.FOIntImpl(19), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(20)));
-		assertEquals(new FOElementImpl.FOIntImpl(10), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(11)));
-		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(10)));
 
-		{
-			String exMsg = null;
-			try {
-				foset.getNextOrNull(new FOElementImpl.FOIntImpl(9));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Can't get next of element not in the range"));			
-		}
-		{
-			String exMsg = null;
-			try {
-				foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(101));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Can't get previous of element not in the range"));			
-		}
+		assertEquals(new FOElementImpl.FOIntImpl(10), foset.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+		assertEquals(new FOElementImpl.FOIntImpl(10), foset.getNextOrNull(new FOElementImpl.FOIntImpl(5)));
+		assertEquals(new FOElementImpl.FOIntImpl(10), foset.getNextOrNull(new FOElementImpl.FOIntImpl(9)));
+		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getNextOrNull(new FOElementImpl.FOIntImpl(10)));
+		assertEquals(new FOElementImpl.FOIntImpl(51), foset.getNextOrNull(new FOElementImpl.FOIntImpl(50)));
+		assertEquals(null, foset.getNextOrNull(new FOElementImpl.FOIntImpl(100)));
+		assertEquals(null, foset.getNextOrNull(new FOElementImpl.FOIntImpl(200)));
+		assertEquals(null, foset.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
+
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(5)));
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(9)));
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(10)));
+		assertEquals(new FOElementImpl.FOIntImpl(10), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(11)));
+		assertEquals(new FOElementImpl.FOIntImpl(49), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(50)));
+		assertEquals(new FOElementImpl.FOIntImpl(99), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(100)));
+		assertEquals(new FOElementImpl.FOIntImpl(100), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(101)));
+		assertEquals(new FOElementImpl.FOIntImpl(100), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(150)));
+		assertEquals(new FOElementImpl.FOIntImpl(100), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
 	}
 	
 	@Test
@@ -473,52 +477,28 @@ public class FOSetRangedNaturalsTest {
 	{
 		FOSetRangedNaturals foset = new FOSetRangedNaturals(10, false, 100, false);
 
-		assertEquals(new FOElementImpl.FOIntImpl(12), foset.getNextOrNull(new FOElementImpl.FOIntImpl(11)));
-		assertEquals(new FOElementImpl.FOIntImpl(21), foset.getNextOrNull(new FOElementImpl.FOIntImpl(20)));
-		assertEquals(new FOElementImpl.FOIntImpl(99), foset.getNextOrNull(new FOElementImpl.FOIntImpl(98)));
+		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getNextOrNull(new FOElementImpl.FOIntImpl(5)));
+		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getNextOrNull(new FOElementImpl.FOIntImpl(9)));
+		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getNextOrNull(new FOElementImpl.FOIntImpl(10)));
+		assertEquals(new FOElementImpl.FOIntImpl(51), foset.getNextOrNull(new FOElementImpl.FOIntImpl(50)));
 		assertEquals(null, foset.getNextOrNull(new FOElementImpl.FOIntImpl(99)));
-		
-		assertEquals(new FOElementImpl.FOIntImpl(98), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(99)));
-		assertEquals(new FOElementImpl.FOIntImpl(19), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(20)));
-		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(12)));
-		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(11)));
+		assertEquals(null, foset.getNextOrNull(new FOElementImpl.FOIntImpl(100)));
+		assertEquals(null, foset.getNextOrNull(new FOElementImpl.FOIntImpl(200)));
+		assertEquals(null, foset.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
 
-		{
-			String exMsg = null;
-			try {
-				foset.getNextOrNull(new FOElementImpl.FOIntImpl(10));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Can't get next of element not in the range"));			
-		}
-		{
-			String exMsg = null;
-			try {
-				foset.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Can't get next of element not in the range"));			
-		}
-		{
-			String exMsg = null;
-			try {
-				foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(100));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Can't get previous of element not in the range"));			
-		}		
-		{
-			String exMsg = null;
-			try {
-				foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Can't get previous of element not in the range"));			
-		}		
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(5)));
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(9)));
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(10)));
+		assertEquals(null, foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(11)));
+		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(12)));
+		assertEquals(new FOElementImpl.FOIntImpl(49), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(50)));
+		assertEquals(new FOElementImpl.FOIntImpl(98), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(99)));
+		assertEquals(new FOElementImpl.FOIntImpl(99), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(100)));
+		assertEquals(new FOElementImpl.FOIntImpl(99), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(101)));
+		assertEquals(new FOElementImpl.FOIntImpl(99), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(150)));
+		assertEquals(new FOElementImpl.FOIntImpl(99), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
 	}
 
 	@Test
@@ -526,10 +506,12 @@ public class FOSetRangedNaturalsTest {
 	{
 		FOSetRangedNaturals foset = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
 
-		assertEquals(new FOElementImpl.FOIntImpl(21), foset.getNextOrNull(new FOElementImpl.FOIntImpl(20)));
+		assertEquals(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), foset.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+		assertEquals(new FOElementImpl.FOIntImpl(6), foset.getNextOrNull(new FOElementImpl.FOIntImpl(5)));
 		assertEquals(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE), foset.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
-		
-		assertEquals(new FOElementImpl.FOIntImpl(19), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(20)));
+
 		assertEquals(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+		assertEquals(new FOElementImpl.FOIntImpl(11), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(12)));
+		assertEquals(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE), foset.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
 	}
 }

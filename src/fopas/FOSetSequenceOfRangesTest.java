@@ -631,42 +631,25 @@ public class FOSetSequenceOfRangesTest {
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("MySet", Arrays.asList(forange1, forange2, forange3, forange4));
 		// Main set: [-19, -10] U [1, 10] U [20, 29] U [30, 39]
 
+		assertEquals(new FOElementImpl.FOIntImpl(-19), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+		assertEquals(new FOElementImpl.FOIntImpl(-19), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(-30)));
 		assertEquals(new FOElementImpl.FOIntImpl(6), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(5)));
+		assertEquals(new FOElementImpl.FOIntImpl(20), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(15)));
 		assertEquals(new FOElementImpl.FOIntImpl(20), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(10)));
+		assertEquals(new FOElementImpl.FOIntImpl(30), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(29)));
 		assertEquals(null, foseq.getNextOrNull(new FOElementImpl.FOIntImpl(39)));
+		assertEquals(null, foseq.getNextOrNull(new FOElementImpl.FOIntImpl(100)));
+		assertEquals(null, foseq.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
 		
-		assertEquals(new FOElementImpl.FOIntImpl(-16), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(-15)));
-		assertEquals(new FOElementImpl.FOIntImpl(-10), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(1)));
-		assertEquals(null, foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(-19)));
-
-		{
-			String exMsg = null;
-			try {
-				foseq.getNextOrNull(new FOElementImpl.FOIntImpl(15));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Element not in set."));			
-		}
-		{
-			String exMsg = null;
-			try {
-				foseq.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Element not in set."));			
-		}
-
-		{
-			String exMsg = null;
-			try {
-				foseq.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE));
-			} catch(FORuntimeException e) {
-				exMsg = e.getMessage();
-			}
-			assertTrue(exMsg.contains("Element not in set."));			
-		}
+		assertEquals(null, foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+		assertEquals(null, foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(-30)));
+		assertEquals(new FOElementImpl.FOIntImpl(4), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(5)));
+		assertEquals(new FOElementImpl.FOIntImpl(10), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(15)));
+		assertEquals(new FOElementImpl.FOIntImpl(10), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(20)));
+		assertEquals(new FOElementImpl.FOIntImpl(29), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(30)));
+		assertEquals(new FOElementImpl.FOIntImpl(39), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(40)));
+		assertEquals(new FOElementImpl.FOIntImpl(39), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(100)));
+		assertEquals(new FOElementImpl.FOIntImpl(39), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
 	}	
 
 	@Test
@@ -679,9 +662,11 @@ public class FOSetSequenceOfRangesTest {
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges("MySet", Arrays.asList(forange1, forange2, forange3, forange4));
 		// Main set: [-inf, -10] U [1, 10] U [20, 29] U [30, inf]
 
+		assertEquals(new FOElementImpl.FOIntImpl(6), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(5)));
 		assertEquals(new FOElementImpl.FOIntImpl(35), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(34)));
 		assertEquals(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE), foseq.getNextOrNull(new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)));
 		
+		assertEquals(new FOElementImpl.FOIntImpl(4), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(5)));
 		assertEquals(new FOElementImpl.FOIntImpl(-15), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(-14)));
 		assertEquals(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
 	}	
