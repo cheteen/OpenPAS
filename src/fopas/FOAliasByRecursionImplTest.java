@@ -227,8 +227,8 @@ public class FOAliasByRecursionImplTest
 		// true
 		testFormula(structure, "multiply(c0, c2, c0)", true, null);
 		Assert.assertEquals("Only one entry to the alias - no recursion.", 1, stats.numL1CheckAsgIntoAlias);
-		Assert.assertEquals("All elimTrues shuold fail!", 0, stats.numL1ElimTrueSuccess1);
-		Assert.assertEquals("Same as above.", 0, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("All elimTrues shuold fail!", 0, stats.numL1ElimTrueForallSuccess1);
+		Assert.assertEquals("Same as above.", 0, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("Should fail 6 times. One for outer forall, 5x for inner [0-4]", 6, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Since all elimTrue fails, this should get 6 times like the above.", 6, stats.numL1CheckAsgAll);
 		Assert.assertEquals("Like the above, all universe gets called for two nested foralls: 5 for the outher, 25 for the innter", 30, stats.numL1CheckAsgAllSub);
@@ -282,13 +282,13 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "multiply(c0, c2, c2)", false, null);
 		Assert.assertEquals(1, stats.numL1CheckAsgIntoAlias);
 		Assert.assertEquals("Should fail in the first step of the two OR formulas (one being the first inside the other).", 2, stats.numL1CheckAsgOr);
-		Assert.assertEquals("Should fail right away w/o needing elimTrue.", 0, stats.numL1ElimTrueRel);
+		Assert.assertEquals("Should fail right away w/o needing elimTrue.", 0, stats.numL1ElimTrueRelAttempts);
 		Assert.assertEquals("Should fail before executing forall.", 0, stats.numL1CheckAsgAll);
 		Assert.assertEquals("Does two rel checks for evaluating the first implication.", 2, stats.numL1CheckAsgRel);
 		// Success
 		testFormula(structure, "multiply(c0, c2, c0)", true, null);
-		Assert.assertEquals("Should figure out x1=4 and z1=3 to check the recursive case directly.", 2, stats.numL1ElimTrueSuccess1);
-		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("Should figure out x1=4 and z1=3 to check the recursive case directly.", 2, stats.numL1ElimTrueForallSuccess1);
+		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("No elimTrue failures since we will accept the first time we get a set of size 1 for x1 and z1.", 0, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1.", 2, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 2, stats.numL1CheckAsgAllSub);
@@ -297,8 +297,8 @@ public class FOAliasByRecursionImplTest
 		//Base case 1
 		// Success
 		testFormula(structure, "multiply(c1, c2, c2)", true, null);
-		Assert.assertEquals("Should figure out x1 and z1 values to check the recursive case directly.", 2, stats.numL1ElimTrueSuccess1);
-		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("Should figure out x1 and z1 values to check the recursive case directly.", 2, stats.numL1ElimTrueForallSuccess1);
+		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("No elimTrue failures since we will accept the first time we get a set of size 1 for x1 and z1.", 0, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1.", 2, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 2, stats.numL1CheckAsgAllSub);
@@ -310,13 +310,13 @@ public class FOAliasByRecursionImplTest
 		// Recursive case
 		testFormula(structure, "multiply(c2, c0, c0)", true, null);
 		Assert.assertEquals("Should do one level of recursion, so we have (2, 0, 0) as entry point, and then (1, 0, 0).", 2, stats.numL1CheckAsgIntoAlias);
-		Assert.assertEquals("Should figure out x1 and z1 for both cases above to check the recursive case directly, so we have 2x2=4.", 4, stats.numL1ElimTrueSuccess1);
-		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 4, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("Should figure out x1 and z1 for both cases above to check the recursive case directly, so we have 2x2=4.", 4, stats.numL1ElimTrueForallSuccess1);
+		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 4, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("No elimTrue failures since we will accept the first time we get a set of size 1 for x1 and z1.", 0, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1 for each alias call.", 4, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 4, stats.numL1CheckAsgAllSub);
 		Assert.assertEquals("Same as above in checking the failures that should be 0.", 0, stats.numL1CheckAsgAllSubFail);
-		Assert.assertEquals("With an elimTrue target of 1 this does fewer elimTrueRel checks than target 0 (test below)", 14, stats.numL1ElimTrueRel);
+		Assert.assertEquals("With an elimTrue target of 1 this does fewer elimTrueRel checks than target 0 (test below)", 14, stats.numL1ElimTrueRelAttempts);
 
 		testFormula(structure, "multiply(c2, c1, c0)", false, null);
 		testFormula(structure, "multiply(c2, c1, c2)", true, null);
@@ -356,13 +356,13 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "multiply(c0, c2, c2)", false, null);
 		Assert.assertEquals(1, stats.numL1CheckAsgIntoAlias);
 		Assert.assertEquals("Should fail in the first step of the two OR formulas (one being the first inside the other).", 2, stats.numL1CheckAsgOr);
-		Assert.assertEquals("Should fail right away w/o needing elimTrue.", 0, stats.numL1ElimTrueRel);
+		Assert.assertEquals("Should fail right away w/o needing elimTrue.", 0, stats.numL1ElimTrueRelAttempts);
 		Assert.assertEquals("Should fail before executing forall.", 0, stats.numL1CheckAsgAll);
 		Assert.assertEquals("Does two rel checks for evaluating the first implication.", 2, stats.numL1CheckAsgRel);
 		// Success
 		testFormula(structure, "multiply(c0, c2, c0)", true, null);
-		Assert.assertEquals("Should figure out x1=4 and z1=3 to check the recursive case directly.", 2, stats.numL1ElimTrueSuccess1);
-		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("Should figure out x1=4 and z1=3 to check the recursive case directly.", 2, stats.numL1ElimTrueForallSuccess1);
+		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("Should stop due to repeat once for x1 and then for z1.", 2, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1.", 2, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 2, stats.numL1CheckAsgAllSub);
@@ -371,8 +371,8 @@ public class FOAliasByRecursionImplTest
 		//Base case 1
 		// Success
 		testFormula(structure, "multiply(c1, c2, c2)", true, null);
-		Assert.assertEquals("Should figure out x1 and z1 values to check the recursive case directly.", 2, stats.numL1ElimTrueSuccess1);
-		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("Should figure out x1 and z1 values to check the recursive case directly.", 2, stats.numL1ElimTrueForallSuccess1);
+		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 2, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("Should stop due to repeat once for x1 and then for z1.", 2, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1.", 2, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 2, stats.numL1CheckAsgAllSub);
@@ -384,14 +384,14 @@ public class FOAliasByRecursionImplTest
 		// Recursive case
 		testFormula(structure, "multiply(c2, c0, c0)", true, null);
 		Assert.assertEquals("Should do one level of recursion, so we have (2, 0, 0) as entry point, and then (1, 0, 0).", 2, stats.numL1CheckAsgIntoAlias);
-		Assert.assertEquals("Should figure out x1 and z1 for both cases above to check the recursive case directly, so we have 2x2=4.", 4, stats.numL1ElimTrueSuccess1);
-		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 4, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("Should figure out x1 and z1 for both cases above to check the recursive case directly, so we have 2x2=4.", 4, stats.numL1ElimTrueForallSuccess1);
+		Assert.assertEquals("Shouldn't do any other elimTrue other than the above.", 4, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("Should stop due to repeat once for x1 and then for z1 for each alias call.", 4, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("Check assignment should be called once for each forall x1 and z1 for each alias call.", 4, stats.numL1CheckAsgAll);
 		Assert.assertEquals("In each forall, there should be once check since elimTrue succeeded precisely.", 4, stats.numL1CheckAsgAllSub);
 		Assert.assertEquals("Same as above in checking the failures that should be 0.", 0, stats.numL1CheckAsgAllSubFail);
 		// This is the only different test to the above case where it does 50 more elimTrueRel checks compared to the one above.
-		Assert.assertEquals("With an elimTrue target of 1 this does fewer elimTrueRel checks than target 0 (test below)", 64, stats.numL1ElimTrueRel);
+		Assert.assertEquals("With an elimTrue target of 1 this does fewer elimTrueRel checks than target 0 (test below)", 64, stats.numL1ElimTrueRelAttempts);
 
 		testFormula(structure, "multiply(c2, c1, c0)", false, null);
 		testFormula(structure, "multiply(c2, c1, c2)", true, null);
@@ -445,14 +445,14 @@ public class FOAliasByRecursionImplTest
 		testFormula(structure, "multiply(c0, c2, c2)", false, null);
 		Assert.assertEquals(1, stats.numL1CheckAsgIntoAlias);
 		Assert.assertEquals("Should fail in the first step of the two OR formulas (one being the first inside the other).", 2, stats.numL1CheckAsgOr);
-		Assert.assertEquals("Should fail right away w/o needing elimTrue.", 0, stats.numL1ElimTrueRel);
+		Assert.assertEquals("Should fail right away w/o needing elimTrue.", 0, stats.numL1ElimTrueRelAttempts);
 		Assert.assertEquals("Should fail before executing forall.", 0, stats.numL1CheckAsgAll);
 		Assert.assertEquals("Does two rel checks for evaluating the first implication.", 2, stats.numL1CheckAsgRel);
 		// Success
 		testFormula(structure, "multiply(c0, c2, c0)", true, null);
 		Assert.assertEquals("No recursive alias call.", 1, stats.numL1CheckAsgIntoAlias);
-		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueSuccess1);
-		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueForallSuccess1);
+		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueRepeatCall);
 		Assert.assertEquals("No forall.", 0, stats.numL1CheckAsgAll);
 		Assert.assertEquals("No forall.", 0, stats.numL1CheckAsgAllSub);
@@ -462,14 +462,14 @@ public class FOAliasByRecursionImplTest
 		// Success
 		testFormula(structure, "multiply(c1, c2, c2)", true, null);
 		Assert.assertEquals("No recursive alias call.", 1, stats.numL1CheckAsgIntoAlias);
-		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueForallSuccess);
 
 		testFormula(structure, "multiply(c1, c3, c3)", true, null);
 		testFormula(structure, "multiply(c1, c2, c1)", false, null);
 
 		// Recursive case
 		testFormula(structure, "multiply(c2, c0, c0)", true, null);
-		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueSuccess);
+		Assert.assertEquals("No need for elimTrue.", 0, stats.numL1ElimTrueForallSuccess);
 		Assert.assertEquals("No forall.", 0, stats.numL1CheckAsgAll);
 		Assert.assertEquals("One recursive alias call +1 regular alias call.", 2, stats.numL1CheckAsgIntoAlias);
 

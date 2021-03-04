@@ -68,11 +68,11 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		{
 			if(constrained != structure.getUniverse())
 			{
-				settings.getStats().numL1ElimTrueSuccess++;
+				settings.getStats().numL1ElimTrueForallSuccess++;
 				if(constrained.size() == 1)
-					settings.getStats().numL1ElimTrueSuccess1++;
+					settings.getStats().numL1ElimTrueForallSuccess1++;
 				else if(constrained.size() == 0)
-					settings.getStats().numL1ElimTrueSuccess0++;
+					settings.getStats().numL1ElimTrueForallSuccess0++;
 			}
 		
 			if(constrained != structure.getUniverse())

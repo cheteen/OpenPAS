@@ -85,7 +85,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		FORuntime settings = structure.getRuntime();
 		if(settings.getTraceLevel() >= 1)
 		{
-			settings.getStats().numL1ElimTrueRel++; // We only count this here since it's the only place that truly does elimination.
+			settings.getStats().numL1ElimTrueRelAttempts++; // We only count this here since it's the only place that truly does elimination.
 			if(settings.getTraceLevel() >= 5)
 			{
 				settings.trace(-5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "(partial for %s) %s", var.getName(), stringiseAssignments(assignment));

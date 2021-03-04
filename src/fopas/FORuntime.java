@@ -16,9 +16,9 @@ public class FORuntime
 			return "FOStats [numL1CheckAsgIntoAlias=" + numL1CheckAsgIntoAlias + ", numL1CheckAsgOr=" + numL1CheckAsgOr
 					+ ", numL1CheckAsgAll=" + numL1CheckAsgAll + ", numL1CheckAsgAllSub=" + numL1CheckAsgAllSub
 					+ ", numL1CheckAsgAllSubFail=" + numL1CheckAsgAllSubFail + ", numL1CheckAsgRel=" + numL1CheckAsgRel
-					+ ", numL1ElimTrueRel=" + numL1ElimTrueRel + ", numL0ElimTrueRepeatCall=" + numL1ElimTrueRepeatCall
-					+ ", numL1ElimTrueSuccess=" + numL1ElimTrueSuccess + ", numL1ElimTrueSuccess1="
-					+ numL1ElimTrueSuccess1 + ", numL1ElimTrueSuccess0=" + numL1ElimTrueSuccess0 + "]";
+					+ ", numL1ElimTrueRel=" + numL1ElimTrueRelAttempts + ", numL0ElimTrueRepeatCall=" + numL1ElimTrueRepeatCall
+					+ ", numL1ElimTrueSuccess=" + numL1ElimTrueForallSuccess + ", numL1ElimTrueSuccess1="
+					+ numL1ElimTrueForallSuccess1 + ", numL1ElimTrueSuccess0=" + numL1ElimTrueForallSuccess0 + "]";
 		}
 
 		int numL1CheckAsgIntoAlias;
@@ -27,11 +27,11 @@ public class FORuntime
 		int numL1CheckAsgAllSub; // How many times the subformula was evaluated?
 		int numL1CheckAsgAllSubFail; // How many times subformula eval succeeded (ie. continued)?
 		int numL1CheckAsgRel;
-		int numL1ElimTrueRel;
+		int numL1ElimTrueRelAttempts;
 		int numL1ElimTrueRepeatCall;
-		int numL1ElimTrueSuccess;
-		int numL1ElimTrueSuccess1; // How many times was a universe set reduced to a set of size 1 (but not its complement)?
-		int numL1ElimTrueSuccess0; // How many times was a universe set reduced to empty set (but not its complement)?
+		int numL1ElimTrueForallSuccess;
+		int numL1ElimTrueForallSuccess1; // How many times was a universe set reduced to a set of size 1 (but not its complement)?
+		int numL1ElimTrueForallSuccess0; // How many times was a universe set reduced to empty set (but not its complement)?
 		
 		void reset()
 		{
@@ -41,11 +41,11 @@ public class FORuntime
 			numL1CheckAsgAllSub = 0;
 			numL1CheckAsgAllSubFail = 0;
 			numL1CheckAsgRel = 0;
-			numL1ElimTrueRel = 0;
+			numL1ElimTrueRelAttempts = 0;
 			numL1ElimTrueRepeatCall = 0;
-			numL1ElimTrueSuccess = 0;
-			numL1ElimTrueSuccess1 = 0;
-			numL1ElimTrueSuccess0 = 0;
+			numL1ElimTrueForallSuccess = 0;
+			numL1ElimTrueForallSuccess1 = 0;
+			numL1ElimTrueForallSuccess0 = 0;
 		}
 		
 		private void formatln(PrintStream ps, String format, Object...args)
@@ -61,11 +61,11 @@ public class FORuntime
 			formatln(ps, "CheckAsgAllSub: %d", numL1CheckAsgAllSub);
 			formatln(ps, "CheckAsgAllSubFail: %d", numL1CheckAsgAllSubFail);
 			formatln(ps, "CheckAsgRel: %d", numL1CheckAsgRel);
-			formatln(ps, "ElimTrueRel: %d", numL1ElimTrueRel);
+			formatln(ps, "ElimTrueRelAttempts: %d", numL1ElimTrueRelAttempts);
 			formatln(ps, "ElimTrueRepeatCall: %d", numL1ElimTrueRepeatCall);
-			formatln(ps, "ElimTrueSuccess: %d", numL1ElimTrueSuccess);
-			formatln(ps, "ElimTrueSuccess1: %d", numL1ElimTrueSuccess1);
-			formatln(ps, "ElimTrueSuccess0: %d", numL1ElimTrueSuccess0);
+			formatln(ps, "ElimTrueForallSuccess: %d", numL1ElimTrueForallSuccess);
+			formatln(ps, "ElimTrueForallSuccess1: %d", numL1ElimTrueForallSuccess1);
+			formatln(ps, "ElimTrueForallSuccess0: %d", numL1ElimTrueForallSuccess0);
 		}
 	}
 

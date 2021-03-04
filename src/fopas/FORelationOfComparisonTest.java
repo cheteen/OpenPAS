@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
@@ -20,8 +21,11 @@ import fopas.basics.FOFunction;
 import fopas.basics.FORelation;
 import fopas.basics.FOSet;
 import fopas.basics.FOStructure;
+import fopas.basics.FOTerm;
+import fopas.basics.FOVariable;
 import fopas.basics.FOElement.FOInteger;
 import fopas.FOBRTestUtils;
+import fopas.FORelationOfComparison.FORelationImplEquals;
 import fopas.FORuntime.FOStats;
 
 public class FORelationOfComparisonTest {
@@ -57,8 +61,27 @@ public class FORelationOfComparisonTest {
 		} catch (FOConstructionException e)
 		{
 			e.printStackTrace();
-			assertFalse(true);
+			assertFalse(e.getMessage(), true);
 		}
+	}
+	
+	static class NoConstrainEquals extends FORelationImplEquals
+	{
+		@Override
+		public String getInfix() { return "#="; }
+		@Override
+		public String getName() { return "NoConstrainEquals"; }
+		
+
+		@Override
+		public int getPrecedence() { return super.getPrecedence() + 1; }
+		@Override
+		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms,
+				boolean isComplemented)
+		{
+			// Disable constrain so we force checkAsg in action.
+			return universeSubset;
+		}	
 	}
 	
 	@Test
@@ -145,6 +168,7 @@ public class FORelationOfComparisonTest {
 		rels.add(new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, true));
 		rels.add(new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, false));
 		rels.add(new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, true));
+		rels.add(new NoConstrainEquals());
 		
 		FOFunction funaddmod = new FOFunctionsInternalInt.FOInternalSumModulus(1000);
 		
@@ -164,8 +188,8 @@ public class FORelationOfComparisonTest {
 		FOStats stats = structure.getRuntime().getStats();
 	
 		// Should constrain universe to [51, 1000]
-		assertEquals(1, stats.numL1ElimTrueRel);
-		assertEquals(1, stats.numL1ElimTrueSuccess);
+		assertEquals(1, stats.numL1ElimTrueRelAttempts);
+		assertEquals(1, stats.numL1ElimTrueForallSuccess);
 		// Should fail after trying only 51 once - and therefore succeed with (negated) assignment.
 		assertEquals(1, stats.numL1CheckAsgRel);
 		assertEquals(1, stats.numL1CheckAsgAllSub);
@@ -179,11 +203,47 @@ public class FORelationOfComparisonTest {
 		testFormula(structure, "(forall _v1)(_v1 < c100 -> _v1 < c1000)", true, "(forall _v1)((_v1 < c100) -> (_v1 < c1000))");
 		FOStats stats = structure.getRuntime().getStats();
 		
-		assertEquals(1, stats.numL1ElimTrueSuccess); // one elimtrue needed at forall level
-		assertEquals(1, stats.numL1ElimTrueSuccess0); // it eliminated to emptyset
-		assertEquals(2, stats.numL1ElimTrueRel); // this was throught two successive relation level elimtrues.
+		assertEquals(1, stats.numL1ElimTrueForallSuccess); // one elimtrue needed at forall level
+		assertEquals(1, stats.numL1ElimTrueForallSuccess0); // it eliminated to emptyset
+		assertEquals(2, stats.numL1ElimTrueRelAttempts); // this was throught two successive relation level elimtrues.
 
 		assertEquals(1, stats.numL1CheckAsgAll); // one forall used
 		assertEquals(0, stats.numL1CheckAsgAllSub); // forall succeeded w/o trying a single assignment
+	}
+
+	@Test
+	public void testConstrainedEquals()
+	{
+		FOStructure structure = createStructureIneq();
+		testFormula(structure, "(forall _v1)(_v1 < c100 -> ¬(_v1 = c100))", true, "(forall _v1)((_v1 < c100) -> ¬(_v1 = c100))");
+		FOStats stats = structure.getRuntime().getStats();
+
+		assertEquals(2, stats.numL1ElimTrueRelAttempts); // one for <100 another for =100		
+		assertEquals(1, stats.numL1ElimTrueForallSuccess);
+		assertEquals(1, stats.numL1ElimTrueForallSuccess1);
+		assertEquals(0, stats.numL1ElimTrueForallSuccess0); // at target 0 this should've been 1
+
+		assertEquals(1, stats.numL1CheckAsgAll); // one forall used
+		assertEquals(1, stats.numL1CheckAsgAllSub); // forall goes to subformula once
+		assertEquals(1, stats.numL1CheckAsgRel);
+	}
+
+
+	@Test
+	public void testNoConstrainEquals()
+	{
+		FOStructure structure = createStructureIneq();
+		testFormula(structure, "(forall _v1)(_v1 < c100 -> ¬(_v1 #= c100))", true, "(forall _v1)((_v1 < c100) -> ¬(_v1 #= c100))");
+		FOStats stats = structure.getRuntime().getStats();
+		
+		assertEquals(2, stats.numL1ElimTrueRelAttempts); // one for <100 another for =100		
+		assertEquals(1, stats.numL1ElimTrueForallSuccess);
+		assertEquals(0, stats.numL1ElimTrueForallSuccess1);
+		assertEquals(0, stats.numL1ElimTrueForallSuccess0);
+
+		assertEquals(1, stats.numL1CheckAsgAll); // one forall used
+		assertEquals(100, stats.numL1CheckAsgAllSub); // forall goes to subformula 100 times after the first constrain
+		assertEquals(200, stats.numL1CheckAsgRel); // 2x rel checks per loop
+		assertEquals(100, stats.numL1CheckAsgOr);
 	}
 }

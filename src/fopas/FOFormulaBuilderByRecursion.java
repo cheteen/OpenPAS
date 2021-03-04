@@ -274,20 +274,28 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			Map<String, FOFunction> mapInfixFuns,
 			Map<String, FOConstant> mapConstants,
 			Map<String, FOFormula> mapAliases
-			)
+			) throws FOConstructionException
 	{
 		for(FORelation<FOElement> rel : structure.getRelations())
 		{
 			if(rel.getInfix() != null)
-				mapInfixRels.put(rel.getInfix(), rel);
-			mapRels.put(rel.getName(), rel);			
+			{
+				if(mapInfixRels.put(rel.getInfix(), rel) != null)
+					throw new FOConstructionException("Relation with same symbol not supported: " + rel.getName());
+			}
+			if(mapRels.put(rel.getName(), rel) != null)
+				throw new FOConstructionException("Relation with same symbol not supported: " + rel.getName());
 		}
 		
 		for(FOFunction fun : structure.getFunctions())
 		{
 			if(fun.getInfix() != null)
-				mapInfixFuns.put(fun.getInfix(), fun);			
-			mapFuns.put(fun.getName(), ((FOFunctionImpl) fun).inversePresentInfix());
+			{
+				if(mapInfixFuns.put(fun.getInfix(), fun) != null)
+					throw new FOConstructionException("Function with same symbol not supported: " + fun.getName());
+			}
+			if(mapFuns.put(fun.getName(), ((FOFunctionImpl) fun).inversePresentInfix()) != null)
+				throw new FOConstructionException("Function with same symbol not supported: " + fun.getName());
 		}
 		
 		for(FOConstant foconst : structure.getConstants())
@@ -330,9 +338,11 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		anchors.put(mLang.getPrecedenceOr(), new FOToken(Type.LOGICAL_OP, mLang.getOr()));
 		anchors.put(mLang.getPrecedenceImp(), new FOToken(Type.LOGICAL_OP, mLang.getImp()));
 		for(FORelation<? extends FOElement> inrel : mapInfixRels.values())
-			anchors.put(inrel.getPrecedence(), new FOToken(Type.INFIX_RELATION_OP, inrel.getInfix()));
+			if(anchors.put(inrel.getPrecedence(), new FOToken(Type.INFIX_RELATION_OP, inrel.getInfix())) != null)
+				throw new FOConstructionException("Anchors with equal precedence not supported: " + inrel);
 		for(FOFunction infun : mapInfixFuns.values())
-			anchors.put(infun.getPrecedence(), new FOToken(Type.INFIX_FUNCTION_OP, infun.getInfix()));
+			if(anchors.put(infun.getPrecedence(), new FOToken(Type.INFIX_FUNCTION_OP, infun.getInfix())) != null)
+				throw new FOConstructionException("Anchors with equal precedence not supported: " + infun);
 		List<FOToken> infixOps = new ArrayList<>(anchors.values());
 		
 		FOAliasByRecursionImpl formAlias = null;
@@ -787,7 +797,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 		{
 			FOVariable fovar = new FOVariableImpl(token.value); //could consider pooling these at some point.
 			FOTerm term = new FOTermByRecursionImpl.FOTermVariable(fovar);
-			pf.ixPos++;
+			pf.ixPos++; //TODO: Remove this stuff.
+			if(pf.ixPos < tokens.size())
+				throw new FOConstructionException("Not all tokens consumed during term construction: " + tokens);
 			return term;
 		}
 		else if(token.type == Type.CONSTANT)
@@ -796,6 +808,8 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 			assert foconst != null; // this is handled by the tokeniser.
 			FOTerm term = new FOTermByRecursionImpl.FOTermConstant(foconst);
 			pf.ixPos++;
+			if(pf.ixPos < tokens.size())
+				throw new FOConstructionException("Not all tokens consumed during term construction: " + tokens);
 			return term;			
 		}
 		else if(token.type == Type.FOLD &&
@@ -821,6 +835,9 @@ public class FOFormulaBuilderByRecursion implements FOFormulaBuilder
 				listTerms.add(tok.term);
 
 			FOTerm termfun = new FOTermByRecursionImpl.FOTermFunction(fofun, listTerms);
+
+			if(pf.ixPos < tokens.size())
+				throw new FOConstructionException("Not all tokens consumed during term construction: " + tokens);
 			return termfun;
 		}
 		else
