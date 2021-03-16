@@ -24,7 +24,8 @@ public class FOEnumerableUnionSetImpl implements FOUnionSet
 {
 	protected Map<String, FOEnumerableSet<? extends FOElement>> mSubsets;
 	
-	FOEnumerableUnionSetImpl(FOEnumerableSet<FOElement> defaultSet)
+	// We could have proper support for <T extends FOElement> type in the future if needed.
+	FOEnumerableUnionSetImpl(FOEnumerableSet<? extends FOElement> defaultSet)
 	{
 		mSubsets = new HashMap<>(2);
 		mSubsets.put(defaultSet.getName(), defaultSet);
@@ -48,8 +49,8 @@ public class FOEnumerableUnionSetImpl implements FOUnionSet
 	{
 		int size = 0;
 		for(FOSet<? extends FOElement> foset : mSubsets.values())
-			if(foset.size() == -1)
-				return -1; //infinite set
+			if(foset.size() == Integer.MAX_VALUE)
+				return Integer.MAX_VALUE; //infinite set
 			else
 				size += foset.size();
 		return size;
@@ -84,4 +85,7 @@ public class FOEnumerableUnionSetImpl implements FOUnionSet
 		// TODO Implement this.
 		return null;
 	}
+
+	@Override
+	public Class getType() { return FOElement.class; }
 }

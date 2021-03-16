@@ -37,6 +37,7 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 	 */
 	static class FORelationInSet extends FORelationImpl<FOElement>
 	{
+		//TODO: Actually implement this and with generic types.
 		protected FOSet<FOElement> mSet;
 		
 		FORelationInSet(FOUnionSet universe, String setName)
@@ -79,138 +80,14 @@ abstract class FORelationImpl<T extends FOElement> implements FORelation<T>
 		}
 
 		@Override
-		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		public <TI extends FOElement> FOSet<? extends TI> tryConstrain(FOVariable var, FOSet<TI> universeSubset,
+				List<FOTerm> terms, boolean isComplemented)
 		{
-			// TODO: Actually implement this.
-			return universeSubset;
-		}
-	}
-	
-	static class FORelationCompare<T extends FOInteger> extends FORelationImpl<T>
-	{
-		protected final boolean mEqual;
-		protected final boolean mGreater;
-		FORelationCompare(boolean greater, boolean equal)
-		{
-			super(greater ? (equal ? "GreaterOrEqual" : "Greater") : (equal ? "LessThanOrEqual" : "LessThan"));
-			mEqual = equal;
-			mGreater = greater;
+			// TODO Auto-generated method stub
+			return null;
 		}
 
 		@Override
-		public boolean satisfies(FOElement... args) 
-		{
-			FOInteger int1 = (FOInteger) args[0];
-			FOInteger int2 = (FOInteger) args[1];
-			
-			if(mGreater)
-				if(mEqual)
-					return int2.getInteger() >= int1.getInteger();
-				else
-					return int2.getInteger() > int1.getInteger();
-			else
-				if(mEqual)
-					return int2.getInteger() <= int1.getInteger();
-				else
-					return int2.getInteger() < int1.getInteger();
-		}
-
-		@Override
-		public String getInfix()
-		{
-			return (mGreater ? (mEqual ? "GreaterOrEqual" : "Greater") : (mEqual ? "LessThanOrEqual" : "LessThan"));
-		}
-
-		@Override
-		public int getCardinality()
-		{
-			return 2;
-		}
-
-		@Override
-		public int getPrecedence()
-		{
-			return 2500;
-		}		
-
-		@Override
-		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
-		{
-			// TODO: Actually implement this.
-			return universeSubset;
-		}
-	}
-	
-	static class FORelationAnchoredCompare<T extends FOInteger> extends FORelationImpl<T>
-	{
-		protected final FORelationCompare<T> mRelCompare;
-		protected final FOInteger mInt1;
-		protected final FOInteger mInt2;
-		/**
-		 * One of int1 or int should normally be null.
-		 * @param name
-		 * @param relCompare
-		 * @param int1
-		 * @param int2
-		 */
-		FORelationAnchoredCompare(String name, FORelationCompare<T> relCompare, FOInteger int1, FOInteger int2)
-		{
-			super(name);
-			mRelCompare = relCompare;
-			mInt1 = int1;
-			mInt2 = int2;
-		}
-
-		@Override
-		public boolean satisfies(FOElement... args)
-		{
-			if(mInt1 == null)
-				return mRelCompare.satisfies(args[0], mInt2);
-			else if(mInt2 == null)
-				return mRelCompare.satisfies(mInt1, args[0]);
-			else // double anchored
-				return mRelCompare.satisfies(mInt1, mInt2);
-		}
-
-		@Override
-		public String getInfix() { return null; }
-
-		@Override
-		public int getCardinality()
-		{
-			if(mInt1 == null)
-				return 1;
-			else if(mInt2 == null)
-				return 1;
-			else // double anchored
-				return 0;
-		}
-		
-		public FORelationCompare<T> getInnerRelation()
-		{
-			return mRelCompare;
-		}
-		
-		public FOInteger getAnchor1()
-		{
-			return mInt1;
-		}
-		public FOInteger getAnchor2()
-		{
-			return mInt2;
-		}
-
-		@Override
-		public int getPrecedence() throws FOConstructionException
-		{
-			throw new FOConstructionException("Unexpected operation found.");
-		}
-		
-		@Override
-		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
-		{
-			// TODO: Actually implement this.
-			return universeSubset;
-		}
+		public Class<FOElement> getType() { return FOElement.class; }
 	}
 }

@@ -41,7 +41,7 @@ class FOBRTestUtils {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three)));		
+		FOSet<? extends FOElement> universe = new FOBridgeSet<>("FOURINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three)), FOInteger.class);		
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);

@@ -22,8 +22,10 @@ public class FOSetUtils
 {
 	static class EmptySet<T extends FOElement> implements FOOrderedEnumerableSet<T>
 	{
-		EmptySet()
+		protected final Class<T> mSetType;
+		EmptySet(Class<T> setType)
 		{
+			mSetType = setType;
 		}
 
 		@Override
@@ -103,6 +105,9 @@ public class FOSetUtils
 		{
 			throw new FORuntimeException("Empty set has no previous element.");
 		}
+
+		@Override
+		public Class<T> getType() { return mSetType; }
 	}
 
 	static class ComplementedSingleElementSet<T extends FOElement> implements FOEnumerableSet<T>
@@ -171,8 +176,8 @@ public class FOSetUtils
 		{
 			assert relativeSet.contains(singleElement); // no point in using this set otherwise
 			mElement = singleElement;
-			mName = String.format("%s\\(%s)", relativeSet.getName(), singleElementSetName);
-			mRelativeSet = relativeSet;
+			mName = String.format("%s\\(%s)", relativeSet.getName(), singleElementSetName); // TODO: Remove this.
+			mRelativeSet = relativeSet; // TODO: This is not needed, remove it when there's time.
 		}
 
 		@Override
@@ -211,10 +216,14 @@ public class FOSetUtils
 				return relativeSet;
 			throw new FORuntimeException("Unimplemented complement operation.");
 		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public Class<T> getType() { return (Class<T>) mElement.getClass(); }
 	}
 	
 	static class SingleElementSet<T extends FOElement> implements FOOrderedEnumerableSet<T>
-	{
+	{	
 		protected static class SingleElementIterator<T> implements Iterator<T>
 		{
 			protected final T mElement;
@@ -241,6 +250,7 @@ public class FOSetUtils
 		
 		protected final T mElement;
 		protected final Comparator<FOElement> mComparator;
+
 		SingleElementSet(T element)
 		{
 			this(element, element.getDefaultComparator());
@@ -297,7 +307,7 @@ public class FOSetUtils
 					&& mComparator.compare(mElement, end) >= 0)
 				return this;
 			else
-				return new EmptySet<>();
+				return new EmptySet<>(getType());
 		}
 
 		@Override
@@ -337,5 +347,9 @@ public class FOSetUtils
 				return null;
 			throw new FORuntimeException("Can't get previous of element not in the set.");
 		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public Class<T> getType() { return (Class<T>) mElement.getClass(); }
 	}
 }

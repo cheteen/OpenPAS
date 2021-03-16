@@ -1,10 +1,12 @@
 package fopas;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import fopas.FOFormulaBRImpl.FormulaType;
+import fopas.FORuntime.FOStats;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOFormula;
@@ -77,7 +79,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	@Override
 	public FOFormula negate()
 	{
-		return new FOFormulaBROr(!mNegated, mFormulas);
+		return new FOFormulaBROr(!mNegated, mFormulas, mSubType);
 	}
 	
 	/**
@@ -104,14 +106,14 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+	public <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		FORuntime settings = structure.getRuntime();
 		if(settings.getTraceLevel() >= 5)
 		{
 			settings.trace(-5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", "(partial for %s) %s", var.getName(), stringiseAssignments(assignment));
-			settings.trace( 5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", "variable: %s, complement: %s, universe: %s", var.getName(), complement, universe.getName());			
+			settings.trace( 5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", "variable: %s, complement: %s, universe: %s", var.getName(), complement, universeSubset.getName());			
 		}
 		
 		int elimTarget = settings.getTargetElimTrue();
@@ -124,18 +126,28 @@ class FOFormulaBROr extends FOFormulaBRImpl
 		// Not sure where (2) and (3) would be needed at this point.
 		
 		// Simple strategy:
-		FOSet<FOElement> fosetSubset = universe;
+		FOSet<? extends TI> fosetSubset = universeSubset;
 		for(FOFormula form : mFormulas)
 		{
 			FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
-			fosetSubset = formimpl.eliminateTrue(depth + 1, structure, fosetSubset, var, mNegated, assignment, aliasCalls);
+			FOSet<? extends TI> fosetSubsetNext = formimpl.tryEliminateTrue(depth + 1, structure, fosetSubset, var, mNegated, assignment, aliasCalls);
+
+			if(fosetSubsetNext == null)
+				continue;
+			
+			fosetSubset = fosetSubsetNext;
+			
 			if(fosetSubset.size() <= elimTarget)
 				break;
 		}
 		// Should we count something here?
 		
+		if(fosetSubset == universeSubset)
+			fosetSubset = null; //failed to constrain
+		
 		settings.trace(5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", 
-				"Elimination variable: %s, success: %s, smallest subset: %s", var.getName(), fosetSubset != universe, fosetSubset.getName());
+				"Elimination variable: %s, success: %s, smallest subset: %s", var.getName(), fosetSubset != null,
+				fosetSubset == null ? "<null>" : fosetSubset.getName());
 		
 		return fosetSubset;
 	}

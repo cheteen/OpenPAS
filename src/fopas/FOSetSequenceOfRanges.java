@@ -10,6 +10,8 @@ import java.util.List;
 
 import com.google.common.collect.Iterables;
 
+import fopas.FOElementImpl.FOIntImpl;
+import fopas.FOElementImpl.FOIntImpl.FOIntComparator;
 import fopas.basics.FOElement;
 import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOOrderedEnumerableSet;
@@ -85,8 +87,8 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		for(FOSetRangedNaturals range : mRanges)
 		{
 			int subRangeSize = range.size();
-			if(subRangeSize == -1)
-				return -1;
+			if(subRangeSize == Integer.MAX_VALUE)
+				return Integer.MAX_VALUE;
 			totalSize += range.size();
 		}
 		return totalSize;
@@ -136,7 +138,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 	{
 		// Complement of self is empty set.
 		if(relativeSet == this)
-			return new FOSetUtils.EmptySet<>();
+			return new FOSetUtils.EmptySet<>(FOInteger.class);
 		
 		// It'd be easy to generalise this to FOEnumerableSet since we use the generic interface FOEnumerableSet to do all the constraining operations which are the key.
 		if(relativeSet instanceof FOSetRangedNaturals)
@@ -181,7 +183,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 			if(newRanges.size() == 1)
 				return newRanges.get(0);
 			else if(newRanges.size() == 0) // empty set (possible if effectively complemented to self)
-				return new FOSetUtils.EmptySet<FOElement.FOInteger>();
+				return new FOSetUtils.EmptySet<FOElement.FOInteger>(FOInteger.class);
 			else
 			{
 				if(mName != null)
@@ -234,7 +236,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		if(newRanges.size() == 1)
 			return newRanges.get(0);
 		else if(newRanges.size() == 0) // empty set (possible if effectively complemented to self)
-			return new FOSetUtils.EmptySet<FOElement.FOInteger>();
+			return new FOSetUtils.EmptySet<FOElement.FOInteger>(FOInteger.class);
 		else
 		{
 			if(mName != null)
@@ -326,4 +328,59 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		}
 		return range.getPreviousOrNull(element);
 	}
+	
+	public Iterable<FOSetRangedNaturals> getRanges()
+	{
+		return mRanges;
+	}
+	
+	public static FOOrderedEnumerableSet<FOInteger> createUnion(List<FOSetRangedNaturals> ranges)
+	{
+		// Sort from small to large on the first element on the constituent ranges.
+		Collections.sort(ranges ,
+				new Comparator<FOSetRangedNaturals>() {
+					@Override
+					public int compare(FOSetRangedNaturals arg0, FOSetRangedNaturals arg1)
+					{
+						return FOIntImpl.DEFAULT_COMPARATOR.compare(
+								arg1.getFirstOrInfinite(), arg0.getFirstOrInfinite());
+					}
+		});
+		
+		List<FOSetRangedNaturals> unionised = new ArrayList<>();
+		unionised.add(ranges.get(0));
+		for(int i = 1; i < ranges.size(); i++)
+		{
+			FOSetRangedNaturals current = unionised.get(unionised.size() - 1);
+			FOSetRangedNaturals next = ranges.get(i);
+			int currentFirst = current.getFirstOrInfinite().getInteger();
+			int currentLast = current.getLastOrInfinite().getInteger();
+			int nextFirst = next.getFirstOrInfinite().getInteger();
+			int nextLast = next.getLastOrInfinite().getInteger();
+			
+			if(nextFirst <= currentLast)
+			{
+				if(nextLast > currentLast)
+				{
+					unionised.set(unionised.size() - 1,
+						new FOSetRangedNaturals(
+								currentFirst, currentFirst == Integer.MIN_VALUE ? false : true,
+								nextLast, nextLast == Integer.MAX_VALUE ? false : true
+								)
+						);
+				}
+				// else ignore it since it's wholly contained in the existing rangef
+			}
+			else
+				unionised.add(next);			
+		}
+		
+		if(unionised.size() == 1)
+			return unionised.get(0);
+		else
+			return new FOSetSequenceOfRanges(unionised);
+	}
+	
+	@Override
+	public Class<FOInteger> getType() { return FOInteger.class;}
 }

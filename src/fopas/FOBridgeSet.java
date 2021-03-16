@@ -21,11 +21,13 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T>, Set<T>
 
 	protected final String mName;
 	protected final Set<T> mSet;
+	protected final Class<T> mElementClass;
 	
-	FOBridgeSet(String name, Set<T> sourceSet)
+	FOBridgeSet(String name, Set<T> sourceSet, Class<T> elementClass)
 	{
 		mName = name;
 		mSet = sourceSet;
+		mElementClass = elementClass;
 	}
 	
 	//-------------------------------------------------------------------------------------------
@@ -110,10 +112,13 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T>, Set<T>
 		if(relativeSet instanceof FOBridgeSet)
 		{
 			FOBridgeSet<T> finiteSet = (FOBridgeSet<T>) relativeSet; 
-			FOBridgeSet<T> complemented = new FOBridgeSet<T>(String.format("%s\\%s", relativeSet.getName(), getName()), finiteSet);
+			FOBridgeSet<T> complemented = new FOBridgeSet<T>(String.format("%s\\%s", relativeSet.getName(), getName()), finiteSet, relativeSet.getType());
 			complemented.removeAll(mSet);
 			return complemented;
 		}
 		throw new FORuntimeException("Unsupported complement operation.");
 	}
+
+	@Override
+	public Class<T> getType() { return mElementClass;}
 }

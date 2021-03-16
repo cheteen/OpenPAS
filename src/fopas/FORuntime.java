@@ -32,6 +32,18 @@ public class FORuntime
 		int numL1ElimTrueForallSuccess;
 		int numL1ElimTrueForallSuccess1; // How many times was a universe set reduced to a set of size 1 (but not its complement)?
 		int numL1ElimTrueForallSuccess0; // How many times was a universe set reduced to empty set (but not its complement)?
+		int numL1ElimTrueForallFail;
+		int numL1ElimTrueOrSuccess;
+		int numL1ElimTrueOrFail;
+		int numL1ElimTrueOrSubSuccess;
+		int numL1ElimTrueOrSubFail;
+		int numL1ElimTrueOrSuccessTarget;
+		
+		protected FORuntime mRuntime;
+		public FOStats(FORuntime runtime)
+		{
+			mRuntime = runtime;
+		}
 		
 		void reset()
 		{
@@ -46,6 +58,12 @@ public class FORuntime
 			numL1ElimTrueForallSuccess = 0;
 			numL1ElimTrueForallSuccess1 = 0;
 			numL1ElimTrueForallSuccess0 = 0;
+			numL1ElimTrueForallFail = 0;
+			numL1ElimTrueOrSuccess = 0;
+			numL1ElimTrueOrFail = 0;
+			numL1ElimTrueOrSubSuccess = 0;
+			numL1ElimTrueOrSubFail = 0;
+			numL1ElimTrueOrSuccessTarget = 0;
 		}
 		
 		private void formatln(PrintStream ps, String format, Object...args)
@@ -66,6 +84,21 @@ public class FORuntime
 			formatln(ps, "ElimTrueForallSuccess: %d", numL1ElimTrueForallSuccess);
 			formatln(ps, "ElimTrueForallSuccess1: %d", numL1ElimTrueForallSuccess1);
 			formatln(ps, "ElimTrueForallSuccess0: %d", numL1ElimTrueForallSuccess0);
+			formatln(ps, "ElimTrueForallFail: %d", numL1ElimTrueForallFail);
+			formatln(ps, "ElimTrueOrSuccess: %d", numL1ElimTrueOrSuccess);
+			formatln(ps, "ElimTrueOrFail: %d", numL1ElimTrueOrFail);
+			formatln(ps, "ElimTrueOrSubSuccess: %d", numL1ElimTrueOrSubSuccess);
+			formatln(ps, "ElimTrueOrSubFail: %d", numL1ElimTrueOrSubFail);
+			formatln(ps, "ElimTrueOrSuccessTarget: %d", numL1ElimTrueOrSuccessTarget);
+		}
+		
+		void incrementedStat(String metricName, int newValue, int currentTraceLevel, FOFormula form)
+		{
+			if(currentTraceLevel > 2)
+			{
+				String strForm = mRuntime.stringiseFormulaForTrace(currentTraceLevel, form);
+				formatln(System.err, "Incremented %s to %d in %s", metricName, newValue, strForm);
+			}
 		}
 	}
 
@@ -77,7 +110,7 @@ public class FORuntime
 	protected final int mFormTraceLen = 100;
 	protected final String mEmptyForm = Strings.repeat(" ", mFormTraceLen);
 	
-	protected final FOStats mStats = new FOStats();
+	protected final FOStats mStats = new FOStats(this);
 	
 	protected final int mTargetElimTrue; // default 1
 

@@ -11,7 +11,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 
-import fopas.FORelationImpl.FORelationCompare;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOOrderedEnumerableSet;
@@ -157,9 +156,9 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	public int size()
 	{
 		if(mRangeFirst == Integer.MIN_VALUE)
-			return -1;
+			return Integer.MAX_VALUE;
 		if(mRangeLast == Integer.MAX_VALUE)
-			return -1;
+			return Integer.MAX_VALUE;
 		return (mRangeLast - mRangeFirst + 1);
 	}
 
@@ -259,7 +258,7 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 			if(fosetNat1 == null)
 			{
 				if(fosetNat2 == null)
-					return new FOSetUtils.EmptySet<FOElement.FOInteger>();
+					return new FOSetUtils.EmptySet<FOElement.FOInteger>(FOInteger.class	);
 				return fosetNat2;
 			}
 			else if(fosetNat2 == null)
@@ -466,4 +465,7 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 		
 		return new FOElementImpl.FOIntImpl(eltInt - 1);
 	}
+
+	@Override
+	public Class<FOInteger> getType() { return FOInteger.class;}
 }

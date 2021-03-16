@@ -42,7 +42,7 @@ public abstract class FOFormulaBRImpl implements FOFormula {
 		ALIAS_BINDING
 	}
 	abstract FormulaType getType(); 
-	abstract FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universeSubset, FOVariable var,
+	abstract <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls);
 	abstract boolean checkAssignment(int depth, FOStructure structure,
 			Map<FOVariable, FOElement> assignment);

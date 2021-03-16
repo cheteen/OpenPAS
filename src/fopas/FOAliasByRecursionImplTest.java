@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import com.google.common.collect.FluentIterable;
 
+import fopas.FOElementImpl.FOIntImpl;
 import fopas.FORuntime.FOStats;
 import fopas.basics.FOAlias;
 import fopas.basics.FOConstant;
@@ -75,7 +76,7 @@ public class FOAliasByRecursionImplTest
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		FOInteger four = new FOElementImpl.FOIntImpl(4);
 		
-		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("SOMEINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three, four)));		
+		FOEnumerableSet<FOInteger> universe = new FOBridgeSet<>("SOMEINTS", new LinkedHashSet<>(Arrays.asList(zero, one, two, three, four)), FOInteger.class);		
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOFunction funaddmod5 = new FOFunctionsInternalInt.FOInternalSumModulus(5);

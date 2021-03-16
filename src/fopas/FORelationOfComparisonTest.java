@@ -76,11 +76,10 @@ public class FORelationOfComparisonTest {
 		@Override
 		public int getPrecedence() { return super.getPrecedence() + 1; }
 		@Override
-		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms,
-				boolean isComplemented)
+		public <TI extends FOElement> FOSet<? extends TI> tryConstrain(FOVariable var, FOSet<TI> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
 			// Disable constrain so we force checkAsg in action.
-			return universeSubset;
+			return null;
 		}	
 	}
 	
@@ -99,7 +98,7 @@ public class FORelationOfComparisonTest {
 	@Test
 	public void testGreater()
 	{
-		FORelation<FOElement> rel = new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, false); // >
+		FORelation<FOElement> rel = new FORelationOfComparison.FORelationImplInequality<FOElement>(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, false, FOElement.class); // >
 		assertEquals(rel.getInfix(), ">");
 		assertEquals(rel.getName(), "GreaterThan");
 		assertTrue(rel.satisfies(new FOElementImpl.FOIntImpl(10), new FOElementImpl.FOIntImpl(9)));
@@ -113,7 +112,7 @@ public class FORelationOfComparisonTest {
 	@Test
 	public void testGreaterEq()
 	{
-		FORelation<FOElement> rel = new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, true); // >=
+		FORelation<FOElement> rel = new FORelationOfComparison.FORelationImplInequality<FOElement>(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, true, FOElement.class); // >=
 		assertEquals(rel.getInfix(), ">=");
 		assertEquals(rel.getName(), "GreaterThanEquals");
 		assertTrue(rel.satisfies(new FOElementImpl.FOIntImpl(10), new FOElementImpl.FOIntImpl(9)));
@@ -126,7 +125,7 @@ public class FORelationOfComparisonTest {
 	@Test
 	public void testLessThan()
 	{
-		FORelation<FOElement> rel = new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, false); // <
+		FORelation<FOElement> rel = new FORelationOfComparison.FORelationImplInequality<FOElement>(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, false, FOElement.class); // <
 		assertEquals(rel.getInfix(), "<");
 		assertEquals(rel.getName(), "LessThan");
 		assertTrue(rel.satisfies(new FOElementImpl.FOIntImpl(9), new FOElementImpl.FOIntImpl(10)));
@@ -139,7 +138,7 @@ public class FORelationOfComparisonTest {
 	@Test
 	public void testLessEq()
 	{
-		FORelation<FOElement> rel = new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, true); // <=
+		FORelation<FOElement> rel = new FORelationOfComparison.FORelationImplInequality<FOElement>(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, true, FOElement.class); // <=
 		assertEquals(rel.getInfix(), "<=");
 		assertEquals(rel.getName(), "LessThanEquals");
 		assertTrue(rel.satisfies(new FOElementImpl.FOIntImpl(9), new FOElementImpl.FOIntImpl(10)));
@@ -151,32 +150,49 @@ public class FORelationOfComparisonTest {
 
 	static FOStructure createStructureIneq()
 	{
+		return createStructureIneqWithRange(0, 1000);
+	}
+
+	static FOStructure createStructureIneqWithRange(int first, int last)
+	{
 		FOConstant c0 = new FOConstantImpl("c0");
+		FOConstant c10 = new FOConstantImpl("c10");
+		FOConstant c20 = new FOConstantImpl("c20");
 		FOConstant c50 = new FOConstantImpl("c50");
 		FOConstant c100 = new FOConstantImpl("c100");
 		FOConstant c1000 = new FOConstantImpl("c1000");
+		FOConstant cm100 = new FOConstantImpl("cm100");
 		
 		FOInteger fi0 = new FOElementImpl.FOIntImpl(0);
+		FOInteger fi10 = new FOElementImpl.FOIntImpl(10);
+		FOInteger fi20 = new FOElementImpl.FOIntImpl(20);
 		FOInteger fi50 = new FOElementImpl.FOIntImpl(50);
 		FOInteger fi100 = new FOElementImpl.FOIntImpl(100);
+		FOInteger fim100 = new FOElementImpl.FOIntImpl(-100);
 		FOInteger fi1000 = new FOElementImpl.FOIntImpl(1000);
 
-		FOSet<FOInteger> universe = new FOSetRangedNaturals(0, 1000);
+		FOSet<FOInteger> universe = new FOSetRangedNaturals(
+				first, first == Integer.MIN_VALUE ? false : true,
+				last, last == Integer.MAX_VALUE ? false : true);
 		Set<FORelation<FOElement>> rels = new HashSet<>();
 		rels.add(new FORelationOfComparison.FORelationImplEquals());
-		rels.add(new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, false));
-		rels.add(new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, true));
-		rels.add(new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, false));
-		rels.add(new FORelationOfComparison.FORelationImplInequality(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, true));
+		rels.add(new FORelationOfComparison.FORelationImplInequality<FOElement>(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, false, FOElement.class));
+		rels.add(new FORelationOfComparison.FORelationImplInequality<FOElement>(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, false, true, FOElement.class));
+		rels.add(new FORelationOfComparison.FORelationImplInequality<FOElement>(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, false, FOElement.class));
+		rels.add(new FORelationOfComparison.FORelationImplInequality<FOElement>(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, true, true, FOElement.class));
 		rels.add(new NoConstrainEquals());
 		
 		FOFunction funaddmod = new FOFunctionsInternalInt.FOInternalSumModulus(1000);
 		
 		FOStructure structure = new FOStructureImpl(universe, rels, new HashSet<>(Arrays.asList(funaddmod)));
 		structure.setConstantMapping(c0, fi0);
-		structure.setConstantMapping(c1000, fi1000);
+		structure.setConstantMapping(c10, fi10);
+		structure.setConstantMapping(c20, fi20);
 		structure.setConstantMapping(c50, fi50);
 		structure.setConstantMapping(c100, fi100);
+		structure.setConstantMapping(c1000, fi1000);
+		if(first <= fim100.getInteger())
+			structure.setConstantMapping(cm100, fim100);
 		return structure;
 	}
 	
@@ -245,5 +261,40 @@ public class FORelationOfComparisonTest {
 		assertEquals(100, stats.numL1CheckAsgAllSub); // forall goes to subformula 100 times after the first constrain
 		assertEquals(200, stats.numL1CheckAsgRel); // 2x rel checks per loop
 		assertEquals(100, stats.numL1CheckAsgOr);
+	}
+	//TODO: Add another test as above to create multiple ranges.
+
+	
+	@Test
+	public void testNoConstrainMultiRange()
+	{
+		FOStructure structure = createStructureIneqWithRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+		testFormula(structure,
+				"(forall _v1)((_v1 > c0 & _v1 < c10 | _v1 > c20 & _v1 < c50) -> ¬(_v1 #= c100))", true, 
+				"(forall _v1)((((_v1 > c0) & (_v1 < c10)) | ((_v1 > c20) & (_v1 < c50))) -> ¬(_v1 #= c100))");
+		FOStats stats = structure.getRuntime().getStats();
+		stats.printStats(System.out);
+	}
+	
+	@Test
+	public void testInfiniteUniverse()
+	{
+		FOStructure structure = createStructureIneqWithRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+		//assertEquals(Integer.MAX_VALUE, structure.getUniverse().size());
+		testFormula(structure, "(forall _v1)((_v1 > cm100 & _v1 < c100) -> (¬(_v1 = c100) & ¬(_v1 = cm100)))", true,
+				"(forall _v1)(((_v1 > cm100) & (_v1 < c100)) -> (¬(_v1 = c100) & ¬(_v1 = cm100)))");
+		FOStats stats = structure.getRuntime().getStats();
+//		stats.printStats(System.out);
+	}
+
+	@Test
+	public void testTwoIneq()
+	{
+		FOStructure structure = createStructureIneqWithRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+		//assertEquals(Integer.MAX_VALUE, structure.getUniverse().size());
+		testFormula(structure, "(forall _v1)((_v1 > c0 & _v1 < c10) -> ¬(_v1 = cm100))", true,
+				"(forall _v1)(((_v1 > c0) & (_v1 < c10)) -> ¬(_v1 = cm100))");
+		FOStats stats = structure.getRuntime().getStats();
+//		stats.printStats(System.out);
 	}
 }

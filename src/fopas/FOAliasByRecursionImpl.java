@@ -101,10 +101,10 @@ public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
-			boolean complement, Map<FOVariable, FOElement> assignment,  Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
+	public <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
+			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		// The only thing at this level to do is to handover the decision to the contained formula.
-		return mScopeForm.eliminateTrue(depth + 1, structure, universe, var, complement, assignment, aliasCalls);
+		return mScopeForm.tryEliminateTrue(depth + 1, structure, universeSubset, var, complement, assignment, aliasCalls);
 	}
 }

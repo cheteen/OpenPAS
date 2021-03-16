@@ -57,7 +57,7 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger one = new FOElementImpl.FOIntImpl(1);
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		
-		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("TWOINTS", new HashSet<>(Arrays.asList(one, two)));
+		FOEnumerableSet<? extends FOElement> universe = new FOBridgeSet<>("TWOINTS", new HashSet<>(Arrays.asList(one, two)), FOInteger.class);
 		
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
@@ -117,7 +117,7 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)));		
+		FOEnumerableSet<? extends FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)), FOInteger.class);		
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		
 		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
@@ -167,7 +167,7 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)));
+		FOEnumerableSet<? extends FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(one, two, three)), FOInteger.class);
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 				
 		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
@@ -241,7 +241,7 @@ public class FOFormulaByRecursionImplTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(zero, one, two, three)));
+		FOEnumerableSet<? extends FOElement> universe = new FOBridgeSet<>("THREEINTS", new HashSet<>(Arrays.asList(zero, one, two, three)), FOInteger.class);
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 		FOFunction funaddmod4 = new FOFunctionsInternalInt.FOInternalSumModulus(4);
 

@@ -160,7 +160,7 @@ public class FOSetSequenceOfRangesTest {
 			FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, Integer.MAX_VALUE, false);
 			FOEnumerableSet<FOInteger> fosetc = (FOEnumerableSet<FOInteger>) foseq.complement(forangec);
 			Assert.assertEquals(-20, fosetc.iterator().next().getInteger());
-			Assert.assertEquals(-1, fosetc.size());
+			Assert.assertEquals(Integer.MAX_VALUE, fosetc.size());
 			Assert.assertEquals("Z (-inf, -20] U [-9, 0] U [11, 19] U [40, inf)", fosetc.getName());
 			// So let's also do pinpoint shots to see whether correct parts are included:
 			// TODO: Should contain return true for inf? Mathematically no, so check that/do that.
@@ -669,5 +669,83 @@ public class FOSetSequenceOfRangesTest {
 		assertEquals(new FOElementImpl.FOIntImpl(4), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(5)));
 		assertEquals(new FOElementImpl.FOIntImpl(-15), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(-14)));
 		assertEquals(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), foseq.getPreviousOrNull(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE)));
+	}
+	
+	@Test
+	public void testUnion1()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-20, -10);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(-15, -10);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(-15, 0);
+		FOSetRangedNaturals forange4 = new FOSetRangedNaturals(5, 10);
+		// Union call order below is different to the naming order!
+		FOOrderedEnumerableSet<FOInteger> foseq = FOSetSequenceOfRanges.createUnion(Arrays.asList(forange1, forange4, forange2, forange3));
+		assertEquals("Z [-20, 0] U [5, 10]", foseq.getName());
+	}
+
+	@Test
+	public void testUnion2()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(0, 10);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(10, 15);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 30);
+		// Union call order below is different to the naming order!
+		FOOrderedEnumerableSet<FOInteger> foseq = FOSetSequenceOfRanges.createUnion(Arrays.asList(forange3, forange2, forange1));
+		assertEquals("N [0, 15] U [20, 30]", foseq.getName());
+	}
+	
+	@Test
+	public void testUnion3()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(0, 10);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(11, 15);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 30);
+		// Union call order below is different to the naming order!
+		FOOrderedEnumerableSet<FOInteger> foseq = FOSetSequenceOfRanges.createUnion(Arrays.asList(forange3, forange2, forange1));
+		assertEquals("N [0, 10] U [11, 15] U [20, 30]", foseq.getName());
 	}	
+
+	@Test
+	public void testUnion4()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(0, 10);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(11, 15);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 30);
+		FOSetRangedNaturals forange4 = new FOSetRangedNaturals(0, 100);
+		// Union call order below is different to the naming order!
+		FOOrderedEnumerableSet<FOInteger> foseq = FOSetSequenceOfRanges.createUnion(Arrays.asList(forange3, forange2, forange1, forange4));
+		assertEquals("N [0, 100]", foseq.getName());
+	}
+	
+	@Test
+	public void testUnion5()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 10, true);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(10, 15);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(20, 30);
+		// Union call order below is different to the naming order!
+		FOOrderedEnumerableSet<FOInteger> foseq = FOSetSequenceOfRanges.createUnion(Arrays.asList(forange3, forange2, forange1));
+		assertEquals("Z (-inf, 15] U [20, 30]", foseq.getName());
+	}
+	
+	@Test
+	public void testUnion6()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(0, 9);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(10, 20);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(15, true, Integer.MAX_VALUE, false);
+		// Union call order below is different to the naming order!
+		FOOrderedEnumerableSet<FOInteger> foseq = FOSetSequenceOfRanges.createUnion(Arrays.asList(forange3, forange2, forange1));
+		assertEquals("N [0, 9] U [10, inf)", foseq.getName());
+	}
+	
+	@Test
+	public void testUnion7()
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 10, true);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(5, true, Integer.MAX_VALUE, false);
+		// Union call order below is different to the naming order!
+		FOOrderedEnumerableSet<FOInteger> foseq = FOSetSequenceOfRanges.createUnion(Arrays.asList(forange2, forange1));
+		assertEquals("Z", foseq.getName());
+	}
 }

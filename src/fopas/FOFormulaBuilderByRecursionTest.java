@@ -15,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fopas.FOFormulaBuilderByRecursion.FOToken;
+import fopas.FOSetUtils.EmptySet;
 import fopas.basics.FOConstant;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -61,7 +62,7 @@ public class FOFormulaBuilderByRecursionTest {
 		FOInteger two = new FOElementImpl.FOIntImpl(2);
 		FOInteger three = new FOElementImpl.FOIntImpl(3);
 		
-		FOEnumerableSet<FOElement> universe = new FOBridgeSet<>("FOURINTS", new HashSet<>(Arrays.asList(one, two, three)));
+		FOEnumerableSet<? extends FOElement> universe = new FOBridgeSet<>("FOURINTS", new HashSet<>(Arrays.asList(one, two, three)), FOInteger.class);
 		FORelation<FOElement> foequals = new FORelationOfComparison.FORelationImplEquals();
 				
 		FOStructure structure = new FOStructureImpl(new FOEnumerableUnionSetImpl(universe), new HashSet<>(Arrays.asList(foequals)), Collections.emptySet());
@@ -245,7 +246,7 @@ public class FOFormulaBuilderByRecursionTest {
 	@Test
 	public void testBuildCannedFormulas() throws FOConstructionException
 	{
-		FOStructure structure = new FOStructureImpl(new FOBridgeSet<>("dummy", new HashSet<>(0)), new HashSet<>(0), new HashSet<>(0));
+		FOStructure structure = new FOStructureImpl(new FOSetUtils.EmptySet<FOElement>(FOElement.class), new HashSet<>(0), new HashSet<>(0));
 
 		{
 			FOFormula form = builder.buildTautology();
@@ -292,5 +293,11 @@ public class FOFormulaBuilderByRecursionTest {
 
 		testFormula(structure, "¬(exists _v1)(c1 = c0)", true, null);
 		testFormula(structure, "(exists _v1)(_v1 = _v2)", true, "¬(forall _v1)¬(_v1 = _v2)", false);
+	}
+	
+	@Test
+	public void testUnusedTokensThrow() throws FOConstructionException
+	{
+		FOStructure structure = FOBRTestUtils.createSimpleStructure4Ints();
 	}
 }

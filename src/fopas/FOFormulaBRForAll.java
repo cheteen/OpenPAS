@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fopas.FOFormulaBRImpl.FormulaType;
+import fopas.FORuntime.FOStats;
 import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
@@ -47,11 +48,14 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		if(assignment.containsKey(mVar)) // variable collision from earlier scope, this is illegal, should be caught during formula analysis.
 			throw new FORuntimeException("Variable name collision for scope.");
 		
+		//stats.incrementedStat("numL1ElimTrueRelAttempts", ++stats.numL1ElimTrueRelAttempts, settings.getTraceLevel(), this);
+
 		FORuntime settings = structure.getRuntime();
 		int trace = settings.getTraceLevel();
+		FOStats stats = settings.getStats();
 		if(trace >= 1)
 		{
-			settings.getStats().numL1CheckAsgAll++;
+			stats.incrementedStat("numL1CheckAsgAll", ++stats.numL1CheckAsgAll, settings.getTraceLevel(), this);
 			if(trace >= 5)
 			{
 				settings.trace(-5, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "%s", stringiseAssignments(assignment));
@@ -62,39 +66,45 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		// This will try to eliminate all known true cases. Note that we shouldn't use mNegate to negate the constrain here because
 		// we need to eliminate the trues as far as this forall formula is concerned, and we'll negate the result as needed in the end.
 		Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls = new HashSet<>();
-		FOSet<FOElement> constrained = mScopeFormula.eliminateTrue(depth + 1, structure, structure.getUniverse(), mVar, false, assignment, aliasCalls);
+		FOSet<? extends FOElement> constrained = mScopeFormula.tryEliminateTrue(depth + 1, structure, structure.getUniverse(), mVar, false, assignment, aliasCalls);
 		
 		if(trace >= 1)
 		{
-			if(constrained != structure.getUniverse())
+			if(constrained != null)
 			{
-				settings.getStats().numL1ElimTrueForallSuccess++;
+				stats.incrementedStat("numL1ElimTrueForallSuccess", ++stats.numL1ElimTrueForallSuccess, settings.getTraceLevel(), this);
 				if(constrained.size() == 1)
-					settings.getStats().numL1ElimTrueForallSuccess1++;
+					stats.incrementedStat("numL1ElimTrueForallSuccess1", ++stats.numL1ElimTrueForallSuccess1, settings.getTraceLevel(), this);					
 				else if(constrained.size() == 0)
-					settings.getStats().numL1ElimTrueForallSuccess0++;
-			}
-		
-			if(constrained != structure.getUniverse())
+					stats.incrementedStat("numL1ElimTrueForallSuccess0", ++stats.numL1ElimTrueForallSuccess0, settings.getTraceLevel(), this);					
+
 				settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "eliminateTrue for %s success new universeSubset: %s", mVar.getName(), constrained.getName());
+			}
 			else
-				settings.trace(5, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "eliminateTrue for %s failed. Using existing universeSubset: %s", mVar.getName(), constrained.getName());
+			{
+				stats.incrementedStat("numL1ElimTrueForallFail", ++stats.numL1ElimTrueForallFail, settings.getTraceLevel(), this);					
+
+				settings.trace(5, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "eliminateTrue for %s failed. Using existing universeSubset: %s", mVar.getName(), structure.getUniverse().getName());
+			}
 		}
 		assert aliasCalls.size() == 0;
+		
+		if(constrained == null)
+			constrained = structure.getUniverse();
 		
 		if(!(constrained instanceof FOEnumerableSet))
 			throw new FORuntimeException("Attempting to iterate non-emumerable set."); // TODO: Unit test this.
 		if(constrained.size() == Integer.MAX_VALUE)
 			throw new FORuntimeException("Attempting to iterate infinite set."); // TODO: Unit test this.
 		
-		FOEnumerableSet<FOElement> enumerableConstrained = (FOEnumerableSet<FOElement>) constrained; 
+		FOEnumerableSet<? extends FOElement> enumerableConstrained = (FOEnumerableSet<? extends FOElement>) constrained; 
 
 		boolean failed = false;
 		for(FOElement elt : enumerableConstrained)
 		{
 			if(trace >= 1)
 			{
-				settings.getStats().numL1CheckAsgAllSub++;
+				stats.incrementedStat("numL1CheckAsgAllSub", ++stats.numL1CheckAsgAllSub, settings.getTraceLevel(), this);					
 				settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assigned %s=%s for %s", mVar.getName(), elt.getElement(), settings.stringiseFormulaForTrace(2, this));
 			}
 			
@@ -105,7 +115,7 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 			{
 				if(trace >= 1)
 				{
-					settings.getStats().numL1CheckAsgAllSubFail++;
+					stats.incrementedStat("numL1CheckAsgAllSubFail", ++stats.numL1CheckAsgAllSubFail, settings.getTraceLevel(), this);					
 					settings.trace(2, depth, this, "FOFormulaBRForAll", hashCode(), "checkAssignment", "Assignment failed for %s", elt.getElement());
 				}
 				break; // no point going further we know not all subformulas are satified.
@@ -176,10 +186,10 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		return mScopeFormula;
 	}
 	@Override
-	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+	public <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		// The only thing to do is to see is if the scoped formula somehow already constrains our variable.
-		return mScopeFormula.eliminateTrue(depth + 1, structure, universe, var, complement ^ mNegated, assignment, aliasCalls);
+		return mScopeFormula.tryEliminateTrue(depth + 1, structure, universeSubset, var, complement ^ mNegated, assignment, aliasCalls);
 	}	
 }

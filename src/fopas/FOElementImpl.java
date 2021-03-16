@@ -131,7 +131,21 @@ abstract class FOElementImpl implements FOElement
 			@Override
 			public int compare(FOElement arg0, FOElement arg1)
 			{
-				return ((FOInteger) arg1).getInteger() - ((FOInteger) arg0).getInteger();
+				int intArg0 = ((FOInteger) arg0).getInteger();
+				int intArg1 = ((FOInteger) arg1).getInteger();
+				
+				if(intArg1 == Integer.MAX_VALUE)
+				{
+					if(intArg0 < 0)
+						return Integer.MAX_VALUE;
+				}
+				else if(intArg1 == Integer.MIN_VALUE)
+				{
+					if(intArg0 > 0)
+						return Integer.MIN_VALUE;
+				}
+				
+				return intArg1 - intArg0;
 			}	
 		}
 		static final Comparator<FOElement> DEFAULT_COMPARATOR = new FOIntComparator();

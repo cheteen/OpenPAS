@@ -25,4 +25,6 @@ public interface FOSet<T extends FOElement>
 		else
 			return this;
 	}
+	
+	Class<T> getType();
 }

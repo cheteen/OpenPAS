@@ -15,9 +15,9 @@ import fopas.basics.FOVariable;
 
 class FOFormulaBRRelation extends FOFormulaBRImpl
 {
-	final protected FORelation<FOElement> mRel;
+	final protected FORelation<? extends FOElement> mRel;
 	final protected List<FOTerm> mTerms;
-	FOFormulaBRRelation(boolean isNegated, FORelation<FOElement> rel, List<FOTerm> terms)
+	FOFormulaBRRelation(boolean isNegated, FORelation<? extends FOElement> rel, List<FOTerm> terms)
 	{
 		super(isNegated);
 		mRel = rel;
@@ -54,7 +54,7 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	@Override
 	FormulaType getType() { return FormulaType.RELATION; }
 	
-	FORelation<FOElement> getRelation()
+	FORelation<? extends FOElement> getRelation()
 	{
 		return mRel;
 	}
@@ -79,19 +79,33 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 	}
 
 	@Override
-	public FOSet<FOElement> eliminateTrue(int depth, FOStructure structure, FOSet<FOElement> universe, FOVariable var,
+	public <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		FORuntime settings = structure.getRuntime();
 		if(settings.getTraceLevel() >= 1)
 		{
-			settings.getStats().numL1ElimTrueRelAttempts++; // We only count this here since it's the only place that truly does elimination.
+			// This is the only place that truly does elimination.
+			settings.getStats().incrementedStat("numL1ElimTrueRelAttempts", ++settings.getStats().numL1ElimTrueRelAttempts, settings.getTraceLevel(), this);
 			if(settings.getTraceLevel() >= 5)
 			{
 				settings.trace(-5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "(partial for %s) %s", var.getName(), stringiseAssignments(assignment));
-				settings.trace( 5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "variable: %s, complement: %s, universe: %s", var.getName(), complement, universe.getName());				
+				settings.trace( 5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", "variable: %s, complement: %s, universe: %s", var.getName(), complement, universeSubset.getName());				
 			}
 		}
+		
+		// Let's deal with type issues.
+		
+		// First off, we want to be able to pass an incompatible type to mRel to this method (ie. we don't want this stopped in compile time),
+		// because we want the OPAS runtime to deal with it (as immediately below) by returning the appropriate (universe/empty) set instead.
+		// This is why we aren't properly generic typing this class (but instead using an anonymous type capture) for mRel.
+		
+		// If the universeSubset is not of a type that the rel can supply, then we can't do elimTrue here (even though there may be true members).
+		// We _could_ try and do it, but it would be too complex to implement for anyone, and would be impossible to understand the code or use type checks.
+		// Instead we rely on re-ordering the elimTrues in FOFormulaBROr to resolve this problem.
+		if(!mRel.getType().isAssignableFrom(universeSubset.getType()))
+			return null; // TODO: Unit test this.
+		// From this point on we know the universeSubset is of a type that the rel supports.
 
 		// Do a partial assignment to the terms.
 		for(FOTerm term : mTerms)
@@ -101,11 +115,17 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		// Constrain tries to return elements of the universe where the relation is true.
 		// We complement this set to eliminate elements that are known to be true.
 		// We don't need to complement it if this formula has a negation of course.
-		FOSet<FOElement> constrained = mRel.tryConstrain(var, universe, mTerms, complement ^ !mNegated);
+		//
+		// As discussed above, we deliberately erase the type here from compiler checks because we have already established above (in runtime)
+		// that the universe contains a type that's a descendant (assignable) of the type the rel needs. This is per the tryConstrain interface
+		// which says <TI extends T> FOSet<TI> where T is the type for the relation and TI is the type of the universeSubset.
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		FOSet<? extends TI> constrained = mRel.tryConstrain(var, (FOSet) universeSubset, mTerms, complement ^ !mNegated);
 
 		settings.trace(5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", 
-				"Elimination variable: %s, success: %s, subset: %s", var.getName(), constrained != universe, constrained.getName());
-	
+				"Elimination variable: %s, success: %s, subset: %s", var.getName(), constrained != null,
+				constrained == null ? "<null>" : constrained.getName());
+
 		return constrained;
 	}
 }

@@ -40,7 +40,7 @@ public class FOSetUtilsTest {
 	@Test
 	public void testEmptySet()
 	{
-		FOOrderedEnumerableSet<FOInteger> emptySet = new FOSetUtils.EmptySet<>();
+		FOOrderedEnumerableSet<FOInteger> emptySet = new FOSetUtils.EmptySet<>(FOInteger.class);
 		assertEquals("(Empty)", emptySet.getName());
 		FOSet<FOInteger> other = new FOSetRangedNaturals(10,100);
 		assertTrue(other == emptySet.complement(other));

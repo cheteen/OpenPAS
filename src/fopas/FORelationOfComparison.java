@@ -90,7 +90,7 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 		}
 
 		@Override
-		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		public <TI extends FOElement> FOSet<? extends TI> tryConstrain(FOVariable var, FOSet<TI> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
 			assert terms.size() == 2;
 			// We need to figure out which arg is the variable and which one is the "other" (non-variable) arg.
@@ -107,38 +107,51 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 					// This will return the universe in the non-complement case, but crucially, in the complemented case,
 					// it'll return an empty set which say for no element of the universe it can be true.
 					// This does a trick in negating the complement on the empty set to get back the universe set in a different way.
-					return new FOSetUtils.EmptySet<>()
+					return new FOSetUtils.EmptySet<>(universeSubset.getType())
 							.complement(universeSubset, !isComplemented);
+					//TODO: Add a unit test for this - and the diff should be returning null vs universeSubset now (or empty set).
 				}
 				
 				// The first arg is the non-variable arg.
 				other = terms.get(0); 
 			}
 			
-			// Check if the other term is not a partial assignment, then we can constrain the subset to a single element.
-			if(other != null && other.getAssignment() != null)
-			{
-				return new FOSetUtils.SingleElementSet<FOElement>(other.getAssignment())
-							.complement(universeSubset, isComplemented);
-			}
+			// If it's not related to the variable, or if there's no assignment yet, we can't do anything.
+			if(other == null || other.getAssignment() == null)
+				return null;
 
-
-			// We don't have anything better at the moment, return the original set.
-			return universeSubset;
+			// This is a non-fatal error - means the programmer missed a type elimination somewhere.
+			// TODO: Make this configurable so that it can throw an error.
+			// TODO: Also count this when I get acccess to the runtime here.
+			if(!universeSubset.getType().isAssignableFrom(other.getAssignment().getClass()))
+				return null;
+			
+			// Can ignore type check here since we dealt with it above.
+			@SuppressWarnings("unchecked")
+			FOSet<TI> returnSet = new FOSetUtils.SingleElementSet<>((TI) other.getAssignment())
+						.complement(universeSubset, isComplemented);
+			
+			return returnSet;
 		}
+
+		@Override
+		public Class<FOElement> getType() { return FOElement.class; }
 	}
 	
-	static class FORelationImplInequality extends FORelationOfComparison<FOElement>
+	static class FORelationImplInequality <T extends FOElement> extends FORelationOfComparison<T>
 	{
 		protected final boolean mLessThan;
 		protected final boolean mEquals;
 		protected final Comparator<FOElement> mOrder;
-		FORelationImplInequality(Comparator<FOElement> order, boolean lessThan, boolean equals)
+		protected final Class<T> mRelType;
+
+		FORelationImplInequality(Comparator<FOElement> order, boolean lessThan, boolean equals, Class<T> relType)
 		{
 			super(createName(lessThan, equals));
 			mOrder = order;
 			mLessThan = lessThan;
 			mEquals = equals;
+			mRelType = relType;
 		}
 		
 		protected static String createName(boolean lessThan, boolean equals)
@@ -206,7 +219,7 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 		}
 		
 		@Override
-		public FOSet<FOElement> tryConstrain(FOVariable var, FOSet<FOElement> universeSubset, List<FOTerm> terms, boolean isComplemented)
+		public <TI extends T> FOSet<? extends TI> tryConstrain(FOVariable var, FOSet<TI> universeSubset, List<FOTerm> terms, boolean isComplemented)
 		{
 			assert terms.size() == 2;
 			// We need to figure out which arg is the variable and which one is the "other" (non-variable) arg.
@@ -233,12 +246,12 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 					// fake universe set).
 					// Case: v1 <= v1
 					if(mEquals) // This mimics the equality case above.
-						return new FOSetUtils.EmptySet<>()
+						return new FOSetUtils.EmptySet<>(universeSubset.getType())
 							.complement(universeSubset, !isComplemented);
 					else
 						// Case: v1 < v1
 						// Same as above but w/o the negation on the complement.
-						return new FOSetUtils.EmptySet<>()
+						return new FOSetUtils.EmptySet<>(universeSubset.getType())
 								.complement(universeSubset, isComplemented);					
 				}
 
@@ -249,20 +262,31 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			
 			// No constraining possible if the variable isn't present in this formula.
 			if(other == null)
-				return universeSubset;
+				return null;
 			
 			// If we have no assignment on the other term, we may be able to get something by solving the equation for var.
 			// We don't support that _yet_, so we need to skip for now.
-			FOElement termAssignment = other.getAssignment(); 
-			if(termAssignment == null)
+			// TODO: Add type checks to the relation here to make sure we handle the cast here.
+			FOElement termAssignmentPretype = other.getAssignment();
+			if(termAssignmentPretype == null)
 				return universeSubset;
+			
+			// This is a non-fatal error - means the programmer missed a type elimination somewhere.
+			// TODO: Make this configurable so that it can throw an error.
+			// TODO: Also count this when I get acccess to the runtime here.
+			if(!universeSubset.getType().isAssignableFrom(termAssignmentPretype.getClass()))
+				return null;
+			
+			// We do the type check for this above.
+			@SuppressWarnings("unchecked")
+			TI termAssignment = (TI) termAssignmentPretype;
 			
 			// If universe subset isn't ordered, we don't have an intrinsic way to constrain the set.
 			// The forall iteration will be constrained by the relation already, so we will need to leave it to that phase.
 			if(!(universeSubset instanceof FOOrderedEnumerableSet))
 				return universeSubset;
 			
-			FOOrderedEnumerableSet<FOElement> fosetOEUniverseSubset = (FOOrderedEnumerableSet<FOElement>) universeSubset;
+			FOOrderedEnumerableSet<TI> fosetOEUniverseSubset = (FOOrderedEnumerableSet<TI>) universeSubset;
 			// Check if the universe subset has the same order this inequality expects.
 			if(!fosetOEUniverseSubset.getOrder().equals(mOrder))
 				return universeSubset;
@@ -274,9 +298,9 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 							.complement(universeSubset, isComplemented);
 				else
 				{
-					FOElement prev = fosetOEUniverseSubset.getPreviousOrNull(termAssignment);
+					TI prev = fosetOEUniverseSubset.getPreviousOrNull(termAssignment);
 					if(prev == null)
-						return new FOSetUtils.EmptySet<>()
+						return new FOSetUtils.EmptySet<>(universeSubset.getType())
 								.complement(universeSubset, isComplemented);
 					else
 						return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), prev)
@@ -290,9 +314,9 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 							.complement(universeSubset, isComplemented);
 				else
 				{
-					FOElement next = fosetOEUniverseSubset.getNextOrNull(termAssignment);
+					TI next = fosetOEUniverseSubset.getNextOrNull(termAssignment);
 					if(next == null)
-						return new FOSetUtils.EmptySet<>()
+						return new FOSetUtils.EmptySet<>(universeSubset.getType())
 								.complement(universeSubset, isComplemented);
 					else
 						return fosetOEUniverseSubset.constrainToRange(next, fosetOEUniverseSubset.getLastOrInfinite())
@@ -300,5 +324,8 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 				}
 			}
 		}
+
+		@Override
+		public Class<T> getType() { return mRelType; }
 	}	
 }
