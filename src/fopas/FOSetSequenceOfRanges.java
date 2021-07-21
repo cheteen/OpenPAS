@@ -48,7 +48,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		this(null, ranges);
 	}
 
-	FOSetSequenceOfRanges(Iterable<FOSetRangedNaturals> ranges, boolean allowContiguous)
+	FOSetSequenceOfRanges(Iterable<FOSetRangedNaturals> ranges, boolean transformContiguous)
 	{
 		this(null, ranges, false);
 	}
@@ -58,17 +58,14 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		this(name, ranges, true);
 	}
 
-	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges, boolean allowContiguous)
+	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges, boolean transformContiguous)
 	{
 		mName = name;
 		mRanges = new ArrayList<>();
 		
-		int rangesSize = 0;
-		
 		Integer prevRangeEndOrInfNext = null;
 		for(FOSetRangedNaturals range : ranges)
 		{
-			rangesSize++;
 			Integer rangeStartOrInf = range.getStartOrInfinite(true).getInteger();
 			if(prevRangeEndOrInfNext != null)
 			{
@@ -76,14 +73,24 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 				{
 					if(rangeStartOrInf.equals(prevRangeEndOrInfNext))
 					{
-						if(!allowContiguous)
+						if(transformContiguous)
+						{
+							FOSetRangedNaturals lastRange = mRanges.get(mRanges.size() - 1);
+							FOSetRangedNaturals trfRange = new FOSetRangedNaturals(lastRange.getStart().getInteger(), lastRange.getIncludeStart(), 
+																					range.getEnd().getInteger(), range.getIncludeEnd()); 
+							mRanges.set(mRanges.size() - 1, trfRange);
+						}
+						else
 							throw new FORuntimeException("Contiguous sequence of ranges creation where not allowed.");
 					}
 					else
 						throw new FORuntimeException("Incorrectly ordered or overlapping invalid range given during creation.");						
 				}
+				else
+					mRanges.add(range);
 			}
-			mRanges.add(range);
+			else
+				mRanges.add(range); // not ideal that this is repeated few lines above.
 			
 			prevRangeEndOrInfNext = range.getEndOrInfinite(true).getInteger();
 			if(prevRangeEndOrInfNext != Integer.MAX_VALUE)
@@ -93,7 +100,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 			}
 		}
 		
-		if(rangesSize < 2)
+		if(mRanges.size() < 2)
 			throw new FORuntimeException("Invalid sequence ranges creation - need at least 2 ranges.");
 	}
 	
@@ -151,7 +158,7 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 	}
 
 	@Override
-	public FOSet<FOInteger> complement(FOSet<FOInteger> relativeSet)
+	public FOSet<FOInteger> complementOut(FOSet<FOInteger> relativeSet)
 	{
 		// Complement of self is empty set.
 		if(relativeSet == this)
@@ -209,10 +216,10 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 					return new FOSetSequenceOfRanges(newRanges);
 			}
 		}
-		throw new FORuntimeException("Unsupported complement operation.");
+		
+		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Iterator<FOInteger> iterator()
 	{
@@ -400,4 +407,29 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 	
 	@Override
 	public Class<FOInteger> getType() { return FOInteger.class;}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((mRanges == null) ? 0 : mRanges.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FOSetSequenceOfRanges other = (FOSetSequenceOfRanges) obj;
+		if (mRanges == null) {
+			if (other.mRanges != null)
+				return false;
+		} else if (!mRanges.equals(other.mRanges))
+			return false;
+		return true;
+	}
 }

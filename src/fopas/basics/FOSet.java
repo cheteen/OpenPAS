@@ -28,20 +28,121 @@ public interface FOSet<T extends FOElement>
 	public String getName();
 	
 	public boolean contains(Object o);
+
+	// TODO: I think the best is to have the regular complement as withing the same type.
+	// Then have another complementAcross that takes any types.
+	// Finally have an implementation that uses the 6x methods below to implement the above.
 	
+	//TODO: Do 6x of these and remove the reverses:
+	// complementOut, complementIn // the default version that does it within the same type.
+	// complementSuperOut, complementSuperIn // complement against a super set
+	// complementExtendOut, complementExtendIn // complement against a descendant set.
+	
+	// Do I need the complementIn/Out when I have the extendIn/Out?
+	
+	// Return the complement set: relativeSet \ this
+	public default FOSet<? super T> complementSuperOut(FOSet<? super T> relativeSet) { return null;}
+	// Return the complement set: this \ relativeSet
+	public default FOSet<? extends T> complementSuperIn(FOSet<? super T> relativeSet) { return null;} 
+
+	// Return the complement set: relativeSet \ this
+	public default FOSet<? extends T> complementExtendOut(FOSet<? extends T> relativeSet) { return null;}
+	// Return the complement set: this \ relativeSet
+	public default FOSet<? super T> complementExtendIn(FOSet<? extends T> relativeSet) { return null;} 
+	
+	// Return the complement set: relativeSet \ this
+	public default FOSet<T> complementOut(FOSet<T> relativeSet) { return null;}
+	// Return the complement set: this \ relativeSet
+	public default FOSet<T> complementIn(FOSet<T> relativeSet) { return null;} 
+
 	/**
-	 * This is to give the complement set: relativeSet \ this
+	 * This is to give one of the complement set:
+	 * relativeSet \ this (reverse = False)
+	 * 
+	 * This method is a restricted version of complementAcross, and it works only with 
+	 * 
 	 * @param relativeSet
-	 * @return A set containing elements that are in the relativeSet but not in this set.
+	 * @return A complement set as described above.
 	 */
-	public FOSet<T> complement(FOSet<T> relativeSet);
-	public default FOSet<T> complement(FOSet<T> relativeSet, boolean isComplement)
+	public default FOSet<T> complement(FOSet<T> relativeSet)
 	{
-		if(isComplement)
-			return complement(relativeSet);
+		FOSet<? extends FOElement> complementSet = complementAcross(relativeSet);
+		if(complementSet == null)
+			return null;
+			
+		if(complementSet.getType().equals(getType()))
+		{
+			@SuppressWarnings("unchecked")
+			FOSet<T> matchingComplementSet = (FOSet<T>) complementSet;
+			return matchingComplementSet;
+		}
 		else
-			return this;
+			return null; // we have a complement set, but it's of the wrong type, so ignore it.
 	}
-	
+
+	/**
+	 * This is to give one of the complement set:
+	 * relativeSet \ this (reverse = False)
+	 * 
+	 * This method looks at the runtime types and tries to figure out a way to perform the complement
+	 * across the two classes involved.
+	 * 
+	 * @param relativeSet
+	 * @return A complement set as described above.
+	 */
+	public default FOSet<? extends FOElement> complementAcross(FOSet<? extends FOElement> relativeSet)
+	{
+		FOSet<? extends FOElement> complementSet;
+
+		if(relativeSet.getType().equals(getType()))
+		{
+			@SuppressWarnings("unchecked")
+			FOSet<T> relativeMatchingSet = (FOSet<T>) relativeSet;
+			
+			complementSet = complementOut(relativeMatchingSet);
+			if(complementSet != null)
+				return complementSet;
+			
+			complementSet = relativeMatchingSet.complementIn(this);
+			if(complementSet != null)
+				return complementSet;
+		}
+		// Let the equal type fall through here as both of the following will still apply to the equal type, and may produce a result.
+
+		// Relative set contains super type of own type.
+		if(relativeSet.getType().isAssignableFrom(getType()))
+		{
+			@SuppressWarnings("unchecked")
+			FOSet<? super T> relativeMatchingSet = (FOSet<? super T>) relativeSet;
+
+			complementSet = complementSuperOut(relativeMatchingSet);
+			if(complementSet != null)
+				return complementSet;
+			
+			return relativeMatchingSet.complementExtendIn(this); // may still be null
+		}
+		// Relative set type descends from own type
+		if(getType().isAssignableFrom(relativeSet.getType()))
+		{
+			@SuppressWarnings("unchecked")
+			FOSet<? extends T> relativeMatchingSet = (FOSet<? extends T>) relativeSet;
+
+			complementSet = complementExtendOut(relativeMatchingSet);
+			if(complementSet != null)
+				return complementSet;
+
+			return relativeMatchingSet.complementSuperIn(this); // may still be null
+		}
+		
+		return null;
+	}
+
 	Class<T> getType();
+
+	public default FOSet<T> complementIf(boolean condition, FOSet<T> relativeSet)
+	{
+		if(condition)
+			return this.complement(relativeSet);
+		return this;
+	}
 }

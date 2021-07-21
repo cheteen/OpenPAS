@@ -25,4 +25,9 @@ public class FORuntimeException extends RuntimeException
 	{
 		super(reason);
 	}
+	
+	public FORuntimeException(String reason, Exception exp)
+	{
+		super(reason, exp);
+	}
 }

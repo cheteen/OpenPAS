@@ -19,7 +19,8 @@ package fopas.basics;
 
 // This should probably really be a generic "UnionSet" as there's nothing universe
 // specific here really.
-public interface FOUnionSet<T extends FOElement> extends FOEnumerableSet<T>
+public interface FOUnionSet<T extends FOElement>
 {
-	FOSet<T> getOriginalSubset(String name);
+	FOSet<? extends T> getOriginalSubset(String name);
+	Iterable<FOSet<? extends T>> getSetIterable();
 }

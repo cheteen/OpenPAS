@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.collect.FluentIterable;
+import com.sun.org.apache.bcel.internal.util.Class2HTML;
 
 import fopas.FOElementImpl.FOIntImpl.FOIntComparator;
 import fopas.basics.FOEnumerableSet;
@@ -82,9 +83,15 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOSet<T> complement(FOSet<T> relativeSet)
+		public FOSet<T> complementOut(FOSet<T> relativeSet)
 		{
 			return relativeSet;
+		}
+
+		@Override
+		public FOSet<T> complementIn(FOSet<T> relativeSet)
+		{
+			return this;
 		}
 
 		@Override
@@ -227,16 +234,72 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOSet<T> complement(FOSet<T> relativeSet)
+		public FOSet<T> complementOut(FOSet<T> relativeSet)
 		{
+			// This is the only efficient operation we can do in this direction.
 			if(mRelativeSet.equals(relativeSet))
-				return relativeSet;
-			throw new FORuntimeException("Unimplemented complement operation.");
+				return new SingleElementSet<T>(mElement, getType());
+			return null;
 		}
 		
-		@SuppressWarnings("unchecked")
 		@Override
-		public Class<T> getType() { return (Class<T>) mElement.getClass(); }
+		public FOSet<T> complementIn(FOSet<T> relativeSet)
+		{
+			FOSet<T> relComp = relativeSet.complement(mRelativeSet);
+			if(relComp != null)
+			{
+				// relComp has to be a subset of mRelativeSet - it may or may not contain mElement.
+				// This may be a more specialised set than mRelativeSet
+				if(!relComp.contains(mElement))
+					return relComp;
+				else
+				{
+					// Since relComp is a subset of mRelative set (which is enumerable) it's impossible for this set to non-enumerable.
+					assert relComp instanceof FOEnumerableSet;
+					if(!(relComp instanceof FOEnumerableSet))
+						return null; //should never happen.
+					
+					FOEnumerableSet<T> relEnumComp = (FOEnumerableSet<T>) relComp;
+
+					return new ComplementedSingleElementSet<T>(getName(), mElement, relEnumComp);
+				}
+			}
+			return null;
+		}
+
+		public Class<T> getType() { return mRelativeSet.getType();}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((mElement == null) ? 0 : mElement.hashCode());
+			result = prime * result + ((mRelativeSet == null) ? 0 : mRelativeSet.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			@SuppressWarnings("rawtypes") // type is reified ComplementedSingleElementSet, so can be ignored here.
+			ComplementedSingleElementSet other = (ComplementedSingleElementSet) obj;
+			if (mElement == null) {
+				if (other.mElement != null)
+					return false;
+			} else if (!mElement.equals(other.mElement))
+				return false;
+			if (mRelativeSet == null) {
+				if (other.mRelativeSet != null)
+					return false;
+			} else if (!mRelativeSet.equals(other.mRelativeSet))
+				return false;
+			return true;
+		}
 	}
 	
 	static class SingleElementSet<T extends FOElement> implements FOOrderedEnumerableSet<T>
@@ -266,16 +329,18 @@ public class FOSetUtils
 		}
 		
 		protected final T mElement;
+		protected final Class<T> mType;
 		protected final Comparator<FOElement> mComparator;
 
-		SingleElementSet(T element)
+		SingleElementSet(T element, Class<T> type)
 		{
-			this(element, element.getDefaultComparator());
+			this(element, type, element.getDefaultComparator());
 		}
-		SingleElementSet(T element, Comparator<FOElement> comparator)
+		SingleElementSet(T element, Class<T> type, Comparator<FOElement> comparator)
 		{
 			mElement = element;
 			mComparator = comparator;
+			mType = type;
 		}
 		
 		@Override
@@ -303,8 +368,9 @@ public class FOSetUtils
 		}
 
 		@Override
-		public FOSet<T> complement(FOSet<T> relativeSet)
+		public FOSet<T> complementOut(FOSet<T> relativeSet)
 		{
+			//TODO: Unit test this!
 			if(!relativeSet.contains(mElement))
 				return relativeSet;
 			
@@ -312,9 +378,16 @@ public class FOSetUtils
 				// We need an enumerable set that has everything but this element:
 				return new ComplementedSingleElementSet<T>(getName(), mElement, (FOEnumerableSet<T>) relativeSet);
 			
-			throw new FORuntimeException("Unsupported complement of single element set.");
+			return null;				
+		}
+
+		@Override
+		public FOSet<T> complementIn(FOSet<T> relativeSet)
+		{
+			if(!relativeSet.contains(mElement))
+				return this;
 			
-			// This can be implemented for a non-enumerable range when we need it. 
+			return new FOSetUtils.EmptySet<T>(getType());
 		}
 
 		@Override
@@ -365,8 +438,38 @@ public class FOSetUtils
 			throw new FORuntimeException("Can't get previous of element not in the set.");
 		}
 		
-		@SuppressWarnings("unchecked")
 		@Override
-		public Class<T> getType() { return (Class<T>) mElement.getClass(); }
+		public Class<T> getType() { return mType; }
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((mComparator == null) ? 0 : mComparator.hashCode());
+			result = prime * result + ((mElement == null) ? 0 : mElement.hashCode());
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			@SuppressWarnings("rawtypes")
+			SingleElementSet other = (SingleElementSet) obj;
+			if (mComparator == null) {
+				if (other.mComparator != null)
+					return false;
+			} else if (!mComparator.equals(other.mComparator))
+				return false;
+			if (mElement == null) {
+				if (other.mElement != null)
+					return false;
+			} else if (!mElement.equals(other.mElement))
+				return false;
+			return true;
+		}
 	}
 }

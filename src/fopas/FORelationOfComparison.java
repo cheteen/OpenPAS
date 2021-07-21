@@ -125,7 +125,7 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 					// it'll return an empty set which say for no element of the universe it can be true.
 					// This does a trick in negating the complement on the empty set to get back the universe set in a different way.
 					return new FOSetUtils.EmptySet<>(universeSubset.getType())
-							.complement(universeSubset, !isComplemented);
+							.complementIf(!isComplemented, universeSubset);
 					//TODO: Add a unit test for this - and the diff should be returning null vs universeSubset now (or empty set).
 				}
 				
@@ -145,8 +145,8 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			
 			// Can ignore type check here since we dealt with it above.
 			@SuppressWarnings("unchecked")
-			FOSet<TI> returnSet = new FOSetUtils.SingleElementSet<>((TI) other.getAssignment())
-						.complement(universeSubset, isComplemented);
+			FOSet<TI> returnSet = new FOSetUtils.SingleElementSet<>((TI) other.getAssignment(), universeSubset.getType())
+						.complementIf(isComplemented, universeSubset);
 			
 			return returnSet;
 		}
@@ -264,12 +264,12 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 					// Case: v1 <= v1
 					if(mEquals) // This mimics the equality case above.
 						return new FOSetUtils.EmptySet<>(universeSubset.getType())
-							.complement(universeSubset, !isComplemented);
+							.complementIf(!isComplemented, universeSubset);
 					else
 						// Case: v1 < v1
 						// Same as above but w/o the negation on the complement.
 						return new FOSetUtils.EmptySet<>(universeSubset.getType())
-								.complement(universeSubset, isComplemented);					
+								.complementIf(isComplemented, universeSubset);					
 				}
 
 				// The first arg is the non-variable arg.
@@ -312,32 +312,32 @@ abstract public class FORelationOfComparison<T extends FOElement> extends FORela
 			{
 				if(mEquals)
 					return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), termAssignment)
-							.complement(universeSubset, isComplemented);
+							.complementIf(isComplemented, universeSubset);
 				else
 				{
 					TI prev = fosetOEUniverseSubset.getPreviousOrNull(termAssignment);
 					if(prev == null)
 						return new FOSetUtils.EmptySet<>(universeSubset.getType())
-								.complement(universeSubset, isComplemented);
+								.complementIf(isComplemented, universeSubset);
 					else
 						return fosetOEUniverseSubset.constrainToRange(fosetOEUniverseSubset.getFirstOrInfinite(), prev)
-								.complement(universeSubset, isComplemented);
+								.complementIf(isComplemented, universeSubset);
 				}
 			}
 			else
 			{
 				if(mEquals)
 					return fosetOEUniverseSubset.constrainToRange(termAssignment, fosetOEUniverseSubset.getLastOrInfinite())
-							.complement(universeSubset, isComplemented);
+							.complementIf(isComplemented, universeSubset);
 				else
 				{
 					TI next = fosetOEUniverseSubset.getNextOrNull(termAssignment);
 					if(next == null)
 						return new FOSetUtils.EmptySet<>(universeSubset.getType())
-								.complement(universeSubset, isComplemented);
+								.complementIf(isComplemented, universeSubset);
 					else
 						return fosetOEUniverseSubset.constrainToRange(next, fosetOEUniverseSubset.getLastOrInfinite())
-								.complement(universeSubset, isComplemented);
+								.complementIf(isComplemented, universeSubset);
 				}
 			}
 		}

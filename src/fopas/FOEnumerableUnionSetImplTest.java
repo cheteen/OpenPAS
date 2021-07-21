@@ -19,11 +19,23 @@ package fopas;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.google.common.collect.Iterables;
+
+import fopas.FOSetUtils.EmptySet;
+import fopas.basics.FOConstructionException;
+import fopas.basics.FOElement;
+import fopas.basics.FOElement.FOString;
+import fopas.basics.FOElement.FOSymbol;
+import fopas.basics.FOSet;
 
 public class FOEnumerableUnionSetImplTest {
 
@@ -43,8 +55,88 @@ public class FOEnumerableUnionSetImplTest {
 	public void tearDown() throws Exception {
 	}
 
-	@Test
-	public void test() {
+	private FOBridgeSet<FOSymbol> createMathsSmybolsSet()
+	{
+		FOSymbol exp = new FOElementImpl.FOSymbolImpl("exp");
+		FOSymbol pi = new FOElementImpl.FOSymbolImpl("pi");
+		FOSymbol sum = new FOElementImpl.FOSymbolImpl("sum");
+		FOBridgeSet<FOSymbol> symbols = new FOBridgeSet<>("maths_symbols", new HashSet<>(Arrays.asList(exp, pi, sum)), FOSymbol.class);
+		return symbols;
 	}
 
+	private FOBridgeSet<FOString> createNamesSet()
+	{
+		FOString burak = new FOElementImpl.FOStringImpl("burak");
+		FOString selami = new FOElementImpl.FOStringImpl("selami");
+		FOString suleyman = new FOElementImpl.FOStringImpl("suleyman");
+		FOBridgeSet<FOString> names = new FOBridgeSet<>("names", new HashSet<>(Arrays.asList(burak, selami, suleyman)), FOString.class);
+		return names;
+	}
+
+
+	private FOEnumerableUnionSetImpl<FOElement> createUnionSetRN() throws FOConstructionException
+	{
+		FOSetRangedNaturals range = new FOSetRangedNaturals(10, 14);
+		FOBridgeSet<FOString> names = createNamesSet();
+		FOEnumerableUnionSetImpl<FOElement> unionSet = new FOEnumerableUnionSetImpl<>(Arrays.asList(range, names), FOElement.class);
+		return unionSet;
+	}
+
+	private FOEnumerableUnionSetImpl<FOElement> createUnionSetRNS() throws FOConstructionException
+	{
+		FOSetRangedNaturals range = new FOSetRangedNaturals(10, 14);
+		FOBridgeSet<FOString> names = createNamesSet();
+		FOBridgeSet<FOSymbol> symbols = createMathsSmybolsSet();
+		FOEnumerableUnionSetImpl<FOElement> unionSet = new FOEnumerableUnionSetImpl<>(Arrays.asList(range, names, symbols), FOElement.class);
+		return unionSet;
+	}
+
+	@Test
+	public void testSetCreation() throws FOConstructionException
+	{
+		FOEnumerableUnionSetImpl<FOElement> unionSet = createUnionSetRN();
+		
+		assertEquals("N [10, 14] U names", unionSet.getName());
+		assertEquals(8, unionSet.size());
+		assertEquals(unionSet.size(), Iterables.size(unionSet));
+		assertTrue(unionSet.contains(new FOElementImpl.FOStringImpl("burak")));
+		assertFalse(unionSet.contains(new FOElementImpl.FOStringImpl("mulayim")));
+	}
+
+	@Test
+	public void testSetComplement1() throws FOConstructionException
+	{
+		FOEnumerableUnionSetImpl<FOElement> unionSetRN = createUnionSetRN();
+		FOEnumerableUnionSetImpl<FOElement> unionSetRNS = createUnionSetRNS();
+		
+		{
+			FOSet<? extends FOElement> complementS = unionSetRN.complement(unionSetRNS);
+			assertEquals("maths_symbols", complementS.getName());			
+			
+			FOSet<? extends FOElement> complementS2 = unionSetRN.complementIn(unionSetRNS);
+			assertEquals(complementS, complementS2);
+		}
+		{
+			FOSet<? extends FOElement> complementS = unionSetRNS.complement(unionSetRN);
+			assertNull(complementS);			
+		}
+		{
+			FOSet<? extends FOElement> complementEmpty = unionSetRNS.complement(unionSetRN);
+			assertTrue(complementEmpty.size() == 0);
+			assertTrue(complementEmpty instanceof EmptySet);
+		}
+	}
+
+	@Test
+	public void testSetComplement2() throws FOConstructionException
+	{
+		FOEnumerableUnionSetImpl<FOElement> unionSetRN = createUnionSetRN();
+		FOSetRangedNaturals setR = new FOSetRangedNaturals(10, 14);
+		
+//		{
+//			FOSet<? extends FOElement> complementN = setR.complement(unionSetRN);
+//			assertEquals("maths_symbols", complementS.getName());			
+		
+//		}
+	}
 }

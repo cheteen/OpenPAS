@@ -34,6 +34,7 @@ import fopas.basics.FOOrderedEnumerableSet;
 import fopas.basics.FORange;
 import fopas.basics.FOSet;
 import fopas.basics.FOEnumerableSet;
+import fopas.FOSetUtils.ComplementedSingleElementSet;
 import fopas.basics.FOElement.FOInteger;
 
 public class FOSetUtilsTest {
@@ -61,7 +62,7 @@ public class FOSetUtilsTest {
 		assertEquals("(Empty)", emptySet.getName());
 		FOSet<FOInteger> other = new FOSetRangedNaturals(10,100);
 		assertTrue(other == emptySet.complement(other));
-		assertTrue(emptySet == emptySet.complement(other, false));
+		assertTrue(other == emptySet.complementAcross(other));
 		assertEquals(0, emptySet.size());
 		assertFalse(emptySet.contains(new FOElementImpl.FOIntImpl(0)));
 		assertFalse(emptySet.iterator().hasNext());
@@ -75,13 +76,23 @@ public class FOSetUtilsTest {
 	@Test
 	public void testSingleEltSet()
 	{
-		FOOrderedEnumerableSet<FOInteger> singleSet = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(10));
+		FOOrderedEnumerableSet<FOInteger> singleSet = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(10), FOInteger.class);
 		assertEquals("{10}", singleSet.getName());
-		FOSet<FOInteger> other = new FOSetRangedNaturals(10,100);
-		assertTrue(singleSet == singleSet.complement(other, false));
+		FOSet<FOInteger> other = new FOSetRangedNaturals(10,99);
 		assertEquals(10, singleSet.getFirstOrInfinite().getInteger());
 		assertEquals(10, singleSet.getLastOrInfinite().getInteger());		
 		assertEquals(FOElementImpl.FOIntImpl.DEFAULT_COMPARATOR, singleSet.getOrder());
+		
+		{
+			FOSet<? extends FOInteger> compSet = singleSet.complement(other);
+			assertFalse(compSet.contains(new FOElementImpl.FOIntImpl(10)));
+			assertTrue(compSet.contains(new FOElementImpl.FOIntImpl(11)));
+			assertEquals(89, compSet.size());
+			assertTrue(compSet instanceof ComplementedSingleElementSet);
+			assertEquals(FOInteger.class, compSet.getType());
+
+			assertEquals(compSet, singleSet.complement(other));
+		}
 		
 		{
 			FOOrderedEnumerableSet<FOInteger> constrained = singleSet.constrainToRange(new FOElementImpl.FOIntImpl(5), new FOElementImpl.FOIntImpl(15));
@@ -100,8 +111,8 @@ public class FOSetUtilsTest {
 	@Test
 	public void testSingleEltComplementSet1()
 	{
-		FOOrderedEnumerableSet<FOInteger> singleSet = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(10));
-		FOOrderedEnumerableSet<FOInteger> singleSet2 = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(100));
+		FOOrderedEnumerableSet<FOInteger> singleSet = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(10), FOInteger.class);
+		FOOrderedEnumerableSet<FOInteger> singleSet2 = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(100), FOInteger.class);
 		
 		assertTrue(singleSet.complement(singleSet2) == singleSet2);
 	}
@@ -109,7 +120,7 @@ public class FOSetUtilsTest {
 	@Test
 	public void testSingleEltComplementSet2()
 	{
-		FOOrderedEnumerableSet<FOInteger> singleSet = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(10));
+		FOOrderedEnumerableSet<FOInteger> singleSet = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(10), FOInteger.class);
 		FOSet<FOInteger> other = new FOSetRangedNaturals(20,100);
 		
 		assertTrue(singleSet.complement(other) == other);
@@ -118,7 +129,7 @@ public class FOSetUtilsTest {
 	@Test
 	public void testSingleEltComplementSet3()
 	{
-		FOOrderedEnumerableSet<FOInteger> singleSet = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(10));
+		FOOrderedEnumerableSet<FOInteger> singleSet = new FOSetUtils.SingleElementSet<FOInteger>(new FOElementImpl.FOIntImpl(10), FOInteger.class);
 		FOSet<FOInteger> other = new FOSetRangedNaturals(0,100);
 		FOEnumerableSet<FOInteger> complement = (FOEnumerableSet<FOInteger>) singleSet.complement(other);
 		

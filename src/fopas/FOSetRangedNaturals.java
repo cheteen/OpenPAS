@@ -249,7 +249,7 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 	}
 		
 	@Override
-	public FOSet<FOInteger> complement(FOSet<FOInteger> relativeSet)
+	public FOSet<? super FOInteger> complementSuperOut(FOSet<? super FOInteger> relativeSet)
 	{
 		// TODO: Consider moving this (and constrain below) to a common abstract implementation, and perhaps do a concrete implementation here for efficiency (avoiding boxing).
 		// It'd be easy to generalise this to FOEnumerableSet since we use the generic interface FOEnumerableSet to do all the constraining operations which are the key.

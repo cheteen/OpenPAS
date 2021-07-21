@@ -35,7 +35,6 @@ import fopas.basics.KnownIterable;
 
 public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T>, Set<T>
 {
-
 	protected final String mName;
 	protected final Set<T> mSet;
 	protected final Class<T> mElementClass;
@@ -124,18 +123,36 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T>, Set<T>
 	}
 
 	@Override
-	public FOSet<T> complement(FOSet<T> relativeSet)
-	{
-		if(relativeSet instanceof FOBridgeSet)
-		{
-			FOBridgeSet<T> finiteSet = (FOBridgeSet<T>) relativeSet; 
-			FOBridgeSet<T> complemented = new FOBridgeSet<T>(String.format("%s\\%s", relativeSet.getName(), getName()), finiteSet, relativeSet.getType());
-			complemented.removeAll(mSet);
-			return complemented;
-		}
-		throw new FORuntimeException("Unsupported complement operation.");
-	}
+	public Class<T> getType() { return mElementClass;}
 
 	@Override
-	public Class<T> getType() { return mElementClass;}
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((mSet == null) ? 0 : mSet.hashCode());
+		return result;
+	}
+
+	/**
+	 * This only relies on the bridged sets being equal - it ignores any given names since names are decorational for logical ops.
+	 */
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		@SuppressWarnings("rawtypes") // it's appropriate to suppress this since typing is handled in set equality below.
+		FOBridgeSet other = (FOBridgeSet) obj;
+		if (mSet == null) {
+			if (other.mSet != null)
+				return false;
+		} else if (!mSet.equals(other.mSet))
+			return false;
+		return true;
+	}
 }
