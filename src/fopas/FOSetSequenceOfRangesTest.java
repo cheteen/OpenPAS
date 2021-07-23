@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import com.google.common.collect.Iterables;
 
+import fopas.FOSetSequenceOfRanges.FOInvalidSingleRangeSequence;
 import fopas.FOSetUtils.EmptySet;
 import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOElement;
@@ -65,9 +66,8 @@ public class FOSetSequenceOfRangesTest {
 		{
 			foseq = new FOSetSequenceOfRanges(Arrays.asList(forange));
 		}
-		catch(FORuntimeException exp)
+		catch (FOInvalidSingleRangeSequence e)
 		{
-			assertTrue(exp.getMessage().contains("need at least 2 ranges"));
 		}
 		assertEquals(null, foseq);
 	}
@@ -79,18 +79,19 @@ public class FOSetSequenceOfRangesTest {
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(20, 30);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(31, true, Integer.MAX_VALUE, false);
 		
+		FOSetSequenceOfRanges foseq = null;
 		try
 		{
-			new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
+			foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
 		}
-		catch(FORuntimeException exp)
+		catch (FOInvalidSingleRangeSequence e)
 		{
-			assertTrue(exp.getMessage().contains("need at least 2 ranges"));
 		}		
+		assertEquals(null, foseq);
 	}
 
 	@Test
-	public void testContiguousRangeThrows()
+	public void testContiguousRangeThrows() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 19);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 39);
@@ -107,7 +108,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 
 	@Test
-	public void testOverlappingRangeThrows()
+	public void testOverlappingRangeThrows() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 20);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 39);
@@ -124,7 +125,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 
 	@Test
-	public void testUnorderedRangeThrows()
+	public void testUnorderedRangeThrows() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 20);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(-10, 0);
@@ -141,7 +142,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 
 	@Test
-	public void testNamedSeqRange()
+	public void testNamedSeqRange() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 19);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(30, 39);
@@ -152,7 +153,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 
 	@Test
-	public void testTwoSeparateRanges()
+	public void testTwoSeparateRanges() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 19);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(30, 39);
@@ -166,7 +167,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 	
 	@Test
-	public void testFourSeparateRanges()
+	public void testFourSeparateRanges() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
@@ -182,7 +183,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 	
 	@Test
-	public void testComplements1()
+	public void testComplements1() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
@@ -461,7 +462,7 @@ public class FOSetSequenceOfRangesTest {
 	
 	
 	@Test
-	public void testComplements2()
+	public void testComplements2() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 10, true);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(20, 30);
@@ -494,7 +495,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 	
 	@Test
-	public void testComplements3()
+	public void testComplements3() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(20, 30);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(40, true, Integer.MAX_VALUE, false);
@@ -527,7 +528,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 	
 	@Test
-	public void testComplementSelf()
+	public void testComplementSelf() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(20, 30);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(40, true, Integer.MAX_VALUE, false);
@@ -538,7 +539,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 	
 	@Test
-	public void testComplementSelfEffectively1()
+	public void testComplementSelfEffectively1() throws FOInvalidSingleRangeSequence
 	{
 		// TODO: Self complement probably needs own impl.
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(20, 29);
@@ -550,34 +551,30 @@ public class FOSetSequenceOfRangesTest {
 	}
 	
 	@Test
-	public void testComplementSelfEffectively2()
+	public void testComplementSelfEffectively2() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 20, true);
-		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(21, 30);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(22, 30);
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2));
 		
-		FOSetRangedNaturals forangec = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 30, true);
-
-		FOSet<FOInteger> fosetc = foseq.complement(forangec);
+		FOSet<FOInteger> fosetc = foseq.complement(foseq);
 		assertTrue(fosetc instanceof EmptySet);
 	}
 	
 	@Test
-	public void testComplementSelfEffectively3()
+	public void testComplementSelfEffectively3() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(10, 20);
-		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(21, 30);
-		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(31, 50);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(22, 30);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(32, 50);
 		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2, forange3));
 		
-		FOSetRangedNaturals forangec = new FOSetRangedNaturals(10, 50);
-
-		FOSet<FOInteger> fosetc = foseq.complement(forangec);
+		FOSet<FOInteger> fosetc = foseq.complement(foseq);
 		assertTrue(fosetc instanceof EmptySet);
 	}
 	
 	@Test
-	public void testConstrains()
+	public void testConstrains() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
@@ -601,7 +598,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 
 	@Test
-	public void testConstrainNamed()
+	public void testConstrainNamed() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
@@ -628,7 +625,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 
 	@Test
-	public void testConstrainSelf()
+	public void testConstrainSelf() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
@@ -655,7 +652,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 	
 	@Test
-	public void testNextAndPrev1()
+	public void testNextAndPrev1() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
@@ -686,7 +683,7 @@ public class FOSetSequenceOfRangesTest {
 	}	
 
 	@Test
-	public void testNextAndPrev2()
+	public void testNextAndPrev2() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, -10, true);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
@@ -769,7 +766,8 @@ public class FOSetSequenceOfRangesTest {
 		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(15, true, Integer.MAX_VALUE, false);
 		// Union call order below is different to the naming order!
 		FOOrderedEnumerableSet<FOInteger> foseq = FOSetSequenceOfRanges.createUnion(Arrays.asList(forange3, forange2, forange1));
-		assertEquals("N [0, inf)", foseq.getName());
+		assertEquals("N", foseq.getName()); // simplifies to just N
+		assertEquals(FOSetRangedNaturals.class, foseq.getClass()); // simplifies to just N
 	}
 	
 	@Test

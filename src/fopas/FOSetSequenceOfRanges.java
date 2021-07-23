@@ -42,23 +42,44 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 	final protected String mName;
 	final protected List<FOSetRangedNaturals> mRanges;
 	
-
-	FOSetSequenceOfRanges(Iterable<FOSetRangedNaturals> ranges)
+	/**
+	 * This exception class is created when a sequence that contains a single range is created. This may be
+	 * not the intention if contiguous multiple ranges are given, in which case they're merged to a single
+	 * range. The idea here is to enforce the simplest representation of data. We merge contiguous ranges,
+	 * and we refuse to create a sequence of ranges with only one item in it. This is so, automatic data
+	 * manipulation which relies on the class types/shapes works in the optimal manner.
+	 */
+	public static class FOInvalidSingleRangeSequence extends Exception
+	{
+		protected FOSetRangedNaturals mRange;
+		FOInvalidSingleRangeSequence(FOSetRangedNaturals range)
+		{
+			mRange = range;
+		}
+		private static final long serialVersionUID = 1L;
+		/**
+		 * A sequence of ranges resulted in a single range, therefore shouldn't be represented as a range sequence. 
+		 * @return That single contigous range is returned inside this exception for use by the caller.
+		 */
+		public FOSetRangedNaturals getRange() { return mRange; }
+	}
+	
+	FOSetSequenceOfRanges(Iterable<FOSetRangedNaturals> ranges) throws FOInvalidSingleRangeSequence
 	{
 		this(null, ranges);
 	}
 
-	FOSetSequenceOfRanges(Iterable<FOSetRangedNaturals> ranges, boolean transformContiguous)
+	FOSetSequenceOfRanges(Iterable<FOSetRangedNaturals> ranges, boolean transformContiguous) throws FOInvalidSingleRangeSequence
 	{
 		this(null, ranges, false);
 	}
 
-	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges)
+	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges) throws FOInvalidSingleRangeSequence
 	{
 		this(name, ranges, true);
 	}
 
-	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges, boolean transformContiguous)
+	FOSetSequenceOfRanges(String name, Iterable<FOSetRangedNaturals> ranges, boolean transformContiguous) throws FOInvalidSingleRangeSequence
 	{
 		mName = name;
 		mRanges = new ArrayList<>();
@@ -101,7 +122,12 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		}
 		
 		if(mRanges.size() < 2)
-			throw new FORuntimeException("Invalid sequence ranges creation - need at least 2 ranges.");
+		{
+			if(mRanges.size() == 1)
+				throw new FOInvalidSingleRangeSequence(mRanges.get(0)); // don't allow a sequence range of size 1 to be created, throw exception instead. But preserve the newly created range.
+			else
+				throw new FORuntimeException("Trying to create an empty range.");
+		}
 	}
 	
 	@Override
@@ -210,10 +236,17 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 				return new FOSetUtils.EmptySet<FOElement.FOInteger>(FOInteger.class);
 			else
 			{
-				if(mName != null)
-					return new FOSetSequenceOfRanges(relativeSet.getName() + " \\ " + mName, newRanges);
-				else
-					return new FOSetSequenceOfRanges(newRanges);
+				try
+				{
+					if(mName != null)
+							return new FOSetSequenceOfRanges(relativeSet.getName() + " \\ " + mName, newRanges);
+					else
+						return new FOSetSequenceOfRanges(newRanges);
+				}
+				catch (FOInvalidSingleRangeSequence e)
+				{
+					return e.getRange(); // don't think there's every a valid use case for this
+				}
 			}
 		}
 		
@@ -263,14 +296,21 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 			return new FOSetUtils.EmptySet<FOElement.FOInteger>(FOInteger.class);
 		else
 		{
-			if(mName != null)
+			try
 			{
-				String startB = intFirstOrInf == Integer.MIN_VALUE ? "(" : "[";
-				String endB = intFirstOrInf == Integer.MAX_VALUE ? ")" : "]";
-				return new FOSetSequenceOfRanges(String.format("%s %s%d, %d%s", mName, startB, intFirstOrInf, intLastOrInf, endB), newRanges);
+				if(mName != null)
+				{
+					String startB = intFirstOrInf == Integer.MIN_VALUE ? "(" : "[";
+					String endB = intFirstOrInf == Integer.MAX_VALUE ? ")" : "]";
+					return new FOSetSequenceOfRanges(String.format("%s %s%d, %d%s", mName, startB, intFirstOrInf, intLastOrInf, endB), newRanges);
+				}
+				else
+					return new FOSetSequenceOfRanges(newRanges);				
 			}
-			else
-				return new FOSetSequenceOfRanges(newRanges);
+			catch (FOInvalidSingleRangeSequence e)
+			{
+				return e.getRange(); // don't think there's every a valid use case for this
+			}
 		}
 	}
 
@@ -402,7 +442,16 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		if(unionised.size() == 1)
 			return unionised.get(0);
 		else
-			return new FOSetSequenceOfRanges(unionised);
+		{
+			try 
+			{
+				return new FOSetSequenceOfRanges(unionised);
+			}
+			catch (FOInvalidSingleRangeSequence e)
+			{
+				return e.getRange();
+			}
+		}
 	}
 	
 	@Override

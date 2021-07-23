@@ -28,6 +28,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 
+import fopas.FOSetSequenceOfRanges.FOInvalidSingleRangeSequence;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
 import fopas.basics.FOOrderedEnumerableSet;
@@ -281,8 +282,15 @@ public class FOSetRangedNaturals implements FOOrderedEnumerableSet<FOInteger>, F
 			else if(fosetNat2 == null)
 				return fosetNat1;
 			else
-				return new FOSetSequenceOfRanges(relativeSet.getName() + " \\ " + getName(),
-						Arrays.asList((FOSetRangedNaturals) fosetNat1, (FOSetRangedNaturals) fosetNat2));
+				try
+				{
+					return new FOSetSequenceOfRanges(relativeSet.getName() + " \\ " + getName(),
+							Arrays.asList((FOSetRangedNaturals) fosetNat1, (FOSetRangedNaturals) fosetNat2));
+				} 
+				catch (FOInvalidSingleRangeSequence e)
+				{
+					return e.getRange();
+				}
 		}
 		return null;
 	}
