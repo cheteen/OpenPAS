@@ -49,12 +49,14 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	protected final String mName;
 
 	FOEnumerableUnionSetImpl(Collection<FOEnumerableSet<? extends T>> subsets, Class<T> eltType)
-			throws FOConstructionException {
+			throws FOConstructionException
+	{
 		this(subsets, eltType, null);
 	}
 
 	FOEnumerableUnionSetImpl(Collection<FOEnumerableSet<? extends T>> subsets, Class<T> eltType, String name)
-			throws FOConstructionException {
+			throws FOConstructionException
+	{
 		if (subsets.size() < 2)
 			throw new FOConstructionException("Can't create union set with fewer than 2 sets");
 
@@ -65,7 +67,8 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	}
 
 	protected FOEnumerableUnionSetImpl(Map<String, FOEnumerableSet<? extends T>> namedSubsets, Class<T> eltType,
-			String name) throws FOConstructionException {
+			String name) throws FOConstructionException
+	{
 		assert !(namedSubsets.size() < 2);
 		if (namedSubsets.size() < 2)
 			throw new FOConstructionException("Can't create union set with fewer than 2 sets");
@@ -77,7 +80,8 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	}
 
 	private Map<String, FOEnumerableSet<? extends T>> validateAndCreateNamedSubset(
-			Iterable<FOEnumerableSet<? extends T>> subsets) throws FOConstructionException {
+			Iterable<FOEnumerableSet<? extends T>> subsets) throws FOConstructionException
+	{
 		Map<String, FOEnumerableSet<? extends T>> namedSubsets = new LinkedHashMap<>();
 		for (FOEnumerableSet<? extends T> foset : subsets) {
 			if (!mEltType.isAssignableFrom(foset.getType()))
@@ -104,12 +108,14 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	}
 
 	@Override
-	public Iterator<T> iterator() {
+	public Iterator<T> iterator()
+	{
 		return Iterables.concat(mSubsets.values()).iterator();
 	}
 
 	@Override
-	public int size() {
+	public int size()
+	{
 		int size = 0;
 		for (FOSet<? extends FOElement> foset : mSubsets.values())
 			if (foset.size() == Integer.MAX_VALUE)
@@ -120,7 +126,8 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	}
 
 	@Override
-	public String getName() {
+	public String getName()
+	{
 		if (mName != null)
 			return mName;
 		StringBuffer sb = new StringBuffer();
@@ -135,7 +142,8 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	}
 
 	@Override
-	public boolean contains(Object o) {
+	public boolean contains(Object o)
+	{
 		for (FOSet<? extends FOElement> foset : mSubsets.values()) {
 			if (!foset.getType().isAssignableFrom(o.getClass()))
 				continue; // this set won't contain an element of this type
@@ -146,7 +154,8 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	}
 
 	@Override
-	public FOSet<? extends T> getOriginalSubset(String name) {
+	public FOSet<? extends T> getOriginalSubset(String name)
+	{
 		return mSubsets.get(name);
 	}
 
@@ -214,7 +223,7 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	}
 
 	@Override
-	public FOSet<T> complementIn(FOSet<T> relativeSet)
+	public FOSet<? super T> complementExtendIn(FOSet<? extends T> relativeSet)
 	{
 		String rsName = relativeSet.getName();
 		FOEnumerableSet<? extends T> inset = mSubsets.get(rsName);
