@@ -286,7 +286,11 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 				int newRangeLastOrInf = Integer.min(rangeLastOrInf, intLastOrInf);
 				
 				if(newRangeFirstOrInf <= newRangeLastOrInf)
-					newRanges.add(new FOSetRangedNaturals(newRangeFirstOrInf, newRangeLastOrInf));
+				{
+					boolean nrFirstIsInf = newRangeFirstOrInf == Integer.MIN_VALUE;
+					boolean nrLastIsInf = newRangeLastOrInf == Integer.MAX_VALUE;
+					newRanges.add(new FOSetRangedNaturals(newRangeFirstOrInf, !nrFirstIsInf, newRangeLastOrInf, !nrLastIsInf));
+				}
 			}
 		}
 

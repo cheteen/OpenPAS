@@ -574,7 +574,7 @@ public class FOSetSequenceOfRangesTest {
 	}
 	
 	@Test
-	public void testConstrains() throws FOInvalidSingleRangeSequence
+	public void testConstrains1() throws FOInvalidSingleRangeSequence
 	{
 		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(-19, -10);
 		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(1, 10);
@@ -597,6 +597,41 @@ public class FOSetSequenceOfRangesTest {
 		assertEquals("N [5, 5]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(5), new FOElementImpl.FOIntImpl(5)).getName());
 	}
 
+	@Test
+	public void testConstrains2() throws FOInvalidSingleRangeSequence
+	{
+		FOSetRangedNaturals forange1 = new FOSetRangedNaturals(Integer.MIN_VALUE, false, 0, true);
+		FOSetRangedNaturals forange2 = new FOSetRangedNaturals(3, 5);
+		FOSetRangedNaturals forange3 = new FOSetRangedNaturals(10, true, Integer.MAX_VALUE, false);
+		FOSetSequenceOfRanges foseq = new FOSetSequenceOfRanges(Arrays.asList(forange1, forange2, forange3));
+		Assert.assertEquals("Z (-inf, 0] U [3, 5] U [10, inf)", foseq.getName());
+		
+		assertEquals("Z (-inf, -10]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(-10)).getName());
+		assertEquals("Z (-inf, 0]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(0)).getName());
+		assertEquals("Z (-inf, 0]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(1)).getName());
+		assertEquals("Z (-inf, 0]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(2)).getName());
+		assertEquals("Z (-inf, 0] U [3, 3]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(3)).getName());
+		assertEquals("Z (-inf, 0] U [3, 4]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(4)).getName());
+		assertEquals("Z (-inf, 0] U [3, 5]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(5)).getName());
+		assertEquals("Z (-inf, 0] U [3, 5]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(6)).getName());
+		assertEquals("Z (-inf, 0] U [3, 5] U [10, 10]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(10)).getName());
+		assertEquals("Z (-inf, 0] U [3, 5] U [10, 15]", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(15)).getName());
+		assertEquals("Z (-inf, 0] U [3, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+
+		assertEquals("N [21, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(21), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(10), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(9), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(7), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [5, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(5), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [4, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(4), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [3, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(3), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [3, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(2), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [3, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(1), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("N [0, 0] U [3, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(0), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("Z [-10, 0] U [3, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(-10), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+		assertEquals("Z (-inf, 0] U [3, 5] U [10, inf)", foseq.constrainToRange(new FOElementImpl.FOIntImpl(Integer.MIN_VALUE), new FOElementImpl.FOIntImpl(Integer.MAX_VALUE)).getName());
+	}
+	
 	@Test
 	public void testConstrainNamed() throws FOInvalidSingleRangeSequence
 	{

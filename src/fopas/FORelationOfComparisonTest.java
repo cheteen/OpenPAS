@@ -289,8 +289,8 @@ public class FORelationOfComparisonTest {
 		testFormula(structure,
 				"(forall _v1)((_v1 > c0 & _v1 < c10 | _v1 > c20 & _v1 < c50) -> ¬(_v1 #= c100))", true, 
 				"(forall _v1)((((_v1 > c0) & (_v1 < c10)) | ((_v1 > c20) & (_v1 < c50))) -> ¬(_v1 #= c100))");
-		FOStats stats = structure.getRuntime().getStats();
-		stats.printStats(System.out);
+//		FOStats stats = structure.getRuntime().getStats();
+//		stats.printStats(System.out);
 	}
 	
 	@Test
@@ -300,7 +300,7 @@ public class FORelationOfComparisonTest {
 		//assertEquals(Integer.MAX_VALUE, structure.getUniverse().size());
 		testFormula(structure, "(forall _v1)((_v1 > cm100 & _v1 < c100) -> (¬(_v1 = c100) & ¬(_v1 = cm100)))", true,
 				"(forall _v1)(((_v1 > cm100) & (_v1 < c100)) -> (¬(_v1 = c100) & ¬(_v1 = cm100)))");
-		FOStats stats = structure.getRuntime().getStats();
+//		FOStats stats = structure.getRuntime().getStats();
 //		stats.printStats(System.out);
 	}
 
@@ -311,7 +311,7 @@ public class FORelationOfComparisonTest {
 		//assertEquals(Integer.MAX_VALUE, structure.getUniverse().size());
 		testFormula(structure, "(forall _v1)((_v1 > c0 & _v1 < c10) -> ¬(_v1 = cm100))", true,
 				"(forall _v1)(((_v1 > c0) & (_v1 < c10)) -> ¬(_v1 = cm100))");
-		FOStats stats = structure.getRuntime().getStats();
+//		FOStats stats = structure.getRuntime().getStats();
 //		stats.printStats(System.out);
 	}
 }
