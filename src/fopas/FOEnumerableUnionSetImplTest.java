@@ -33,8 +33,10 @@ import com.google.common.collect.Iterables;
 import fopas.FOSetUtils.EmptySet;
 import fopas.basics.FOConstructionException;
 import fopas.basics.FOElement;
+import fopas.basics.FOElement.FOInteger;
 import fopas.basics.FOElement.FOString;
 import fopas.basics.FOElement.FOSymbol;
+import fopas.basics.FOEnumerableSet;
 import fopas.basics.FOSet;
 
 public class FOEnumerableUnionSetImplTest {
@@ -104,21 +106,37 @@ public class FOEnumerableUnionSetImplTest {
 	}
 
 	@Test
+	public void testSetCreationThrows()
+	{
+		FOEnumerableSet<FOElement> unionSet = null;
+		try
+		{
+			unionSet = new FOEnumerableUnionSetImpl<>(Arrays.asList(createNamesSet()), FOElement.class);
+		}
+		catch (FOConstructionException e)
+		{
+			assertTrue(e.getMessage().contains("Can't create union set with fewer than 2 sets"));
+		}
+		assertNull(unionSet); // ensures the exception was thrown.
+	}
+
+	@Test
 	public void testSetComplement1() throws FOConstructionException
 	{
 		FOEnumerableUnionSetImpl<FOElement> unionSetRN = createUnionSetRN();
 		FOEnumerableUnionSetImpl<FOElement> unionSetRNS = createUnionSetRNS();
 		
 		{
-			FOSet<? extends FOElement> complementS = unionSetRN.complement(unionSetRNS);
+			FOSet<? extends FOElement> complementS = unionSetRN.complementAcross(unionSetRNS);
 			assertEquals("maths_symbols", complementS.getName());			
-			
-			FOSet<? extends FOElement> complementS2 = unionSetRN.complementIn(unionSetRNS);
-			assertEquals(complementS, complementS2);
 		}
 		{
-			FOSet<? extends FOElement> complementS = unionSetRNS.complement(unionSetRN);
-			assertNull(complementS);			
+			FOSet<? extends FOElement> complement = unionSetRN.complement(unionSetRNS);
+			assertNull(complement);
+		}
+		{
+			FOSet<? extends FOElement> complementEmpty = unionSetRNS.complement(unionSetRN);
+			assert(complementEmpty instanceof EmptySet);
 		}
 		{
 			FOSet<? extends FOElement> complementEmpty = unionSetRNS.complement(unionSetRN);
@@ -130,13 +148,25 @@ public class FOEnumerableUnionSetImplTest {
 	@Test
 	public void testSetComplement2() throws FOConstructionException
 	{
+		FOEnumerableUnionSetImpl<FOElement> unionSetRNS = createUnionSetRNS();
 		FOEnumerableUnionSetImpl<FOElement> unionSetRN = createUnionSetRN();
-		FOSetRangedNaturals setR = new FOSetRangedNaturals(10, 14);
+		FOBridgeSet<FOSymbol> setS = createMathsSmybolsSet();
 		
-//		{
-//			FOSet<? extends FOElement> complementN = setR.complement(unionSetRN);
-//			assertEquals("maths_symbols", complementS.getName());			
+		{
+			FOSet<? extends FOElement> complementRN = setS.complementAcross(unionSetRNS);
+			assertEquals(unionSetRN, complementRN);
+		}
+	}
+
+	@Test
+	public void testSetComplement3() throws FOConstructionException
+	{
+		FOEnumerableUnionSetImpl<FOElement> unionSetRNS = createUnionSetRNS();
+		EmptySet<FOElement> emptyElementSet = new EmptySet<>(FOElement.class);
 		
-//		}
+		{
+			FOSet<? extends FOElement> complementSetRNS = emptyElementSet.complementAcross(unionSetRNS);
+			assertEquals(complementSetRNS, unionSetRNS);
+		}
 	}
 }

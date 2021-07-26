@@ -44,10 +44,21 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	// TODO: Implement this using a tree set, this as a natural order that can be
 	// best represented as a tree (i.e the inheritance structure).
 	// Need to implement an inheritance comparator for that.
-	protected final Map<String, FOEnumerableSet<? extends T>> mSubsets;
+	protected final Map<String, FOEnumerableSet<? extends T>> mNamedSubsets;
 	protected final Class<T> mEltType;
 	protected final String mName;
 
+	/**
+	 * A union of named sets that enforces a few constraints:
+	 * - Only one instance of a set.
+	 * - No name collision allowed.
+	 * - Only one set from a class lineage (e.g. you can have strings and integers, but not two integer sets, or strings and digrams)
+	 * 
+	 * If you need a union of integer sets use a sequence of integers instead.
+	 * @param subsets
+	 * @param eltType
+	 * @throws FOConstructionException
+	 */
 	FOEnumerableUnionSetImpl(Collection<FOEnumerableSet<? extends T>> subsets, Class<T> eltType)
 			throws FOConstructionException
 	{
@@ -63,7 +74,7 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 		mEltType = eltType;
 		mName = name;
 
-		mSubsets = validateAndCreateNamedSubset(subsets);
+		mNamedSubsets = validateAndCreateNamedSubset(subsets);
 	}
 
 	protected FOEnumerableUnionSetImpl(Map<String, FOEnumerableSet<? extends T>> namedSubsets, Class<T> eltType,
@@ -73,7 +84,7 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 		if (namedSubsets.size() < 2)
 			throw new FOConstructionException("Can't create union set with fewer than 2 sets");
 
-		mSubsets = namedSubsets; // this constructor is protected because we want this named subset to be
+		mNamedSubsets = namedSubsets; // this constructor is protected because we want this named subset to be
 									// validated already (but don't want to write extra code to ensure that).
 		mEltType = eltType;
 		mName = name; // this can be null since this is an internal constructor
@@ -83,12 +94,18 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 			Iterable<FOEnumerableSet<? extends T>> subsets) throws FOConstructionException
 	{
 		Map<String, FOEnumerableSet<? extends T>> namedSubsets = new LinkedHashMap<>();
-		for (FOEnumerableSet<? extends T> foset : subsets) {
+		for (FOEnumerableSet<? extends T> foset : subsets)
+		{
 			if (!mEltType.isAssignableFrom(foset.getType()))
 			{
 				assert false; // this should never happen
 				throw new FOConstructionException("Union set type isn't an ancestor for subset: " + foset);
 			}
+			
+			// The next condition should weed this out, but this makes sure (e.g. possible type problems)
+			// and is more explicit an error message.
+			if(namedSubsets.containsValue(foset))
+				throw new FOConstructionException("Adding same subset more than once: " + foset);
 
 			// Check that we don't already have a set that shares lineage with this one.
 			// If we allowed that, then the constituents sets in this subset could possibly
@@ -104,20 +121,21 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 			if (namedSubsets.put(foset.getName(), foset) != null)
 				throw new FOConstructionException("Name collision while creating union set for set: " + foset);
 		}
+		
 		return namedSubsets;
 	}
 
 	@Override
 	public Iterator<T> iterator()
 	{
-		return Iterables.concat(mSubsets.values()).iterator();
+		return Iterables.concat(mNamedSubsets.values()).iterator();
 	}
 
 	@Override
 	public int size()
 	{
 		int size = 0;
-		for (FOSet<? extends FOElement> foset : mSubsets.values())
+		for (FOSet<? extends FOElement> foset : mNamedSubsets.values())
 			if (foset.size() == Integer.MAX_VALUE)
 				return Integer.MAX_VALUE; // infinite set
 			else
@@ -131,7 +149,7 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 		if (mName != null)
 			return mName;
 		StringBuffer sb = new StringBuffer();
-		Iterator<String> it = mSubsets.keySet().iterator();
+		Iterator<String> it = mNamedSubsets.keySet().iterator();
 		sb.append(it.next());
 		while (it.hasNext()) {
 			sb.append(" U ");
@@ -144,7 +162,7 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	@Override
 	public boolean contains(Object o)
 	{
-		for (FOSet<? extends FOElement> foset : mSubsets.values()) {
+		for (FOSet<? extends FOElement> foset : mNamedSubsets.values()) {
 			if (!foset.getType().isAssignableFrom(o.getClass()))
 				continue; // this set won't contain an element of this type
 			if (foset.contains(o))
@@ -156,7 +174,7 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	@Override
 	public FOSet<? extends T> getOriginalSubset(String name)
 	{
-		return mSubsets.get(name);
+		return mNamedSubsets.get(name);
 	}
 
 	@Override
@@ -172,7 +190,7 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 		Iterable<FOEnumerableSet<? extends T>> subsetsComplement = FluentIterable.from(enumerableRelativeSet.getSetIterable())
 				.filter(relSubset -> 
 				{
-					FOEnumerableSet<? extends T> ownSubset = mSubsets.get(relSubset.getName());
+					FOEnumerableSet<? extends T> ownSubset = mNamedSubsets.get(relSubset.getName());
 					
 					if(ownSubset == null)
 						return true; // Relative set has it, but own set doesn't, so it's part of the complement.
@@ -226,12 +244,12 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	public FOSet<? super T> complementExtendIn(FOSet<? extends T> relativeSet)
 	{
 		String rsName = relativeSet.getName();
-		FOEnumerableSet<? extends T> inset = mSubsets.get(rsName);
+		FOEnumerableSet<? extends T> inset = mNamedSubsets.get(rsName);
 		if(inset == null)
 		{
 			// The relative set itself isn't in the union set, but let's see if its type is something that would allow the union set to
 			// possibly contain the same items.
-			for(FOEnumerableSet<? extends T> subset : mSubsets.values())
+			for(FOEnumerableSet<? extends T> subset : mNamedSubsets.values())
 				if(relativeSet.getType().isAssignableFrom(subset.getType()))
 					return null; // we can't handle this in an efficient way.
 			return this;
@@ -242,7 +260,7 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 				throw new FORuntimeException("Set name collision: " + relativeSet.getName()); //TODO: There has to be a better way to deal with this - actually get rid of names, and use a set of sets only,
 			// then we can declare names as mainly for decoration / nice to have.
 			Map<String, FOEnumerableSet<? extends T>> namedSubsets = new LinkedHashMap<>();
-			for(FOEnumerableSet<? extends T> subset : mSubsets.values())
+			for(FOEnumerableSet<? extends T> subset : mNamedSubsets.values())
 			{
 				if(subset.getName().equals(rsName))
 					continue;
@@ -270,6 +288,40 @@ public class FOEnumerableUnionSetImpl<T extends FOElement> implements FOUnionSet
 	public Iterable<FOSet<? extends T>> getSetIterable() {
 		// We know Iterator doesn't change behaviour between FOSet vs. FO EnumerableSet,
 		// so what's below is safe.
-		return (Iterable) mSubsets.values();
+		return (Iterable) mNamedSubsets.values();
 	}
+
+	// Take into account only the subsets contained - not the names, name of this set, or its type.
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((mNamedSubsets == null) ? 0 : mNamedSubsets.values().hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		@SuppressWarnings("unchecked")
+		FOEnumerableUnionSetImpl<T> other = (FOEnumerableUnionSetImpl<T>) obj;
+		if (mNamedSubsets == null) {
+			if (other.mNamedSubsets != null)
+				return false;
+			else
+				return true;
+		}
+		// Compare only values - ignore names! For some reason values().equals doesn't work, so this is a quick & dirty suboptimal comparison method.
+		else if (	mNamedSubsets.values().containsAll(other.mNamedSubsets.values())
+				&& other.mNamedSubsets.values().containsAll(mNamedSubsets.values()) 
+				)
+			return true;
+		else
+			return false;
+	}	
 }

@@ -119,7 +119,9 @@ public interface FOSet<T extends FOElement>
 			if(complementSet != null)
 				return complementSet;
 			
-			return relativeMatchingSet.complementExtendIn(this); // may still be null
+			complementSet = relativeMatchingSet.complementExtendIn(this); // may still be null
+			if(complementSet != null)
+				return complementSet;
 		}
 		// Relative set type descends from own type
 		if(getType().isAssignableFrom(relativeSet.getType()))
