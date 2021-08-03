@@ -118,7 +118,7 @@ public class FOAliasByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	}
 
 	@Override
-	public <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
+	public <TI extends FOElement> FOSet<? extends FOElement> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		// The only thing at this level to do is to handover the decision to the contained formula.

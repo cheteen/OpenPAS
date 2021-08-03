@@ -124,7 +124,7 @@ class FOFormulaBROr extends FOFormulaBRImpl
 	}
 
 	@Override
-	public <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
+	public <TI extends FOElement> FOSet<? extends FOElement> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		FORuntime settings = structure.getRuntime();
@@ -142,72 +142,41 @@ class FOFormulaBROr extends FOFormulaBRImpl
 		// (2) Greedy O(NxN): This can pick up one layer find out the best, take the best, and repeat.
 		// (3) Exhaustive O(N!): Follow any possible lineage to find the absolute best combination.
 		
-		// Simple strategy:
-		FOSet<? extends TI> fosetSubset = universeSubset;
-		for(FOFormula form : mFormulas)
-		{
-			FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
-			FOSet<? extends TI> fosetSubsetNext = formimpl.tryEliminateTrue(depth + 1, structure, fosetSubset, var, false, assignment, aliasCalls);
-
-			if(fosetSubsetNext == null)
-				continue; // TODO: This needs a marker for an incomplete set.
-			
-			fosetSubset = fosetSubsetNext;
-			
-			if(fosetSubset.size() <= elimTarget)
-				break;
-		}
-		// TODO: Add the new counts here.
+		FOSet<? extends FOElement> fosetResultSubset;
 		
-		if(fosetSubset == universeSubset)
-			fosetSubset = null; //failed to constrain
-		else
-		{ // Let's deal with the complementing
-			if(complement ^ mNegated)
+		{
+			// Simple strategy:
+			FOSet<? extends FOElement> fosetSubset = universeSubset;
+			for(FOFormula form : mFormulas)
 			{
-				//Complement is normally defined only between sets that share types. Here we need to implement
-				// a broader case of complement that allows for complemeting across different types of sets.
-				// We need to consider two cases:
-				// 1) universeSubset element type is of the same type as as the new subset element type (easy option).
-				// 2) universeSubset element type is of a super type of new subset element type (special treatment).
-				if(universeSubset.getType().equals(fosetSubset.getType()))
-				{
-					@SuppressWarnings("unchecked") // checked in the above line
-					FOSet<TI> fosetSubsetTI = (FOSet<TI>) fosetSubset; 
-					fosetSubset = fosetSubsetTI.complement(universeSubset);
-				}
-				else
-				{
-					assert universeSubset.getType().isAssignableFrom(fosetSubset.getType()); // just a sanity check
-					// TODO: Move this inside the set, no need to be here.
-					//
-					// What's happened here is the subset is a more-specialised type than the universe subset we started with,
-					// but since we're trying to take the complement here, we need to go back to the more general type of the universe.
-					//
-					// We'll do this by finding the type-based subset of the universe, and complementing that to the subset we have
-					// (recall complement only works within a type as it's defined - for simplicity of implementation).
-					// Then we'll union this set with the rest the universe set not of this type.
-					//
-					// e.g. A = { 1, 2, 3, A, B} where 1-3 are natural numbers, and A, B symbols.
-					// Let's say, A_2 = N {1, 2} (universe subset), where we want A \ A_2.
-					// We find: A_I = A ∩ N = { 1, 2, 3} (by element type), and A \ A_I = {A, B} = {A, B}
-					// Then: A \ A_2 = A_I \ A_2 U A \ A_I
-					//               = { 3 } U {A, B}
-					//               = {3, A, B}
-					// as needed.
-					//
-					fosetSubset = null; // TODO: Not supported yet.
-//					FORelation<FOElement> relInset = new FORelationImpl.FORelationInSet(universeSubset, "internal");
-//					FOSet<? extends TI> fosetSubtypeSubset = 
-					
-				}
+				FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
+				FOSet<? extends FOElement> fosetSubsetNext = formimpl.tryEliminateTrue(depth + 1, structure, fosetSubset, var, false, assignment, aliasCalls);
+
+				if(fosetSubsetNext == null)
+					continue; // TODO: This needs a marker for an incomplete set.
+				
+				fosetSubset = fosetSubsetNext;
+				
+				if(fosetSubset.size() <= elimTarget)
+					break;
 			}
+			// TODO: Add the new counts here.
+			
+			if(fosetSubset == universeSubset)
+				fosetResultSubset = null; //failed to constrain
+			else
+			{ // Let's deal with the complementing
+				if(complement ^ mNegated)
+					fosetResultSubset = fosetSubset.complementAcross(universeSubset);
+				else
+					fosetResultSubset = fosetSubset;
+			}			
 		}
 		
 		settings.trace(5, depth, this, "FOFormulaBROr", hashCode(), "eliminateTrue", 
-				"Elimination variable: %s, success: %s, smallest subset: %s, negate: %s, complementing: %s", var.getName(), fosetSubset != null,
-				fosetSubset == null ? "<null>" : fosetSubset.getName(), mNegated, mNegated ^ complement);
+				"Elimination variable: %s, success: %s, smallest subset: %s, negate: %s, complementing: %s", var.getName(), fosetResultSubset != null,
+						fosetResultSubset == null ? "<null>" : fosetResultSubset.getName(), mNegated, mNegated ^ complement);
 		
-		return fosetSubset;
+		return fosetResultSubset;
 	}
 }

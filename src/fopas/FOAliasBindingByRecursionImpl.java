@@ -219,7 +219,7 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 	}
 
 	@Override
-	public <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
+	public <TI extends FOElement> FOSet<? extends FOElement> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		FORuntime settings = structure.getRuntime();
@@ -239,7 +239,7 @@ class FOAliasBindingByRecursionImpl extends FOFormulaBRImpl implements FOAlias
 		// we know we're not going to make progress given that the only assignment that goes into the alias are the mapping assignments we capture here.
 		// So, we capture the state entirely here with the name of the alias and its given list of (mapped) assignments.
 		AliasEntry ae = new AliasEntry(this, mappedAssignment); 
-		FOSet<? extends TI> returnSet;
+		FOSet<? extends FOElement> returnSet;
 		if(!aliasCalls.contains(ae))
 		{
 			aliasCalls.add(ae);

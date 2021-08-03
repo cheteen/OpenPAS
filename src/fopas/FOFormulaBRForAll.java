@@ -203,7 +203,7 @@ class FOFormulaBRForAll extends FOFormulaBRImpl
 		return mScopeFormula;
 	}
 	@Override
-	public <TI extends FOElement> FOSet<? extends TI> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
+	public <TI extends FOElement> FOSet<? extends FOElement> tryEliminateTrue(int depth, FOStructure structure, FOSet<TI> universeSubset, FOVariable var,
 			boolean complement, Map<FOVariable, FOElement> assignment, Set<FOAliasBindingByRecursionImpl.AliasEntry> aliasCalls)
 	{
 		// The only thing to do is to see is if the scoped formula somehow already constrains our variable.
