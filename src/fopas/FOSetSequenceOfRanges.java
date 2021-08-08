@@ -130,6 +130,15 @@ public class FOSetSequenceOfRanges implements FOOrderedEnumerableSet<FOInteger>
 		}
 	}
 	
+	//------ Set incompleteness functionality ---------------------------------------------------
+	// This couldn've been a based class functionality to avoid duplication, but I'd rather leave the freedom of implentation and copy.
+	protected boolean mIsIncompleteSuperset;
+	@Override
+	public boolean isIncompleteSuperset() { return mIsIncompleteSuperset; }
+	@Override
+	public void setIncompleteSuperset(boolean isIncomplete) { mIsIncompleteSuperset = isIncomplete; }	
+	//-------------------------------------------------------------------------------------------	
+
 	@Override
 	public int size()
 	{

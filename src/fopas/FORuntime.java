@@ -33,7 +33,7 @@ public class FORuntime
 			return "FOStats [numL1CheckAsgIntoAlias=" + numL1CheckAsgIntoAlias + ", numL1CheckAsgOr=" + numL1CheckAsgOr
 					+ ", numL1CheckAsgAll=" + numL1CheckAsgAll + ", numL1CheckAsgAllSub=" + numL1CheckAsgAllSub
 					+ ", numL1CheckAsgAllSubFail=" + numL1CheckAsgAllSubFail + ", numL1CheckAsgRel=" + numL1CheckAsgRel
-					+ ", numL1ElimTrueRel=" + numL1ElimTrueRelAttempts + ", numL0ElimTrueRepeatCall=" + numL1ElimTrueRepeatCall
+					+ ", numL1ElimTrueRelAttempts=" + numL1ElimTrueRelAttempts + ", numL1ElimTrueRelSuccess=" + numL1ElimTrueRelSuccess + ", numL0ElimTrueRepeatCall=" + numL1ElimTrueRepeatCall
 					+ ", numL1ElimTrueSuccess=" + numL1ElimTrueForallSuccess + ", numL1ElimTrueSuccess1="
 					+ numL1ElimTrueForallSuccess1 + ", numL1ElimTrueSuccess0=" + numL1ElimTrueForallSuccess0 + "]";
 		}
@@ -45,6 +45,7 @@ public class FORuntime
 		int numL1CheckAsgAllSubFail; // How many times subformula eval succeeded (ie. continued)?
 		int numL1CheckAsgRel;
 		int numL1ElimTrueRelAttempts;
+		int numL1ElimTrueRelSuccess;
 		int numL1ElimTrueRepeatCall;
 		int numL1ElimTrueForallSuccess;
 		int numL1ElimTrueForallSuccess1; // How many times was a universe set reduced to a set of size 1 (but not its complement)?
@@ -71,6 +72,7 @@ public class FORuntime
 			numL1CheckAsgAllSubFail = 0;
 			numL1CheckAsgRel = 0;
 			numL1ElimTrueRelAttempts = 0;
+			numL1ElimTrueRelSuccess = 0;
 			numL1ElimTrueRepeatCall = 0;
 			numL1ElimTrueForallSuccess = 0;
 			numL1ElimTrueForallSuccess1 = 0;
@@ -97,6 +99,7 @@ public class FORuntime
 			formatln(ps, "CheckAsgAllSubFail: %d", numL1CheckAsgAllSubFail);
 			formatln(ps, "CheckAsgRel: %d", numL1CheckAsgRel);
 			formatln(ps, "ElimTrueRelAttempts: %d", numL1ElimTrueRelAttempts);
+			formatln(ps, "ElimTrueRelSuccess: %d", numL1ElimTrueRelSuccess);
 			formatln(ps, "ElimTrueRepeatCall: %d", numL1ElimTrueRepeatCall);
 			formatln(ps, "ElimTrueForallSuccess: %d", numL1ElimTrueForallSuccess);
 			formatln(ps, "ElimTrueForallSuccess1: %d", numL1ElimTrueForallSuccess1);

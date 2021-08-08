@@ -281,7 +281,80 @@ public class FORelationOfComparisonTest {
 	}
 	//TODO: Add another test as above to create multiple ranges.
 
+	@Test
+	public void testMultiAndedFalse()
+	{
+		FOStructure structure = createStructureIneqWithRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+		
+		testFormula(structure,
+				"(exists _v1)((_v1 >= c0 & _v1 < c10 & _v1 #= c10))", false,
+				"(exists _v1)((_v1 >= c0) & (_v1 < c10) & (_v1 #= c10))");
+		FOStats stats = structure.getRuntime().getStats();
+		// Should look at 10 possibilities, then give up.
+		assertEquals(10, stats.numL1CheckAsgOr);
+		// There are three relations to try and elimTrue, one of the is designed to fail
+		assertEquals(3, stats.numL1ElimTrueRelAttempts);
+		// And the other two (inequalities) should succeed.
+		assertEquals(2, stats.numL1ElimTrueRelSuccess);
+	}
 	
+	@Test
+	public void testMultiAndedTrue()
+	{
+		// This test is suboptimal because it relies on the order of execution for suceeeding, not the logical setup.
+		FOStructure structure = createStructureIneqWithRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+		
+		testFormula(structure,
+				"(exists _v1)((_v1 > c0 & _v1 <= c10 & _v1 #= c10))", true,
+				"(exists _v1)((_v1 > c0) & (_v1 <= c10) & (_v1 #= c10))");
+		FOStats stats = structure.getRuntime().getStats();
+		// Should look at 10 possibilities, then give up.
+		assertEquals(10, stats.numL1CheckAsgOr);
+		// There are three relations to try and elimTrue, one of the is designed to fail
+		assertEquals(3, stats.numL1ElimTrueRelAttempts);
+		// And the other two (inequalities) should succeed.
+		assertEquals(2, stats.numL1ElimTrueRelSuccess);
+	}
+
+
+	@Test
+	public void testMultiOred()
+	{
+		FOStructure structure = createStructureIneqWithRange(0, Integer.MAX_VALUE);
+		
+		testFormula(structure,
+				"(exists _v1)((_v1 < c10 | _v1 < c20) & _v1 #= c20)", false,
+				"(exists _v1)(((_v1 < c10) | (_v1 < c20)) & (_v1 #= c20))");
+		FOStats stats = structure.getRuntime().getStats();
+		// 50 rel checks - 10 for the first only + (10+10) for the second + 20 for the third.
+		assertEquals(50, stats.numL1CheckAsgRel);
+		// Should look at 20 possibilities, then give up.
+		assertEquals(20, stats.numL1CheckAsgAllSub);
+		// There are three relations to try and elimTrue, one of the is designed to fail
+		assertEquals(3, stats.numL1ElimTrueRelAttempts);
+		// And the other two (inequalities) should succeed.
+		assertEquals(2, stats.numL1ElimTrueRelSuccess);
+		stats.printStats(System.out);
+	}
+
+	@Test
+	public void testMultiTermsFalse()
+	{
+		FOStructure structure = createStructureIneqWithRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+		
+		testFormula(structure,
+				"(exists _v1)(((_v1 >= c0 & _v1 < c10) | ((_v1 >= c20 & _v1 < c50))) & _v1 #= c50)", false,
+				"(exists _v1)((((_v1 >= c0) & (_v1 < c10)) | ((_v1 >= c20) & (_v1 < c50))) & (_v1 #= c50))");
+		FOStats stats = structure.getRuntime().getStats();
+		// Should look at 10 possibilities, then give up.
+//		assertEquals(10, stats.numL1CheckAsgOr);
+//		// There are three relations to try and elimTrue, one of the is designed to fail
+//		assertEquals(3, stats.numL1ElimTrueRelAttempts);
+//		// And the other two (inequalities) should succeed.
+//		assertEquals(2, stats.numL1ElimTrueRelSuccess);
+		stats.printStats(System.out);
+	}
+
 	@Test
 	public void testNoConstrainMultiRange()
 	{

@@ -139,9 +139,16 @@ class FOFormulaBRRelation extends FOFormulaBRImpl
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		FOSet<? extends TI> constrained = mRel.tryConstrain(var, (FOSet) universeSubset, mTerms, complement ^ !mNegated);
 
-		settings.trace(5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", 
-				"Elimination variable: %s, success: %s, subset: %s", var.getName(), constrained != null,
-				constrained == null ? "<null>" : constrained.getName());
+		if(settings.getTraceLevel() >= 1)
+		{
+			// This is the only place that truly does elimination.
+			if(constrained != null)
+				settings.getStats().incrementedStat("numL1ElimTrueRelSuccess", ++settings.getStats().numL1ElimTrueRelSuccess, settings.getTraceLevel(), this);
+			
+			settings.trace(5, depth, this, "FOFormulaBRRelation", hashCode(), "eliminateTrue", 
+					"Elimination variable: %s, success: %s, subset: %s", var.getName(), constrained != null,
+					constrained == null ? "<null>" : constrained.getName());
+		}
 
 		return constrained;
 	}

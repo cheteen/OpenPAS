@@ -19,6 +19,7 @@ package fopas.basics;
 
 import java.util.List;
 import java.util.Set;
+import fopas.FOSetUtils.EmptySet;
 
 // We're only interested in enumarable sets in computations, so let's assume a set to be iterable up front - though this will change.
 public interface FOSet<T extends FOElement>
@@ -90,8 +91,11 @@ public interface FOSet<T extends FOElement>
 	 * @param relativeSet
 	 * @return A complement set as described above.
 	 */
-	public default FOSet<? extends FOElement> complementAcross(FOSet<? extends FOElement> relativeSet)
+	public default <TR extends FOElement> FOSet<? extends FOElement> complementAcross(FOSet<TR> relativeSet)
 	{
+		if(isIncompleteSuperset())
+			return new EmptySet<TR>(relativeSet.getType());
+					
 		FOSet<? extends FOElement> complementSet;
 
 		if(relativeSet.getType().equals(getType()))
@@ -147,4 +151,16 @@ public interface FOSet<T extends FOElement>
 			return this.complement(relativeSet);
 		return this;
 	}
+	
+	/**
+	 * An incomplete superset set is a superset of the actual set we're interested in knowing, but only partially know as captured in this set.
+	 * There are parts of this superset that don't belong to the set we want to represent, but we don't know which parts.
+	 * This is mainly meant for use in elimination in forall expressions where it doesn't matter to have more elements than is actually present,
+	 * since it only makes the forall operation take longer, but doesn't otherwise affect the result.
+	 * The caveat is that, during a complement operation, it's not possible know with any certainty what the set should look like,
+	 * therefore the complement implementation needs to return an empty set for an incomplete superset.
+	 * @return Flag whether this is an incomplete superset of a set.
+	 */
+	public boolean isIncompleteSuperset();
+	public void setIncompleteSuperset(boolean isIncomplete);
 }

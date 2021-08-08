@@ -38,13 +38,22 @@ import fopas.basics.FOTerm;
 
 public class FOSetUtils
 {
-	static class EmptySet<T extends FOElement> implements FOOrderedEnumerableSet<T>
+	static public class EmptySet<T extends FOElement> implements FOOrderedEnumerableSet<T>
 	{
 		protected final Class<T> mSetType;
-		EmptySet(Class<T> setType)
+		public EmptySet(Class<T> setType)
 		{
 			mSetType = setType;
 		}
+
+		//------ Set incompleteness functionality ---------------------------------------------------
+		// This couldn've been a based class functionality to avoid duplication, but I'd rather leave the freedom of implentation and copy.
+		protected boolean mIsIncompleteSuperset;
+		@Override
+		public boolean isIncompleteSuperset() { return mIsIncompleteSuperset; }
+		@Override
+		public void setIncompleteSuperset(boolean isIncomplete) { mIsIncompleteSuperset = isIncomplete; }	
+		//-------------------------------------------------------------------------------------------	
 
 		@Override
 		public Iterator<T> iterator()
@@ -204,6 +213,15 @@ public class FOSetUtils
 			mRelativeSet = relativeSet; // TODO: This is not needed, remove it when there's time.
 		}
 
+		//------ Set incompleteness functionality ---------------------------------------------------
+		// This couldn've been a based class functionality to avoid duplication, but I'd rather leave the freedom of implentation and copy.
+		protected boolean mIsIncompleteSuperset;
+		@Override
+		public boolean isIncompleteSuperset() { return mIsIncompleteSuperset; }
+		@Override
+		public void setIncompleteSuperset(boolean isIncomplete) { mIsIncompleteSuperset = isIncomplete; }	
+		//-------------------------------------------------------------------------------------------	
+
 		@Override
 		public Iterator<T> iterator()
 		{
@@ -343,6 +361,15 @@ public class FOSetUtils
 			mType = type;
 		}
 		
+		//------ Set incompleteness functionality ---------------------------------------------------
+		// This couldn've been a based class functionality to avoid duplication, but I'd rather leave the freedom of implentation and copy.
+		protected boolean mIsIncompleteSuperset;
+		@Override
+		public boolean isIncompleteSuperset() { return mIsIncompleteSuperset; }
+		@Override
+		public void setIncompleteSuperset(boolean isIncomplete) { mIsIncompleteSuperset = isIncomplete; }	
+		//-------------------------------------------------------------------------------------------	
+
 		@Override
 		public Iterator<T> iterator()
 		{

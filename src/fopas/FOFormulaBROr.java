@@ -150,12 +150,24 @@ class FOFormulaBROr extends FOFormulaBRImpl
 			for(FOFormula form : mFormulas)
 			{
 				FOFormulaBRImpl formimpl = (FOFormulaBRImpl) form; 
-				FOSet<? extends FOElement> fosetSubsetNext = formimpl.tryEliminateTrue(depth + 1, structure, fosetSubset, var, false, assignment, aliasCalls);
+				FOSet<? extends FOElement> fosetET_Neg = formimpl.tryEliminateTrue(depth + 1, structure, fosetSubset, var, true, assignment, aliasCalls);
 
-				if(fosetSubsetNext == null)
-					continue; // TODO: This needs a marker for an incomplete set.
+				if(fosetET_Neg == null)
+				{
+					// This tryElim operation failed, therefore the existing subset we have now is an incomplete superset.
+					fosetSubset.setIncompleteSuperset(true);
+					continue;
+				}
 				
-				fosetSubset = fosetSubsetNext;
+				FOSet<? extends FOElement> fosetSubsetNext = fosetET_Neg.complementAcross(fosetSubset);
+				if(fosetSubsetNext == null)
+				{
+					// Failed to complement TODO: Count this
+					fosetSubset = universeSubset;
+					break;
+				}
+				else
+					fosetSubset = fosetSubsetNext;
 				
 				if(fosetSubset.size() <= elimTarget)
 					break;

@@ -45,7 +45,15 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T>, Set<T>
 		mSet = sourceSet;
 		mElementClass = elementClass;
 	}
-	
+
+	//------ Set incompleteness functionality ---------------------------------------------------
+	protected boolean mIsIncompleteSuperset;
+	@Override
+	public boolean isIncompleteSuperset() { return mIsIncompleteSuperset; }
+	@Override
+	public void setIncompleteSuperset(boolean isIncomplete) { mIsIncompleteSuperset = isIncomplete; }	
+	//-------------------------------------------------------------------------------------------
+
 	//-------------------------------------------------------------------------------------------
 	// Set bridge functions
 	//-------------------------------------------------------------------------------------------
@@ -154,5 +162,5 @@ public class FOBridgeSet<T extends FOElement> implements FOFiniteSet<T>, Set<T>
 		} else if (!mSet.equals(other.mSet))
 			return false;
 		return true;
-	}
+	}	
 }
